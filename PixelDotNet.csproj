@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>PixelDotNet</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <DefaultItemExcludes>$(DefaultItemExcludes);builds/**</DefaultItemExcludes>
+    <DonkehVersion Condition="'$(DonkehVersion)' == ''">1.0.38</DonkehVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- The HTML builders drop null children at runtime (that is what makes
+         Show(...) composable), but their parameters are annotated as Node[] rather
+         than Node?[]. Passing a conditional child is therefore correct and the
+         compiler's warning is noise. -->
+    <NoWarn>$(NoWarn);CS8604</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Donkeh.Windowing" Version="$(DonkehVersion)" />
+    <PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
+    <PackageReference Include="StbTrueTypeSharp" Version="1.26.13" />
+  </ItemGroup>
+
+  <!-- Every [assembly: Stylesheet(...)] path must also be embedded here: the
+       attribute is metadata only, the loader reads the embedded copy. Watch is
+       disabled so a CSS save does not trigger a rebuild under dotnet watch. -->
+  <ItemGroup>
+    <EmbeddedResource Include="src/Components/App/App.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Chrome/Chrome.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Icons/Icons.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Panels/Panels.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/StatusBar/StatusBar.css" Watch="false" />
+  </ItemGroup>
+
+  <!-- The icon TTFs sit next to the executable so the @font-face rules in
+       Icons.css resolve against AppContext.BaseDirectory. -->
+  <ItemGroup>
+    <Content Include="assets/fa-solid-900.ttf" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="assets/fa-regular-400.ttf" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Add Android or browser targets with:
+       donkeh enable-target android
+       donkeh enable-target web -->
+
+</Project>

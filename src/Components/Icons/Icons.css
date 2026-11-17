@@ -1,0 +1,219 @@
+/* Icon font. Font Awesome Free is loaded straight from the TTF next to the app;
+   the framework's stylesheet loader reads @font-face sources (file, http or data)
+   and registers them with the font manager before author CSS is compiled.
+
+   Only the glyphs the interface uses are declared, mirrored from Font Awesome's
+   own metadata, so a class rule is a plain content declaration rather than the
+   custom-property scheme used by the upstream stylesheet. Both weights resolve
+   to the same family: 700 is Font Awesome Solid, 400 is Font Awesome Regular. */
+
+@font-face {
+    font-family: "Font Awesome 6 Free";
+    font-style: normal;
+    font-weight: 700;
+    src: url("assets/fa-solid-900.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Font Awesome 6 Free";
+    font-style: normal;
+    font-weight: 400;
+    src: url("assets/fa-regular-400.ttf") format("truetype");
+}
+
+.fa {
+    display: inline-block;
+    font-family: "Font Awesome 6 Free";
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    speak: none;
+}
+
+.fa-regular {
+    font-weight: 400;
+}
+.fa-up-down-left-right::before {
+    content: "\f0b2";
+}
+
+.fa-vector-square::before {
+    content: "\f5cb";
+}
+
+.fa-paintbrush::before {
+    content: "\f1fc";
+}
+
+.fa-eraser::before {
+    content: "\f12d";
+}
+
+.fa-slash::before {
+    content: "\f715";
+}
+
+.fa-square::before {
+    content: "\f0c8";
+}
+
+.fa-circle::before {
+    content: "\f111";
+}
+
+.fa-circle-half-stroke::before {
+    content: "\f042";
+}
+
+.fa-fill-drip::before {
+    content: "\f576";
+}
+
+.fa-eye-dropper::before {
+    content: "\f1fb";
+}
+
+.fa-magnifying-glass::before {
+    content: "\f002";
+}
+
+.fa-rotate-left::before {
+    content: "\f2ea";
+}
+
+.fa-rotate-right::before {
+    content: "\f2f9";
+}
+
+.fa-floppy-disk::before {
+    content: "\f0c7";
+}
+
+.fa-eye::before {
+    content: "\f06e";
+}
+
+.fa-eye-slash::before {
+    content: "\f070";
+}
+
+.fa-lock::before {
+    content: "\f023";
+}
+
+.fa-lock-open::before {
+    content: "\f3c1";
+}
+
+.fa-plus::before {
+    content: "\2b";
+}
+
+.fa-copy::before {
+    content: "\f0c5";
+}
+
+.fa-arrow-down-long::before {
+    content: "\f175";
+}
+
+.fa-trash-can::before {
+    content: "\f2ed";
+}
+
+.fa-chevron-left::before {
+    content: "\f053";
+}
+
+.fa-chevron-right::before {
+    content: "\f054";
+}
+
+.fa-xmark::before {
+    content: "\f00d";
+}
+
+.fa-minus::before {
+    content: "\f068";
+}
+
+.fa-arrow-right-arrow-left::before {
+    content: "\f0ec";
+}
+
+.fa-clock-rotate-left::before {
+    content: "\f1da";
+}
+
+.fa-sliders::before {
+    content: "\f1de";
+}
+
+.fa-palette::before {
+    content: "\f53f";
+}
+
+.fa-layer-group::before {
+    content: "\f5fd";
+}
+
+.fa-image::before {
+    content: "\f03e";
+}
+
+.fa-crop-simple::before {
+    content: "\f565";
+}
+
+.fa-wand-magic-sparkles::before {
+    content: "\e2ca";
+}
+
+.fa-check::before {
+    content: "\f00c";
+}
+
+.fa-circle-check::before {
+    content: "\f058";
+}
+
+.fa-object-group::before {
+    content: "\f247";
+}
+
+.fa-object-ungroup::before {
+    content: "\f248";
+}
+
+.fa-arrows-rotate::before {
+    content: "\f021";
+}
+
+.fa-border-all::before {
+    content: "\f84c";
+}
+
+.fa-droplet::before {
+    content: "\f043";
+}
+
+.fa-font::before {
+    content: "\f031";
+}
+
+.fa-align-left::before {
+    content: "\f036";
+}
+
+.fa-align-center::before {
+    content: "\f037";
+}
+
+.fa-align-right::before {
+    content: "\f038";
+}
+
+.fa-chevron-down::before {
+    content: "\f078";
+}

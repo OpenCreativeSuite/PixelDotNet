@@ -1,0 +1,93 @@
+using System;
+using System.Collections.Generic;
+using Donkeh.UILab;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>
+/// Effect picker with a live preview. Choosing an effect previews it at a sensible
+/// default, the slider re-runs it from the original pixels, and Apply bakes it in.
+/// </summary>
+/// <remarks>
+/// Switching effects reuses the same snapshot, so trying a blur and then an emboss
+/// shows the emboss of the original layer rather than the blur of a blur.
+/// </remarks>
+public sealed class EffectsPanel : Component
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        PaintSession editor = UseContext(EditorContext.Value);
+        bool locked = editor.Document.Active.Locked;
+        List<Node> buttons = [];
+
+        foreach (EffectKind effect in Effects.All)
+        {
+            EffectKind target = effect;
+            bool active = editor.Effect == target;
+            buttons.Add(HtmlHelper.Button(new()
+            {
+                ClassName = active ? "btn is-on" : "btn",
+                Title = "Preview " + Effects.NameOf(target),
+                Disabled = locked,
+                OnClick = () =>
+                {
+                    editor.SelectEffect(target);
+                    editor.Refresh?.Invoke();
+                },
+            }, Text(Effects.NameOf(target))));
+        }
+
+        return F(
+            Ui.Section("Effect",
+                Div(new() { ClassName = "effect-list" }, [.. buttons])),
+
+            Show(editor.Effect != EffectKind.None, Details(editor)),
+
+            Show(editor.LastEffect != EffectKind.None, F(
+                Div(new() { ClassName = "section-split" }),
+                Div(new() { ClassName = "row" },
+                    Ui.Button(
+                        "Repeat " + Effects.NameOf(editor.LastEffect),
+                        "Apply the last effect again to the active layer",
+                        () =>
+                        {
+                            editor.RepeatLastEffect();
+                            editor.Refresh?.Invoke();
+                        },
+                        !locked)))),
+
+            Span(new() { ClassName = "panel-note" },
+                Text(locked
+                    ? "The active layer is locked."
+                    : "Effects apply to the active layer, or only the marquee when there is a selection. The preview is live; Apply keeps one undo step.")));
+    }
+
+    /// <summary>Builds the amount slider and the apply/cancel row for the picked effect.</summary>
+    private static Node Details(PaintSession editor)
+    {
+        (float min, float max, float _, string suffix) = Effects.RangeOf(editor.Effect);
+        bool previewing = editor.HasEffectPreview;
+
+        return F(
+            Ui.Slider(Effects.AmountLabel(editor.Effect), editor.EffectAmount, min, max, 1f, suffix, value =>
+            {
+                editor.SetEffectAmount(Ui.Parse(value, min, max));
+                editor.Refresh?.Invoke();
+            }),
+            Div(new() { ClassName = "row" },
+                Ui.Button("Apply", "Keep the previewed pixels", () =>
+                {
+                    editor.ApplyEffect();
+                    editor.Refresh?.Invoke();
+                }, previewing),
+                Ui.Button("Cancel", "Restore the pixels from before the preview", () =>
+                {
+                    editor.ResetEffect();
+                    editor.Refresh?.Invoke();
+                }, previewing)));
+    }
+}

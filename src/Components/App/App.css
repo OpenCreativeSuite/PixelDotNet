@@ -1,0 +1,321 @@
+/* Application shell.
+
+   One dark graphite surface broken into four bands: menus, tool options, the
+   workspace (rail / stage / inspector) and the status bar. Grid placement uses
+   explicit start/end lines so the phone media query can re-place every region
+   without named areas.
+
+   The custom properties are the whole design system: every other stylesheet
+   reads these names, so a palette change happens in exactly one place. The
+   --range-* properties are read by the host when it paints an
+   <input type="range">; they inherit, so declaring them once here themes every
+   slider in the application. */
+
+.app {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) 312px;
+    grid-template-rows: 32px 40px 1fr 26px;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+    overflow: hidden;
+    background-color: #17181b;
+    color: #c9ced6;
+    font-family: "Segoe UI", "Roboto", "DejaVu Sans", sans-serif;
+    font-size: 12px;
+    line-height: 1.3;
+    position: relative;
+
+    --bg-deep: #17181b;
+    --bg-sunken: #1a1c20;
+    --bg-chrome: #1e2024;
+    --bg-panel: #26292e;
+    --bg-raised: #2e3238;
+    --bg-hover: #343941;
+    --line: #33373e;
+    --line-strong: #3f444d;
+    --line-deep: #101215;
+    --text: #c9ced6;
+    --text-strong: #eef1f5;
+    --text-dim: #8b929c;
+    --text-faint: #6d747e;
+    --accent: #2f8df0;
+    --accent-soft: rgba(47, 141, 240, 0.16);
+
+    --range-track: #3a3f47;
+    --range-fill: #2f8df0;
+    --range-thumb: #e8ebf0;
+    --range-rim: #101215;
+}
+
+/* A track's automatic minimum is its content's min-content width, which let the
+   menu bar push the whole shell wider than a phone screen. */
+.menubar,
+.optionsbar,
+.rail,
+.stage,
+.side,
+.statusbar {
+    min-width: 0;
+}
+
+.menubar {
+    grid-column-start: 1;
+    grid-column-end: 4;
+    grid-row-start: 1;
+    grid-row-end: 2;
+}
+
+.optionsbar {
+    grid-column-start: 1;
+    grid-column-end: 4;
+    grid-row-start: 2;
+    grid-row-end: 3;
+}
+
+.rail {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 3;
+    grid-row-end: 4;
+}
+
+.stage {
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 3;
+    grid-row-end: 4;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    background-color: var(--bg-deep);
+}
+
+/* Popup layer for canvas-drawn menus. It starts under the options bar so the
+   picker can sit directly below its button while still covering the workspace. */
+.font-overlay {
+    position: absolute;
+    left: 0;
+    top: 72px;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: transparent;
+    cursor: default;
+}
+
+.side {
+    grid-column-start: 3;
+    grid-column-end: 4;
+    grid-row-start: 3;
+    grid-row-end: 4;
+}
+
+.statusbar {
+    grid-column-start: 1;
+    grid-column-end: 4;
+    grid-row-start: 4;
+    grid-row-end: 5;
+}
+
+/* ---- document tab ---- */
+
+.doctabs {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 30px;
+    padding: 0 10px;
+    flex-shrink: 0;
+    background-color: #1b1d21;
+    border-bottom: 1px solid var(--line-deep);
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.doctab {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 25px;
+    padding: 0 4px 0 9px;
+    border-top: 2px solid transparent;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    background-color: #26292e;
+    color: #b4bac3;
+    flex-shrink: 0;
+}
+
+.doctab:hover {
+    background-color: #2b2f36;
+}
+
+.doctab.is-active {
+    background-color: #2f333a;
+    border-top-color: #2f8df0;
+    color: var(--text-strong);
+}
+
+.doctab.is-active:hover {
+    background-color: #2f333a;
+}
+
+/* The tab body is a button so the whole tab is one hit target; the close mark
+   sits beside it rather than inside, because buttons cannot nest. */
+.doctab-select {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 23px;
+    padding: 0 2px;
+    background-color: transparent;
+    color: inherit;
+    font-size: 11.5px;
+    cursor: pointer;
+}
+
+.doctab-icon {
+    font-size: 10px;
+    color: #7f8792;
+}
+
+.doctab.is-active .doctab-icon {
+    color: #6fb2f7;
+}
+
+.doctab-name {
+    font-size: 11.5px;
+    white-space: nowrap;
+}
+
+.doctab-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    color: #7f8792;
+    font-size: 9px;
+    cursor: pointer;
+}
+
+.doctab-close:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+}
+
+/* ---- canvas stage ---- */
+
+.viewport {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 26px;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-deep);
+    scrollbar-width: thin;
+    scrollbar-color: #3f444d #17181b;
+}
+
+/* The user-agent sheet pins canvas media to 300x150. Clearing it lets the
+   width/height attributes — which layout reads as the intrinsic size — decide. */
+canvas {
+    width: auto;
+    height: auto;
+    background-color: transparent;
+}
+
+.canvas-slot {
+    flex-shrink: 0;
+    margin-top: auto;
+    margin-bottom: auto;
+    text-align: center;
+}
+
+.paint-canvas {
+    display: inline-block;
+    border-radius: 2px;
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.95),
+        0 0 0 2px #2b2f36,
+        0 18px 44px rgba(0, 0, 0, 0.55);
+    cursor: crosshair;
+}
+
+/* The pointer tells you what a drag will do before you start it. */
+.paint-canvas.is-move {
+    cursor: move;
+}
+
+.paint-canvas.is-zoom {
+    cursor: zoom-in;
+}
+
+.paint-canvas.is-text {
+    cursor: text;
+}
+
+@media (max-width: 900px) {
+    .app {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: 32px 40px 48px minmax(0, 1fr) 264px 24px;
+    }
+
+    .menubar {
+        grid-column-start: 1;
+        grid-column-end: 2;
+        grid-row-start: 1;
+        grid-row-end: 2;
+    }
+
+    .optionsbar {
+        grid-column-start: 1;
+        grid-column-end: 2;
+        grid-row-start: 2;
+        grid-row-end: 3;
+    }
+
+    .rail {
+        grid-column-start: 1;
+        grid-column-end: 2;
+        grid-row-start: 3;
+        grid-row-end: 4;
+    }
+
+    .stage {
+        grid-column-start: 1;
+        grid-column-end: 2;
+        grid-row-start: 4;
+        grid-row-end: 5;
+    }
+
+    .side {
+        grid-column-start: 1;
+        grid-column-end: 2;
+        grid-row-start: 5;
+        grid-row-end: 6;
+    }
+
+    .statusbar {
+        grid-column-start: 1;
+        grid-column-end: 2;
+        grid-row-start: 6;
+        grid-row-end: 7;
+    }
+
+    .viewport {
+        padding: 12px;
+    }
+
+    .doctabs {
+        padding: 0 6px;
+    }
+}
