@@ -20,7 +20,7 @@ public static class ProjectFile
     public const string Extension = ".pxd";
 
     private const string Signature = "PXDP";
-    private const int Version = 5;
+    private const int Version = 6;
 
     /// <summary>Gets whether a file name has the project extension.</summary>
     public static bool IsProject(string path) =>
@@ -139,10 +139,14 @@ public static class ProjectFile
                 if (shape.Kind == ShapeKind.Path && shape.Points is { } points)
                 {
                     writer.Write(points.Count);
-                    foreach ((float x, float y) in points)
+                    foreach (PathNode node in points)
                     {
-                        writer.Write(x);
-                        writer.Write(y);
+                        writer.Write(node.X);
+                        writer.Write(node.Y);
+                        writer.Write(node.InX);
+                        writer.Write(node.InY);
+                        writer.Write(node.OutX);
+                        writer.Write(node.OutY);
                     }
                 }
             }
@@ -352,10 +356,27 @@ public static class ProjectFile
                         throw new InvalidDataException("A path has an invalid point count.");
                     }
 
-                    List<(float X, float Y)> points = new(count);
+                    List<PathNode> points = new(count);
                     for (int point = 0; point < count; point++)
                     {
-                        points.Add((reader.ReadSingle(), reader.ReadSingle()));
+                        if (version >= 6)
+                        {
+                            points.Add(new PathNode
+                            {
+                                X = reader.ReadSingle(),
+                                Y = reader.ReadSingle(),
+                                InX = reader.ReadSingle(),
+                                InY = reader.ReadSingle(),
+                                OutX = reader.ReadSingle(),
+                                OutY = reader.ReadSingle(),
+                            });
+                        }
+                        else
+                        {
+                            float x = reader.ReadSingle();
+                            float y = reader.ReadSingle();
+                            points.Add(new PathNode(x, y));
+                        }
                     }
 
                     shape.Points = points;

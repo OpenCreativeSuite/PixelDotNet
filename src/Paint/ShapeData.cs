@@ -33,8 +33,8 @@ public sealed class ShapeData
     /// <summary>Gets or sets the outline colour.</summary>
     public uint StrokeColor { get; set; }
 
-    /// <summary>Gets or sets the polygon points for a path shape.</summary>
-    public List<(float X, float Y)>? Points { get; set; }
+    /// <summary>Gets or sets the anchor and handle points for a path shape.</summary>
+    public List<PathNode>? Points { get; set; }
 
     /// <summary>Returns an independent copy of this shape.</summary>
     public ShapeData Clone() => new()
@@ -65,6 +65,46 @@ public sealed class ShapeData
         StrokeColor = source.StrokeColor;
         Points = source.Points is null ? null : [.. source.Points];
     }
+}
+
+/// <summary>One anchor of a Bezier path with absolute in/out handles.</summary>
+public struct PathNode
+{
+    /// <summary>Creates a corner node whose handles sit on the anchor.</summary>
+    public PathNode(float x, float y)
+    {
+        X = x;
+        Y = y;
+        InX = x;
+        InY = y;
+        OutX = x;
+        OutY = y;
+    }
+
+    /// <summary>Gets or sets the anchor X.</summary>
+    public float X { get; set; }
+
+    /// <summary>Gets or sets the anchor Y.</summary>
+    public float Y { get; set; }
+
+    /// <summary>Gets or sets the incoming handle X.</summary>
+    public float InX { get; set; }
+
+    /// <summary>Gets or sets the incoming handle Y.</summary>
+    public float InY { get; set; }
+
+    /// <summary>Gets or sets the outgoing handle X.</summary>
+    public float OutX { get; set; }
+
+    /// <summary>Gets or sets the outgoing handle Y.</summary>
+    public float OutY { get; set; }
+
+    /// <summary>Gets whether either handle is pulled away from the anchor.</summary>
+    public readonly bool HasHandles =>
+        MathF.Abs(OutX - X) > 0.01f
+        || MathF.Abs(OutY - Y) > 0.01f
+        || MathF.Abs(InX - X) > 0.01f
+        || MathF.Abs(InY - Y) > 0.01f;
 }
 
 /// <summary>The shape primitives a shape layer can hold.</summary>
@@ -101,8 +141,10 @@ public static class ShapeOps
         float bottom = top + MathF.Abs(shape.Height);
         float stroke = MathF.Max(1f, shape.StrokeWidth);
 
-        if (shape.Kind == ShapeKind.Path && shape.Points is { Count: >= 2 } points)
+        if (shape.Kind == ShapeKind.Path && shape.Points is { Count: >= 2 } nodes)
         {
+            List<(float X, float Y)> points = FlattenPath(nodes);
+
             if (shape.Fill)
             {
                 FillPolygon(layer, points, shape.FillColor);
@@ -157,6 +199,36 @@ public static class ShapeOps
             shape.StrokeColor,
             255,
             null);
+    }
+
+    /// <summary>Flattens a closed cubic path into short line segments.</summary>
+    private static List<(float X, float Y)> FlattenPath(IReadOnlyList<PathNode> nodes)
+    {
+        const int Steps = 20;
+        List<(float X, float Y)> points = [];
+
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            PathNode a = nodes[i];
+            PathNode b = nodes[(i + 1) % nodes.Count];
+
+            for (int step = 0; step < Steps; step++)
+            {
+                float t = step / (float)Steps;
+                float inv = 1f - t;
+                float x = (inv * inv * inv * a.X)
+                    + (3f * inv * inv * t * a.OutX)
+                    + (3f * inv * t * t * b.InX)
+                    + (t * t * t * b.X);
+                float y = (inv * inv * inv * a.Y)
+                    + (3f * inv * inv * t * a.OutY)
+                    + (3f * inv * t * t * b.InY)
+                    + (t * t * t * b.Y);
+                points.Add((x, y));
+            }
+        }
+
+        return points;
     }
 
     /// <summary>Fills a closed polygon with a scanline pass.</summary>

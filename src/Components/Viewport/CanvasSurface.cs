@@ -217,7 +217,7 @@ public sealed class CanvasSurface : Component
             return;
         }
 
-        IReadOnlyList<(float X, float Y)> points = editor.PenPoints;
+        IReadOnlyList<PathNode> points = editor.PenPoints;
         const uint Line = 0xCCFFC24D;
 
         for (int i = 0; i + 1 < points.Count; i++)
@@ -231,20 +231,34 @@ public sealed class CanvasSurface : Component
                 Line);
         }
 
-        (float lastX, float lastY) = points[^1];
+        PathNode last = points[^1];
         DrawLine(
             context,
-            lastX * zoom,
-            lastY * zoom,
+            last.X * zoom,
+            last.Y * zoom,
             editor.PenPreviewX * zoom,
             editor.PenPreviewY * zoom,
             0x992F8DF0);
 
         for (int i = 0; i < points.Count; i++)
         {
-            float x = points[i].X * zoom;
-            float y = points[i].Y * zoom;
+            PathNode node = points[i];
+            float x = node.X * zoom;
+            float y = node.Y * zoom;
             bool first = i == 0 && points.Count >= 3;
+
+            if (node.HasHandles)
+            {
+                DrawLine(context, x, y, node.InX * zoom, node.InY * zoom, 0x99FFC24D);
+                DrawLine(context, x, y, node.OutX * zoom, node.OutY * zoom, 0x99FFC24D);
+                context.FillEllipse(
+                    new Rect((node.InX * zoom) - 2f, (node.InY * zoom) - 2f, 4f, 4f),
+                    0xFFFFC24D);
+                context.FillEllipse(
+                    new Rect((node.OutX * zoom) - 2f, (node.OutY * zoom) - 2f, 4f, 4f),
+                    0xFFFFC24D);
+            }
+
             context.FillEllipse(
                 new Rect(x - 4.5f, y - 4.5f, 9f, 9f),
                 first ? 0xFFFFC24D : 0xFFFFFFFF);

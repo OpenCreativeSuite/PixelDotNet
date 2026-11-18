@@ -150,9 +150,10 @@ public sealed class PaintSession
     private float _shapeStartY;
     private int _shapePreviousIndex;
     private ShapeData? _shapeEditBackup;
-    private readonly List<(float X, float Y)> _penPoints = [];
+    private readonly List<PathNode> _penPoints = [];
     private float _penPreviewX;
     private float _penPreviewY;
+    private int _penDragNode = -1;
     private bool _quickSelecting;
     private bool _quickSubtractGesture;
     private byte[]? _quickMask;
@@ -307,8 +308,8 @@ public sealed class PaintSession
     /// <summary>Gets whether a pen path is in progress.</summary>
     public bool IsPenActive => _penPoints.Count > 0;
 
-    /// <summary>Gets the points placed so far by the pen tool.</summary>
-    public IReadOnlyList<(float X, float Y)> PenPoints => _penPoints;
+    /// <summary>Gets the path nodes placed so far by the pen tool.</summary>
+    public IReadOnlyList<PathNode> PenPoints => _penPoints;
 
     /// <summary>Gets the pen preview X.</summary>
     public float PenPreviewX => _penPreviewX;
@@ -1202,8 +1203,21 @@ public sealed class PaintSession
 
         if (Tool == PaintTool.Pen)
         {
-            _penPreviewX = documentX;
-            _penPreviewY = documentY;
+            if (_penDragNode >= 0 && _penDragNode < _penPoints.Count)
+            {
+                PathNode node = _penPoints[_penDragNode];
+                node.OutX = documentX;
+                node.OutY = documentY;
+                node.InX = (node.X * 2f) - documentX;
+                node.InY = (node.Y * 2f) - documentY;
+                _penPoints[_penDragNode] = node;
+            }
+            else
+            {
+                _penPreviewX = documentX;
+                _penPreviewY = documentY;
+            }
+
             if (_penPoints.Count > 0)
             {
                 Changed();
@@ -1326,6 +1340,7 @@ public sealed class PaintSession
 
         if (Tool == PaintTool.Pen)
         {
+            _penDragNode = -1;
             return;
         }
 
@@ -5710,10 +5725,10 @@ public sealed class PaintSession
     {
         if (_penPoints.Count >= 3)
         {
-            (float firstX, float firstY) = _penPoints[0];
+            PathNode first = _penPoints[0];
             float threshold = 8f / MathF.Max(Zoom, 0.05f);
-            float dx = x - firstX;
-            float dy = y - firstY;
+            float dx = x - first.X;
+            float dy = y - first.Y;
             if ((dx * dx) + (dy * dy) <= threshold * threshold)
             {
                 FinishPenPath();
@@ -5723,19 +5738,20 @@ public sealed class PaintSession
 
         if (_penPoints.Count > 0)
         {
-            (float lastX, float lastY) = _penPoints[^1];
-            float dx = x - lastX;
-            float dy = y - lastY;
+            PathNode last = _penPoints[^1];
+            float dx = x - last.X;
+            float dy = y - last.Y;
             if ((dx * dx) + (dy * dy) < 1f)
             {
                 return;
             }
         }
 
-        _penPoints.Add((x, y));
+        _penPoints.Add(new PathNode(x, y));
+        _penDragNode = _penPoints.Count - 1;
         _penPreviewX = x;
         _penPreviewY = y;
-        Status = $"Pen: {_penPoints.Count} point{(_penPoints.Count == 1 ? string.Empty : "s")}; click the first point to close";
+        Status = $"Pen: {_penPoints.Count} point{(_penPoints.Count == 1 ? string.Empty : "s")}; drag for a curve, click the first point to close";
         Changed();
     }
 
@@ -5754,15 +5770,15 @@ public sealed class PaintSession
         float top = float.MaxValue;
         float right = float.MinValue;
         float bottom = float.MinValue;
-        foreach ((float x, float y) in _penPoints)
+        foreach (PathNode node in _penPoints)
         {
-            left = MathF.Min(left, x);
-            top = MathF.Min(top, y);
-            right = MathF.Max(right, x);
-            bottom = MathF.Max(bottom, y);
+            left = MathF.Min(left, node.X);
+            top = MathF.Min(top, node.Y);
+            right = MathF.Max(right, node.X);
+            bottom = MathF.Max(bottom, node.Y);
         }
 
-        List<(float X, float Y)> points = [.. _penPoints];
+        List<PathNode> points = [.. _penPoints];
         LayerGroup? group = Document.Active.Group;
         PaintLayer layer = new(FreeLayerName("Path"), Document.Width, Document.Height)
         {
@@ -5787,6 +5803,7 @@ public sealed class PaintSession
         Document.Layers.Insert(insertAt, layer);
         Document.ActiveIndex = insertAt;
         _penPoints.Clear();
+        _penDragNode = -1;
         Document.MarkDirty();
         Status = "Path created";
         Changed();
@@ -5801,6 +5818,7 @@ public sealed class PaintSession
         }
 
         _penPoints.Clear();
+        _penDragNode = -1;
         Status = "Pen cancelled";
         Changed();
     }
@@ -6876,6 +6894,9 @@ public sealed class PaintSession
     /// <summary>Gets whether the browser is handling a layered project file.</summary>
     public bool FileDialogProject { get; private set; }
 
+    /// <summary>Gets whether the browser is exporting SVG.</summary>
+    public bool FileDialogSvg { get; private set; }
+
     /// <summary>Gets whether the row context menu is open.</summary>
     public bool IsFileMenuOpen { get; private set; }
 
@@ -6925,9 +6946,11 @@ public sealed class PaintSession
                     stem = FileNameStem(DocumentName);
                 }
 
-                string extension = FileDialogProject
-                    ? ProjectFile.Extension
-                    : ImageExporter.Extension(_saveFormat);
+                string extension = FileDialogSvg
+                    ? SvgExporter.Extension
+                    : FileDialogProject
+                        ? ProjectFile.Extension
+                        : ImageExporter.Extension(_saveFormat);
                 return Combine(FileDialogFolder, stem + extension);
             }
 
@@ -7298,26 +7321,36 @@ public sealed class PaintSession
     /// <summary>Opens the browser to choose where the layered project is written.</summary>
     public void ShowSaveProjectDialog() => ShowFileDialog(FileDialogMode.Save, project: true);
 
-    /// <summary>Opens the file browser in one of its four modes.</summary>
-    private void ShowFileDialog(FileDialogMode mode, bool project)
+    /// <summary>Opens the browser to export the document as SVG.</summary>
+    public void ShowSaveSvgDialog() =>
+        ShowFileDialog(FileDialogMode.Save, project: false, svg: true);
+
+    /// <summary>Opens the file browser in one of its modes.</summary>
+    private void ShowFileDialog(FileDialogMode mode, bool project, bool svg = false)
     {
         Tip = null;
         OpenMenu = null;
         FinishInteraction();
         FileDialogMode = mode;
         FileDialogProject = project;
+        FileDialogSvg = svg;
         IsFileDialogOpen = true;
         FileDialogSelected = string.Empty;
         FileDialogError = string.Empty;
         FileDialogFolder = StartFolder();
         FileDialogName = mode == FileDialogMode.Save
             ? FileNameStem(DocumentName)
-                + (project ? ProjectFile.Extension : ImageExporter.Extension(_saveFormat))
+                + (svg
+                    ? SvgExporter.Extension
+                    : project
+                        ? ProjectFile.Extension
+                        : ImageExporter.Extension(_saveFormat))
             : string.Empty;
         RefreshFilePlaces();
         RefreshFileEntries();
         Status = mode == FileDialogMode.Open
             ? project ? "Choose a project to open" : "Choose an image to open"
+            : svg ? "Choose where to export the SVG"
             : project ? "Choose where to save the project" : "Choose where to save";
         Changed();
     }
@@ -7427,6 +7460,12 @@ public sealed class PaintSession
             return;
         }
 
+        if (FileDialogSvg)
+        {
+            ConfirmSvgExport();
+            return;
+        }
+
         if (FileDialogProject)
         {
             ConfirmProjectFile();
@@ -7476,6 +7515,36 @@ public sealed class PaintSession
 
         string target = Path.Combine(FileDialogFolder, stem + ImageExporter.Extension(_saveFormat));
         SaveImageFile(target);
+    }
+
+    /// <summary>Writes the document as an SVG export.</summary>
+    private void ConfirmSvgExport()
+    {
+        string stem = FileNameStem(FileDialogName);
+        if (stem.Length == 0)
+        {
+            FileDialogError = "Enter a file name.";
+            Changed();
+            return;
+        }
+
+        string target = Path.Combine(FileDialogFolder, stem + SvgExporter.Extension);
+
+        try
+        {
+            SvgExporter.Save(target, Document);
+            _lastFolder = Path.GetDirectoryName(target) ?? _lastFolder;
+            IsFileDialogOpen = false;
+            FileDialogError = string.Empty;
+            Status = "Exported " + target;
+        }
+        catch (Exception error)
+        {
+            FileDialogError = error.Message;
+            Status = "SVG export failed: " + error.Message;
+        }
+
+        Changed();
     }
 
     /// <summary>Opens or writes a layered project file.</summary>
@@ -7619,9 +7688,13 @@ public sealed class PaintSession
                     folders.Add(new FileEntry(directory.Name, directory.FullName, true));
                 }
                 else if (entry is FileInfo file
-                    && (FileDialogProject
-                        ? ProjectFile.IsProject(file.Name)
-                        : ImageLoader.IsImage(file.Name)))
+                    && (FileDialogSvg
+                        ? file.Name.EndsWith(
+                            SvgExporter.Extension,
+                            StringComparison.OrdinalIgnoreCase)
+                        : FileDialogProject
+                            ? ProjectFile.IsProject(file.Name)
+                            : ImageLoader.IsImage(file.Name)))
                 {
                     files.Add(new FileEntry(file.Name, file.FullName, false));
                 }

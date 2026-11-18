@@ -228,7 +228,8 @@ public static class HelpCatalog
         Add("tool.pen", Icons.PenNib, "Pen", "P",
             "Build a closed polygon path point by point.",
             [
-                "Click to add an anchor; click the first point again or press Enter to close the path.",
+                "Click to add a corner anchor; drag while placing it to pull symmetric Bezier handles for a curve.",
+                "Click the first point again or press Enter to close the path.",
                 "The finished path becomes an editable shape layer, filled or stroked with the current colour.",
                 "Esc cancels a path in progress.",
             ],
@@ -359,6 +360,7 @@ public static class HelpCatalog
                 "Open and Save use the in-app file browser and can write PNG, JPEG, BMP or TGA.",
                 "Open Project and Save Project use the .pxd format, which keeps layers, masks, groups, adjustment layers and guides.",
                 "Batch Process resizes and converts every supported image in a folder.",
+                "Export SVG writes shape and path layers as vector elements and embeds other layers as a PNG.",
                 "Right-click a file row to rename, copy, cut, paste or delete it.",
             ],
             [

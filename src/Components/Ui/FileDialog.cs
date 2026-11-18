@@ -20,16 +20,21 @@ public sealed class FileDialog : Component
 
         bool saving = editor.FileDialogMode == FileDialogMode.Save;
         bool project = editor.FileDialogProject;
-        string title = project
-            ? saving ? "Save Project" : "Open Project"
-            : saving ? "Save Image" : "Open Image";
-        string summary = project
-            ? saving
-                ? "Keep layers, masks, groups and guides in a .pxd file."
-                : "Open a .pxd project with all of its layers and masks."
-            : saving
-                ? "Choose a folder, a file name and a format."
-                : "Choose an image to open in a new tab.";
+        bool svg = editor.FileDialogSvg;
+        string title = svg
+            ? "Export SVG"
+            : project
+                ? saving ? "Save Project" : "Open Project"
+                : saving ? "Save Image" : "Open Image";
+        string summary = svg
+            ? "Shapes stay vector; other layers are embedded as a PNG."
+            : project
+                ? saving
+                    ? "Keep layers, masks, groups and guides in a .pxd file."
+                    : "Open a .pxd project with all of its layers and masks."
+                : saving
+                    ? "Choose a folder, a file name and a format."
+                    : "Choose an image to open in a new tab.";
 
         return Div(new() { ClassName = "file-layer" },
             Div(new() { ClassName = "file-panel" },
@@ -47,7 +52,7 @@ public sealed class FileDialog : Component
                         ? Div(new() { ClassName = "file-empty" },
                             Text("No folders or supported images here."))
                         : Each(editor.FileDialogEntries, entry => (Node)Row(editor, entry))),
-                Foot(editor, saving, project, title)),
+                Foot(editor, saving, project, svg, title)),
             Show(editor.IsFileMenuOpen, Div(new()
             {
                 ClassName = "file-menu-backdrop",
@@ -95,7 +100,12 @@ public sealed class FileDialog : Component
                 }, Text(place.Label)))));
 
     /// <summary>Builds the name, format, status and action footer.</summary>
-    private static Node Foot(PaintSession editor, bool saving, bool project, string title) =>
+    private static Node Foot(
+        PaintSession editor,
+        bool saving,
+        bool project,
+        bool svg,
+        string title) =>
         Div(new() { ClassName = "file-foot" },
             Div(new() { ClassName = "file-name-row" },
                 Span(new() { ClassName = "file-label" }, Text("File name")),
@@ -105,11 +115,13 @@ public sealed class FileDialog : Component
                     Type = "text",
                     Value = editor.FileDialogName,
                     Placeholder = saving
-                        ? project ? "project-name.pxd" : "image-name.ext"
+                        ? svg
+                            ? "drawing.svg"
+                            : project ? "project-name.pxd" : "image-name.ext"
                         : "Choose a file above",
                     OnInput = editor.FileDialogSetName,
                 })),
-            Show(saving && !project, Formats(editor)),
+            Show(saving && !project && !svg, Formats(editor)),
             Div(new() { ClassName = "file-target" }, Text(editor.FileDialogTarget)),
             Show(editor.FileDialogError.Length > 0,
                 Div(new() { ClassName = "file-error" }, Text(editor.FileDialogError))),

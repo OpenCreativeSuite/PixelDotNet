@@ -33,6 +33,7 @@ public sealed class MenuBar : Component
             new("Save...", "Ctrl+S", NeverDim, session => session.ShowSaveDialog()),
             new("Save Project...", "", NeverDim, session => session.ShowSaveProjectDialog()),
             new("Batch Process...", "", NeverDim, session => session.ShowBatchDialog()),
+            new("Export SVG...", "", NeverDim, session => session.ShowSaveSvgDialog()),
             new("Close Document", "Ctrl+W", session => session.CanCloseDocument, session => session.CloseActiveDocument()),
             new("Open Sample", "", NeverDim, session => session.LoadDemo()),
         ]),
