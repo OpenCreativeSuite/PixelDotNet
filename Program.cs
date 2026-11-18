@@ -145,7 +145,17 @@ public sealed class App : Component
                     editor.Refresh?.Invoke();
                 },
             })),
-            Show(editor.IsColourToolsOpen, C<ColourToolsDialog>()));
+            Show(editor.IsColourToolsOpen, C<ColourToolsDialog>()),
+            Show(editor.IsPerspectiveOpen, Div(new()
+            {
+                ClassName = "resize-backdrop",
+                OnClick = () =>
+                {
+                    editor.CancelPerspective();
+                    editor.Refresh?.Invoke();
+                },
+            })),
+            Show(editor.IsPerspectiveOpen, C<PerspectiveDialog>()));
 
         root.BindRef(rootRef);
         if (rootRef.Value is { Width: > 0, Height: > 0 } bounds)

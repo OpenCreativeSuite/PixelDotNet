@@ -1296,3 +1296,8 @@ canvas {
     padding: 0 7px;
     font-size: 10px;
 }
+
+.perspective-panel {
+    width: 520px;
+    max-height: 84vh;
+}

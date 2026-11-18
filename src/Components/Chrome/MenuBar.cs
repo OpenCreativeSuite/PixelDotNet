@@ -45,6 +45,8 @@ public sealed class MenuBar : Component
             new("Copy Merged", "", NeverDim, session => session.CopyMerged()),
             new("Paste", "Ctrl+V", session => session.HasClipboard, session => session.Paste()),
             new("Clear", "Del", session => !session.Document.Active.Locked, session => session.ClearSelectedPixels()),
+            new("Content-Aware Fill", "", session => session.Selection is not null && !session.Document.Active.Locked, session => session.ContentAwareFill()),
+            new("Perspective Transform...", "", NeverDim, session => session.ShowPerspectiveDialog()),
         ]),
         new("Image",
         [

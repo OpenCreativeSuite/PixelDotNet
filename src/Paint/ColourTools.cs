@@ -313,6 +313,47 @@ public static class ColourTools
         return hue < 0f ? hue + 360f : hue;
     }
 
+    /// <summary>Neutralises red pupils inside the selection.</summary>
+    /// <param name="layer">Layer to edit.</param>
+    /// <param name="selection">Region to scan.</param>
+    /// <param name="strength">Blend amount from 0 to 1.</param>
+    public static void RemoveRedEye(PaintLayer layer, Selection? selection, float strength)
+    {
+        float amount = Math.Clamp(strength, 0f, 1f);
+        if (amount <= 0f)
+        {
+            return;
+        }
+
+        uint[] pixels = layer.Pixels;
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            if (!Included(layer, selection, i))
+            {
+                continue;
+            }
+
+            uint pixel = pixels[i];
+            int alpha = Rgba.A(pixel);
+            if (alpha == 0)
+            {
+                continue;
+            }
+
+            int red = Rgba.R(pixel);
+            int green = Rgba.G(pixel);
+            int blue = Rgba.B(pixel);
+            if (red < 60 || red < green + 24 || red < blue + 24)
+            {
+                continue;
+            }
+
+            int neutral = (green + blue) / 2;
+            int target = (int)MathF.Round(red + ((neutral - red) * amount));
+            pixels[i] = Rgba.Pack(alpha, target, green, blue);
+        }
+    }
+
     /// <summary>Splits the active layer into red, green and blue grayscale layers.</summary>
     /// <param name="document">Document receiving the layers.</param>
     /// <param name="source">Layer to split.</param>

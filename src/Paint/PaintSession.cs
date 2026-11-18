@@ -4836,6 +4836,9 @@ public sealed class PaintSession
     private readonly float[] _colourBalance = new float[9];
     private readonly float[] _channelMix = new float[9];
     private readonly float[] _selectiveColour = new float[36];
+    private readonly float[] _perspective = new float[8];
+    private uint[]? _perspectiveBase;
+    private Selection? _perspectiveSelection;
 
     /// <summary>Gets whether the colour tools dialog is open.</summary>
     public bool IsColourToolsOpen { get; private set; }
@@ -4868,6 +4871,25 @@ public sealed class PaintSession
 
     /// <summary>Gets the selective-colour range being edited, 0-8.</summary>
     public int SelectiveRange { get; private set; }
+
+    /// <summary>Gets or sets the red-eye removal strength, 0-100.</summary>
+    public int RedEyeStrength { get; private set; } = 80;
+
+    /// <summary>Gets whether the perspective transform dialog is open.</summary>
+    public bool IsPerspectiveOpen { get; private set; }
+
+    /// <summary>Gets the layer being transformed.</summary>
+    public int PerspectiveIndex { get; private set; } = -1;
+
+    /// <summary>Gets the layer currently being transformed.</summary>
+    public PaintLayer? PerspectiveLayer =>
+        PerspectiveIndex >= 0 && PerspectiveIndex < Document.Layers.Count
+            ? Document.Layers[PerspectiveIndex]
+            : null;
+
+    /// <summary>Gets one of the eight perspective corner offsets.</summary>
+    public float PerspectiveValue(int index) =>
+        index >= 0 && index < _perspective.Length ? _perspective[index] : 0f;
 
     /// <summary>Gets one of the four offsets for the selected colour range.</summary>
     public float SelectiveValue(int channel)
@@ -5047,6 +5069,171 @@ public sealed class PaintSession
         PushUndo("Selective Colour");
         ColourTools.SelectiveColour(layer, Selection, _selectiveColour);
         Status = "Selective colour";
+        Changed();
+    }
+
+    /// <summary>Updates the red-eye removal strength.</summary>
+    public void SetRedEyeStrength(string text)
+    {
+        if (int.TryParse(text, out int value))
+        {
+            RedEyeStrength = Math.Clamp(value, 0, 100);
+            Changed();
+        }
+    }
+
+    /// <summary>Neutralises red pupils inside the selection.</summary>
+    public void ApplyRedEye()
+    {
+        if (!CanEditActiveLayer(out PaintLayer layer))
+        {
+            return;
+        }
+
+        PushUndo("Red-Eye Removal");
+        ColourTools.RemoveRedEye(layer, Selection, RedEyeStrength / 100f);
+        Status = "Red-eye removal";
+        Changed();
+    }
+
+    /// <summary>Fills the selection from its surrounding pixels.</summary>
+    public void ContentAwareFill()
+    {
+        if (Selection is not { IsEmpty: false })
+        {
+            Status = "Make a selection first";
+            Changed();
+            return;
+        }
+
+        if (!CanEditActiveLayer(out PaintLayer layer))
+        {
+            return;
+        }
+
+        PushUndo("Content-Aware Fill");
+        FillOps.ContentAware(layer, Selection);
+        Status = "Content-aware fill";
+        Changed();
+    }
+
+    // ---- perspective transform --------------------------------------------
+
+    /// <summary>Opens the four-corner perspective transform.</summary>
+    public void ShowPerspectiveDialog()
+    {
+        PaintLayer layer = Document.Active;
+        if (layer.IsAdjustment)
+        {
+            Status = "Adjustment layers cannot be transformed";
+            Changed();
+            return;
+        }
+
+        if (layer.Locked)
+        {
+            Status = "Layer is locked";
+            Changed();
+            return;
+        }
+
+        Tip = null;
+        OpenMenu = null;
+        FinishInteraction();
+        PerspectiveIndex = Document.ActiveIndex;
+        _perspectiveBase = layer.CapturePixels();
+        _perspectiveSelection = Selection;
+        Array.Clear(_perspective);
+        IsPerspectiveOpen = true;
+        PushUndo("Perspective Transform");
+        Status = "Perspective transform";
+        Changed();
+    }
+
+    /// <summary>Updates one corner offset and refreshes the preview.</summary>
+    public void SetPerspectiveValue(int index, float value)
+    {
+        if (index < 0 || index >= _perspective.Length)
+        {
+            return;
+        }
+
+        _perspective[index] = Math.Clamp(value, -500f, 500f);
+        ApplyPerspectivePreview();
+    }
+
+    /// <summary>Returns every corner offset to zero.</summary>
+    public void ResetPerspective()
+    {
+        Array.Clear(_perspective);
+        ApplyPerspectivePreview();
+    }
+
+    /// <summary>Keeps the transformed layer and closes the dialog.</summary>
+    public void CommitPerspective()
+    {
+        if (!IsPerspectiveOpen)
+        {
+            return;
+        }
+
+        IsPerspectiveOpen = false;
+        PerspectiveIndex = -1;
+        _perspectiveBase = null;
+        _perspectiveSelection = null;
+        Status = "Perspective applied";
+        Changed();
+    }
+
+    /// <summary>Restores the layer pixels and closes the dialog.</summary>
+    public void CancelPerspective()
+    {
+        if (!IsPerspectiveOpen)
+        {
+            return;
+        }
+
+        if (_perspectiveBase is not null && PerspectiveLayer is { } layer)
+        {
+            layer.Adopt((uint[])_perspectiveBase.Clone());
+        }
+
+        IsPerspectiveOpen = false;
+        PerspectiveIndex = -1;
+        _perspectiveBase = null;
+        _perspectiveSelection = null;
+        Document.MarkDirty();
+        Status = "Perspective cancelled";
+        Changed();
+    }
+
+    /// <summary>Rebuilds the preview from the captured source pixels.</summary>
+    private void ApplyPerspectivePreview()
+    {
+        if (PerspectiveLayer is not { } layer || _perspectiveBase is null)
+        {
+            return;
+        }
+
+        layer.Adopt((uint[])_perspectiveBase.Clone());
+
+        bool identity = true;
+        for (int i = 0; i < _perspective.Length; i++)
+        {
+            if (MathF.Abs(_perspective[i]) > 0.01f)
+            {
+                identity = false;
+                break;
+            }
+        }
+
+        if (!identity
+            && !PerspectiveOps.Transform(layer, _perspectiveBase, _perspectiveSelection, _perspective))
+        {
+            layer.Adopt((uint[])_perspectiveBase.Clone());
+        }
+
+        Document.MarkDirty();
         Changed();
     }
 

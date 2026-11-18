@@ -97,6 +97,16 @@ public sealed class Viewport : Component
             return;
         }
 
+        if (editor.IsPerspectiveOpen)
+        {
+            if (key == "Escape")
+            {
+                editor.CancelPerspective();
+            }
+
+            return;
+        }
+
         if (editor.IsColourToolsOpen)
         {
             if (key == "Escape")

@@ -85,6 +85,16 @@ public sealed class ColourToolsDialog : Component
                                 editor.Refresh?.Invoke();
                             }))),
                     Section(
+                        "Red-Eye Removal",
+                        "Apply",
+                        "Neutralise red pupils inside the selection.",
+                        editor.ApplyRedEye,
+                        Ui.Slider("Strength", editor.RedEyeStrength, 0f, 100f, 1f, " %", value =>
+                        {
+                            editor.SetRedEyeStrength(value);
+                            editor.Refresh?.Invoke();
+                        })),
+                    Section(
                         "Channel Mixer",
                         "Apply",
                         "Each output channel is a weighted sum of the source channels.",
