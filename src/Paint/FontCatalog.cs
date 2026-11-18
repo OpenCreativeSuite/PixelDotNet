@@ -32,6 +32,7 @@ namespace PixelDotNet.Paint;
 public static class FontCatalog
 {
     private const string DefaultCssRoot = "https://fonts.cdnfonts.com/css/";
+    private const string DefaultSample = "The quick brown fox";
 
     private static readonly HttpClient Client = CreateClient();
     private static readonly Regex FacePattern = new(
@@ -68,6 +69,44 @@ public static class FontCatalog
             try
             {
                 GeneratePreview(font, path);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        return File.Exists(path) ? path : null;
+    }
+
+    /// <summary>Gets a cached bitmap of a custom sample rendered in a downloaded family.</summary>
+    /// <param name="font">The cached family to render.</param>
+    /// <param name="sample">The text to show; the default sample reuses <c>preview.png</c>.</param>
+    /// <returns>The bitmap path, or <see langword="null"/> for built-in families or a render failure.</returns>
+    /// <remarks>
+    /// The picker previews the text being composed, so the sample changes as the
+    /// user types. Samples are cached by content hash next to the font files and
+    /// are only regenerated the first time a given sample is shown.
+    /// </remarks>
+    public static string? SamplePreview(TextFont font, string sample)
+    {
+        if (font.Folder is null)
+        {
+            return null;
+        }
+
+        string text = (sample ?? string.Empty).Trim();
+        if (text.Length == 0 || string.Equals(text, DefaultSample, StringComparison.Ordinal))
+        {
+            return PreviewPath(font);
+        }
+
+        string path = Path.Combine(font.Folder, "preview-" + ShortHash(text) + ".png");
+        if (!File.Exists(path))
+        {
+            try
+            {
+                GeneratePreview(font, path, text);
             }
             catch
             {
@@ -567,12 +606,11 @@ public static class FontCatalog
     }
 
     /// <summary>Renders a small white-on-transparent sample for the font menu.</summary>
-    private static void GeneratePreview(TextFont font, string path)
+    private static void GeneratePreview(TextFont font, string path, string sample = DefaultSample)
     {
-        const string Sample = "The quick brown fox";
         if (!TextRasterizer.Render(
             font,
-            Sample,
+            sample,
             30f,
             false,
             false,

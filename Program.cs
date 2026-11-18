@@ -1,6 +1,5 @@
 using Donkeh.Hosting;
 using Donkeh.UILab;
-using Donkeh.Windowing;
 using PixelDotNet.Components;
 using PixelDotNet.Paint;
 using static Donkeh.UILab.HtmlHelper;
@@ -55,18 +54,30 @@ public sealed class App : Component
                 C<SidePanel>(),
                 C<StatusBar>(),
                 // Late in the tree so its drop-downs are hit-tested before the
-                // stage they overlap. Grid lines keep it visually on top.
+                // stage they overlap.
                 C<MenuBar>(),
-                // Canvas-drawn popups live above the workspace, like the menus.
-                // Starting below the options bar puts the font picker directly
-                // under its button instead of at the artwork's top-left corner.
-                Show(editor.IsFontMenuOpen, Canvas(new CanvasProps
+                // Floating UI paints above the canvas because the display list
+                // honours z-index, so this is a real popup with its own input
+                // and scrolling rather than a canvas-drawn approximation.
+                Show(editor.IsFontMenuOpen, Div(new()
                 {
-                    ClassName = "font-overlay",
-                    OnDraw = context => CanvasSurface.DrawFontMenu(context, editor),
-                    OnPointerDown = (x, y) => editor.FontMenuPointerDown(x, y),
-                    OnPointerMove = (x, y) => editor.FontMenuPointerMove(x, y),
-                    OnPointerUp = (x, y) => editor.FontMenuPointerUp(),
-                }))));
+                    ClassName = "font-backdrop",
+                    OnClick = () =>
+                    {
+                        editor.CloseFontMenu();
+                        editor.Refresh?.Invoke();
+                    },
+                })),
+                Show(editor.IsFontMenuOpen, C<FontPicker>()),
+                Show(editor.IsTextFxOpen, Div(new()
+                {
+                    ClassName = "font-backdrop",
+                    OnClick = () =>
+                    {
+                        editor.CloseTextFx();
+                        editor.Refresh?.Invoke();
+                    },
+                })),
+                Show(editor.IsTextFxOpen, C<TextFxPanel>())));
     }
 }

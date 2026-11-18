@@ -332,6 +332,321 @@ button {
     color: #ffffff;
 }
 
+/* Transparent click-catcher that dismisses the picker on an outside press. It
+   sits below the popup and above every other layer. */
+.font-backdrop {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 59;
+    background-color: transparent;
+    cursor: default;
+}
+
+/* Searchable family list. It is a real popup (not a canvas) so the input has a
+   native caret and the list scrolls with the wheel. */
+.font-popup {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #0b0c0e;
+    border-radius: 4px;
+    background-color: #26292e;
+    box-shadow:
+        0 0 0 1px #3a3f47 inset,
+        0 18px 42px rgba(0, 0, 0, 0.58);
+}
+
+.font-popup-search {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 8px;
+    flex-shrink: 0;
+    background-color: #1f2227;
+    border-bottom: 1px solid #3a3f47;
+}
+
+.font-popup-search-icon {
+    width: 14px;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 11px;
+    color: #8b929c;
+}
+
+.font-search {
+    flex: 1;
+    min-width: 0;
+    height: 26px;
+    padding: 0 8px;
+    border: 1px solid #3a3f47;
+    border-radius: 3px;
+    background-color: #1b1e23;
+    color: #e6eaf0;
+    font-size: 12px;
+    outline: none;
+}
+
+.font-search:focus {
+    border-color: #2f8df0;
+    background-color: #181b20;
+    box-shadow: 0 0 0 2px rgba(47, 141, 240, 0.25);
+}
+
+.font-search::placeholder {
+    color: #7f8792;
+}
+
+.font-popup-count {
+    flex-shrink: 0;
+    font-size: 10.5px;
+    color: #8b929c;
+}
+
+.font-popup-count.is-empty {
+    color: #e27777;
+}
+
+.font-popup-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 340px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #5a616c #1c1f24;
+}
+
+.font-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 34px;
+    padding: 0 10px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.font-row:hover {
+    background-color: #2f333a;
+}
+
+.font-row.is-selected {
+    background-color: #2b3a4e;
+}
+
+.font-row-name {
+    width: 150px;
+    flex-shrink: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: #e6eaf0;
+}
+
+.font-row.is-selected .font-row-name {
+    color: #ffffff;
+}
+
+.font-row-preview {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 18px;
+    line-height: 22px;
+    color: #c3c8d1;
+}
+
+.font-row.is-selected .font-row-preview {
+    color: #dceaff;
+}
+
+.font-row-preview-slot {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.font-row-preview-img {
+    height: 17px;
+    width: auto;
+}
+
+.font-popup-empty {
+    padding: 16px 12px;
+    color: #8b929c;
+}
+
+.font-popup-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: 34px;
+    padding: 0 10px;
+    flex-shrink: 0;
+    border-top: 1px solid #3a3f47;
+}
+
+.font-popup-add {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #8fb8e8;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.font-popup-add:hover {
+    color: #c3dcff;
+    text-decoration: underline;
+}
+
+.font-popup-hint {
+    white-space: nowrap;
+    font-size: 9.5px;
+    color: #7f8792;
+}
+
+/* Text effects popup: parked to the left of the inspector so the colour panel
+   and the effect sliders can be used at the same time. */
+.text-fx-popup {
+    position: absolute;
+    z-index: 60;
+    right: 324px;
+    top: 74px;
+    width: 330px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #0b0c0e;
+    border-radius: 4px;
+    background-color: #26292e;
+    box-shadow:
+        0 0 0 1px #3a3f47 inset,
+        0 18px 42px rgba(0, 0, 0, 0.58);
+}
+
+.text-fx-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    flex-shrink: 0;
+    background-color: #1f2227;
+    border-bottom: 1px solid #3a3f47;
+}
+
+.text-fx-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #eef1f5;
+}
+
+.text-fx-title-icon {
+    font-size: 12px;
+    color: #6fb2f7;
+}
+
+.text-fx-body {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    padding: 11px 11px 12px;
+}
+
+.text-fx-body > * {
+    flex-shrink: 0;
+}
+
+.text-fx-pair {
+    display: flex;
+    gap: 10px;
+}
+
+.text-fx-pair .slider {
+    flex: 1;
+    min-width: 0;
+}
+
+.text-fx-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.text-fx-controls.is-off {
+    opacity: 0.45;
+}
+
+.text-fx-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.text-fx-presets .btn {
+    height: 24px;
+    padding: 0 9px;
+    font-size: 10.5px;
+}
+
+.text-fx-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.text-fx-switch .btn {
+    min-width: 42px;
+}
+
+.fx-swatch {
+    border-radius: 3px;
+    box-shadow:
+        0 0 0 1px #0d0f12,
+        0 0 0 2px #5f6672;
+    cursor: pointer;
+}
+
+.fx-swatch:hover {
+    box-shadow:
+        0 0 0 1px #0d0f12,
+        0 0 0 2px #2f8df0;
+}
+
+.text-fx-note {
+    font-size: 10.5px;
+    line-height: 1.4;
+    color: #7f8792;
+}
+
+.text-fx-tip {
+    padding-top: 9px;
+    border-top: 1px solid #33373e;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: #7f8792;
+}
+
+@media (max-width: 900px) {
+    .text-fx-popup {
+        right: 12px;
+        top: 78px;
+        width: 320px;
+    }
+}
+
 /* Inline "add a cdnfonts family" row. */
 .text-field.font-url {
     width: 224px;

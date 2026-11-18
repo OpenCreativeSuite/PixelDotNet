@@ -122,6 +122,9 @@ public static class Icons
     /// <summary>A downward chevron, used by dropdowns.</summary>
     public const string ChevronDown = "fa-chevron-down";
 
+    /// <summary>Sparkles, used by the text effects button.</summary>
+    public const string Sparkles = "fa-wand-magic-sparkles";
+
     /// <summary>Gets the glyph for a tool.</summary>
     public static string ForTool(PaintTool tool) => tool switch
     {

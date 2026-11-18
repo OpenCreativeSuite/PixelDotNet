@@ -92,23 +92,6 @@
     background-color: var(--bg-deep);
 }
 
-/* Popup layer for canvas-drawn menus. It starts under the options bar so the
-   picker can sit directly below its button while still covering the workspace. */
-.font-overlay {
-    position: absolute;
-    left: 0;
-    top: 72px;
-    right: 0;
-    bottom: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    background-color: transparent;
-    cursor: default;
-}
-
 .side {
     grid-column-start: 3;
     grid-column-end: 4;

@@ -215,6 +215,30 @@
     color: #f5f7fa;
 }
 
+.color-target {
+    font-size: 9.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6fb2f7;
+}
+
+.color-target.is-fill {
+    color: #848c97;
+}
+
+.color-targets {
+    display: flex;
+    gap: 5px;
+}
+
+.color-targets .btn {
+    flex: 1;
+    height: 22px;
+    padding: 0 6px;
+    font-size: 10.5px;
+}
+
 .color-sub {
     font-size: 10.5px;
     color: #959ca6;

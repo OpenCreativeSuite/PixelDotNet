@@ -60,29 +60,14 @@ public sealed record TextFont(
 /// </remarks>
 public static class TextFonts
 {
-    /// <summary>Left edge of the font menu in app-local pixels.</summary>
+    /// <summary>Left edge of the font popup in app-local pixels.</summary>
     public const float MenuX = 380f;
 
-    /// <summary>Top edge of the font menu in popup-layer pixels.</summary>
-    public const float MenuY = 2f;
+    /// <summary>Top edge of the font popup in app-local pixels.</summary>
+    public const float MenuY = 74f;
 
-    /// <summary>Width of the font menu in canvas-local pixels.</summary>
+    /// <summary>Width of the font popup in app-local pixels.</summary>
     public const float MenuWidth = 430f;
-
-    /// <summary>Height of one font row in the menu.</summary>
-    public const float MenuRowHeight = 34f;
-
-    /// <summary>Padding inside the font menu panel.</summary>
-    public const float MenuPadding = 6f;
-
-    /// <summary>Height of the search strip above the family rows.</summary>
-    public const float MenuSearchHeight = 38f;
-
-    /// <summary>The most font rows the menu shows before it scrolls.</summary>
-    public const int MaxVisibleRows = 10;
-
-    /// <summary>Width of the scrollbar drawn down the right edge of the rows.</summary>
-    public const float MenuScrollbarWidth = 7f;
 
     private static readonly TextFont[] BuiltIn =
     [
@@ -124,19 +109,6 @@ public static class TextFonts
     /// <summary>Gets every offered family, built-ins first and downloads after.</summary>
     public static TextFont[] All => _all;
 
-    /// <summary>Gets how many rows form the scrollable body for a match count.</summary>
-    public static int BodyRows(int count) => count <= 0 ? 1 : Math.Min(count, MaxVisibleRows);
-
-    /// <summary>Gets the total height of the font menu panel for a match count.</summary>
-    public static float MenuHeight(int count) =>
-        (MenuPadding * 2) + MenuSearchHeight + ((BodyRows(count) + 1) * MenuRowHeight);
-
-    /// <summary>Gets the top edge of the row body, below the search strip.</summary>
-    public static float BodyTop => MenuY + MenuPadding + MenuSearchHeight;
-
-    /// <summary>Gets the left edge of the scrollbar track.</summary>
-    public static float ScrollbarX => MenuX + MenuWidth - MenuScrollbarWidth - 4f;
-
     /// <summary>Gets a family by index, clamped into range.</summary>
     public static TextFont At(int index) => All[Math.Clamp(index, 0, All.Length - 1)];
 
@@ -159,31 +131,6 @@ public static class TextFonts
         Downloaded.Add(stored);
         Rebuild();
         return Array.FindIndex(_all, candidate => ReferenceEquals(candidate, stored));
-    }
-
-    /// <summary>Returns the body slot or footer under a stage-local point, or -1.</summary>
-    /// <param name="x">Stage-local horizontal position.</param>
-    /// <param name="y">Stage-local vertical position.</param>
-    /// <param name="count">Number of matching families.</param>
-    /// <remarks>
-    /// The footer is reported as <see cref="BodyRows"/>. The caller maps a body
-    /// slot through its current scroll offset and match list.
-    /// </remarks>
-    public static int SlotAt(float x, float y, int count)
-    {
-        if (x < MenuX || x > MenuX + MenuWidth)
-        {
-            return -1;
-        }
-
-        int rows = BodyRows(count);
-        if (y >= BodyTop && y < BodyTop + (rows * MenuRowHeight))
-        {
-            return (int)((y - BodyTop) / MenuRowHeight);
-        }
-
-        float footer = BodyTop + (rows * MenuRowHeight);
-        return y >= footer && y < footer + MenuRowHeight ? rows : -1;
     }
 
     private static void Rebuild()

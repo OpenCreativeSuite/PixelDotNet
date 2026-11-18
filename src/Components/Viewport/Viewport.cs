@@ -68,6 +68,12 @@ public sealed class Viewport : Component
             return;
         }
 
+        if (editor.IsTextFxOpen && key == "Escape")
+        {
+            editor.CloseTextFx();
+            return;
+        }
+
         switch (key)
         {
             case "V":

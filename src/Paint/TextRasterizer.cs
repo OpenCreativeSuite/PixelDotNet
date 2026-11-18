@@ -44,6 +44,71 @@ public static class TextRasterizer
         out int width,
         out int height,
         out int originX,
+        out int originY) =>
+        RenderCoverage(font, text, size, bold, italic, align, 0, out coverage, out width, out height, out originX, out originY);
+
+    /// <summary>
+    /// Renders text together with its outline and shadow coverage layers. Every
+    /// layer shares the same padded bitmap, so they blit in register and the
+    /// transform box automatically grows to include the effects.
+    /// </summary>
+    public static bool RenderStyled(
+        TextFont font,
+        string text,
+        float size,
+        bool bold,
+        bool italic,
+        TextAlign align,
+        TextEffectStyle style,
+        out TextArtwork? artwork)
+    {
+        artwork = null;
+
+        if (!RenderCoverage(
+            font,
+            text,
+            size,
+            bold,
+            italic,
+            align,
+            style.Padding,
+            out byte[] coverage,
+            out int width,
+            out int height,
+            out int originX,
+            out int originY))
+        {
+            return false;
+        }
+
+        if (coverage.Length == 0)
+        {
+            artwork = new TextArtwork([], null, null, 0, 0, 0, 0);
+            return true;
+        }
+
+        byte[]? outline = style.HasOutline ? Dilate(coverage, width, height, style.OutlineWidth) : null;
+        byte[]? shadow = style.HasShadow
+            ? CreateShadow(coverage, width, height, style.ShadowOffsetX, style.ShadowOffsetY, style.ShadowBlur)
+            : null;
+
+        artwork = new TextArtwork(coverage, outline, shadow, width, height, originX, originY);
+        return true;
+    }
+
+    /// <summary>Renders glyph coverage with room for the requested effect margin.</summary>
+    private static bool RenderCoverage(
+        TextFont font,
+        string text,
+        float size,
+        bool bold,
+        bool italic,
+        TextAlign align,
+        int extraPadding,
+        out byte[] coverage,
+        out int width,
+        out int height,
+        out int originX,
         out int originY)
     {
         coverage = [];
@@ -63,7 +128,7 @@ public static class TextRasterizer
         }
 
         float scale = stbtt_ScaleForPixelHeight(face.Info, Math.Clamp(size, 4f, 400f));
-        int pad = Math.Max(2, (int)MathF.Round(size * 0.2f));
+        int pad = Math.Max(2, (int)MathF.Round(size * 0.2f)) + Math.Max(0, extraPadding);
 
         int ascent;
         int descent;
@@ -127,23 +192,22 @@ public static class TextRasterizer
         return true;
     }
 
-    /// <summary>Blits a coverage bitmap into a layer, rotated about its centre.</summary>
-    public static void Blit(
+    /// <summary>
+    /// Blits one coverage layer over whatever is already in the layer. A colour
+    /// with alpha below 255 is folded into the coverage, which is how a shadow's
+    /// opacity works without a separate pass.
+    /// </summary>
+    public static void Overlay(
         PaintLayer layer,
-        uint[] source,
         Selection? selection,
         byte[] coverage,
         int width,
         int height,
-        int originX,
-        int originY,
         float centerX,
         float centerY,
         float rotation,
         uint color)
     {
-        Array.Copy(source, layer.Pixels, source.Length);
-
         if (width <= 0 || height <= 0 || coverage.Length < width * height)
         {
             return;
@@ -162,6 +226,7 @@ public static class TextRasterizer
         int maxX = Math.Min(layer.Width - 1, (int)MathF.Ceiling(centerX + extentX) + 1);
         int minY = Math.Max(0, (int)MathF.Floor(centerY - extentY) - 1);
         int maxY = Math.Min(layer.Height - 1, (int)MathF.Ceiling(centerY + extentY) + 1);
+        int colorAlpha = Rgba.A(color);
         uint[] pixels = layer.Pixels;
 
         for (int y = minY; y <= maxY; y++)
@@ -195,8 +260,204 @@ public static class TextRasterizer
                     continue;
                 }
 
+                int alpha = coverageValue * colorAlpha / 255;
                 int index = row + x;
-                pixels[index] = Rgba.Over(pixels[index], color, coverageValue);
+                pixels[index] = Rgba.Over(pixels[index], color, alpha);
+            }
+        }
+    }
+
+    /// <summary>Builds an outline layer by measuring each pixel's distance to the glyphs.</summary>
+    private static byte[] Dilate(byte[] coverage, int width, int height, float radius)
+    {
+        float[] distance = new float[coverage.Length];
+        const float Far = 1e9f;
+
+        for (int index = 0; index < coverage.Length; index++)
+        {
+            distance[index] = coverage[index] > 0 ? 0f : Far;
+        }
+
+        // Two-pass chamfer transform. The 1 / sqrt(2) weights are close enough to
+        // Euclidean for a one-pixel antialiased rim and keep this O(pixels).
+        const float Diagonal = 1.41421356f;
+        for (int y = 0; y < height; y++)
+        {
+            int row = y * width;
+            for (int x = 0; x < width; x++)
+            {
+                int index = row + x;
+                float value = distance[index];
+                if (x > 0)
+                {
+                    value = MathF.Min(value, distance[index - 1] + 1f);
+                }
+
+                if (y > 0)
+                {
+                    value = MathF.Min(value, distance[index - width] + 1f);
+                    if (x > 0)
+                    {
+                        value = MathF.Min(value, distance[index - width - 1] + Diagonal);
+                    }
+
+                    if (x < width - 1)
+                    {
+                        value = MathF.Min(value, distance[index - width + 1] + Diagonal);
+                    }
+                }
+
+                distance[index] = value;
+            }
+        }
+
+        for (int y = height - 1; y >= 0; y--)
+        {
+            int row = y * width;
+            for (int x = width - 1; x >= 0; x--)
+            {
+                int index = row + x;
+                float value = distance[index];
+                if (x < width - 1)
+                {
+                    value = MathF.Min(value, distance[index + 1] + 1f);
+                }
+
+                if (y < height - 1)
+                {
+                    value = MathF.Min(value, distance[index + width] + 1f);
+                    if (x < width - 1)
+                    {
+                        value = MathF.Min(value, distance[index + width + 1] + Diagonal);
+                    }
+
+                    if (x > 0)
+                    {
+                        value = MathF.Min(value, distance[index + width - 1] + Diagonal);
+                    }
+                }
+
+                distance[index] = value;
+            }
+        }
+
+        byte[] result = new byte[coverage.Length];
+        for (int index = 0; index < result.Length; index++)
+        {
+            float alpha = (radius + 0.5f - distance[index]) * 255f;
+            if (alpha > 0f)
+            {
+                result[index] = (byte)Math.Min(255f, alpha);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>Blurs and offsets the glyph coverage to form the shadow layer.</summary>
+    private static byte[] CreateShadow(byte[] coverage, int width, int height, int offsetX, int offsetY, float blur)
+    {
+        byte[] source = blur >= 0.5f ? Blur(coverage, width, height, blur) : coverage;
+        if (offsetX == 0 && offsetY == 0)
+        {
+            return source == coverage ? (byte[])coverage.Clone() : source;
+        }
+
+        byte[] shifted = new byte[coverage.Length];
+        for (int y = 0; y < height; y++)
+        {
+            int targetY = y + offsetY;
+            if (targetY < 0 || targetY >= height)
+            {
+                continue;
+            }
+
+            int sourceRow = y * width;
+            int targetRow = targetY * width;
+            for (int x = 0; x < width; x++)
+            {
+                int targetX = x + offsetX;
+                if (targetX < 0 || targetX >= width)
+                {
+                    continue;
+                }
+
+                shifted[targetRow + targetX] = source[sourceRow + x];
+            }
+        }
+
+        return shifted;
+    }
+
+    /// <summary>Approximates a Gaussian with two box-blur passes over the coverage.</summary>
+    private static byte[] Blur(byte[] coverage, int width, int height, float blur)
+    {
+        int radius = Math.Max(1, (int)MathF.Round(blur * 0.5f));
+        int[] data = new int[coverage.Length];
+        for (int index = 0; index < coverage.Length; index++)
+        {
+            data[index] = coverage[index];
+        }
+
+        int[] scratch = new int[data.Length];
+        for (int pass = 0; pass < 2; pass++)
+        {
+            BoxBlurHorizontal(data, scratch, width, height, radius);
+            BoxBlurVertical(scratch, data, width, height, radius);
+        }
+
+        byte[] result = new byte[data.Length];
+        for (int index = 0; index < result.Length; index++)
+        {
+            result[index] = (byte)Math.Clamp(data[index], 0, 255);
+        }
+
+        return result;
+    }
+
+    /// <summary>One horizontal box pass with edge clamping.</summary>
+    private static void BoxBlurHorizontal(int[] data, int[] result, int width, int height, int radius)
+    {
+        int window = (radius * 2) + 1;
+
+        for (int y = 0; y < height; y++)
+        {
+            int row = y * width;
+            int sum = 0;
+
+            for (int offset = -radius; offset <= radius; offset++)
+            {
+                sum += data[row + Math.Clamp(offset, 0, width - 1)];
+            }
+
+            for (int x = 0; x < width; x++)
+            {
+                result[row + x] = sum / window;
+                sum += data[row + Math.Clamp(x + radius + 1, 0, width - 1)];
+                sum -= data[row + Math.Clamp(x - radius, 0, width - 1)];
+            }
+        }
+    }
+
+    /// <summary>One vertical box pass with edge clamping.</summary>
+    private static void BoxBlurVertical(int[] data, int[] result, int width, int height, int radius)
+    {
+        int window = (radius * 2) + 1;
+
+        for (int x = 0; x < width; x++)
+        {
+            int sum = 0;
+
+            for (int offset = -radius; offset <= radius; offset++)
+            {
+                sum += data[(Math.Clamp(offset, 0, height - 1) * width) + x];
+            }
+
+            for (int y = 0; y < height; y++)
+            {
+                result[(y * width) + x] = sum / window;
+                sum += data[(Math.Clamp(y + radius + 1, 0, height - 1) * width) + x];
+                sum -= data[(Math.Clamp(y - radius, 0, height - 1) * width) + x];
             }
         }
     }

@@ -139,6 +139,16 @@ public sealed class OptionsBar : Component
             AlignButton(editor, TextAlign.Left, Icons.AlignLeft, "Align left"),
             AlignButton(editor, TextAlign.Center, Icons.AlignCenter, "Centre"),
             AlignButton(editor, TextAlign.Right, Icons.AlignRight, "Align right")),
+        Button(new()
+        {
+            ClassName = editor.IsTextFxOpen ? "btn is-on" : "btn",
+            Title = "Outline, shadow and glow effects",
+            OnClick = () =>
+            {
+                editor.ToggleTextFx();
+                editor.Refresh?.Invoke();
+            },
+        }, Ui.Icon(Icons.Sparkles, "btn-icon"), Text("FX")),
         Ui.Swatch("text-color-chip", editor.Foreground, "Text colour — click to open the colour panel", editor.OpenColourTab, 22, 22),
         Ui.Button("Place", "Commit the text (Enter)", () =>
         {

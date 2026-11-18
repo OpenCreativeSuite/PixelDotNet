@@ -40,10 +40,10 @@ public sealed class ColorPanel : Component
     public override Node Render()
     {
         PaintSession editor = UseContext(EditorContext.Value);
-        uint foreground = editor.Foreground;
-        int red = Ui.Red(foreground);
-        int green = Ui.Green(foreground);
-        int blue = Ui.Blue(foreground);
+        uint active = editor.ActiveColor;
+        int red = Ui.Red(active);
+        int green = Ui.Green(active);
+        int blue = Ui.Blue(active);
         float hue = editor.PickerHue;
 
         List<Node> rows = [];
@@ -54,7 +54,7 @@ public sealed class ColorPanel : Component
             for (int i = start; i < end; i++)
             {
                 uint swatch = Palette[i];
-                cells.Add(Ui.Swatch("swatch", swatch, Ui.Hex(swatch), () => editor.SetForeground(swatch), 30, 20));
+                cells.Add(Ui.Swatch("swatch", swatch, Ui.Hex(swatch), () => editor.SetActiveColor(swatch), 30, 20));
             }
 
             rows.Add(Div(new() { ClassName = "swatch-row" }, [.. cells]));
@@ -64,10 +64,18 @@ public sealed class ColorPanel : Component
             Div(new() { ClassName = "color-head" },
                 Div(new() { ClassName = "pair" },
                     Ui.Swatch("pair-back", editor.Background, "Background colour — click to swap", editor.SwapColors, 30, 30),
-                    Ui.Swatch("pair-front", foreground, "Foreground colour — click to reset", editor.ResetColors, 30, 30)),
+                    Ui.Swatch("pair-front", editor.Foreground, "Foreground colour — click to reset", editor.ResetColors, 30, 30)),
                 Div(new() { ClassName = "color-info" },
-                    Span(new() { ClassName = "color-hex" }, Text(Ui.Hex(foreground))),
+                    Span(new()
+                    {
+                        ClassName = editor.ColorTarget == TextColorTarget.Fill ? "color-target is-fill" : "color-target",
+                    }, Text(editor.ColorTarget == TextColorTarget.Fill ? "Foreground" : editor.ColorTargetLabel)),
+                    Span(new() { ClassName = "color-hex" }, Text(Ui.Hex(active))),
                     Span(new() { ClassName = "color-sub" }, Text($"R {red}  G {green}  B {blue}")))),
+            Div(new() { ClassName = "color-targets" },
+                TargetButton(editor, TextColorTarget.Fill, "Fill"),
+                TargetButton(editor, TextColorTarget.Outline, "Outline"),
+                TargetButton(editor, TextColorTarget.Shadow, "Shadow")),
             Div(new() { ClassName = "color-actions-row" },
                 Button(new()
                 {
@@ -101,14 +109,27 @@ public sealed class ColorPanel : Component
 
             Ui.Section("Channels",
                 Ui.Slider("Red", red, 0f, 255f, 1f, string.Empty,
-                    value => editor.SetForeground((int)Ui.Parse(value, 0f, 255f), green, blue)),
+                    value => editor.SetActiveColor((int)Ui.Parse(value, 0f, 255f), green, blue)),
                 Ui.Slider("Green", green, 0f, 255f, 1f, string.Empty,
-                    value => editor.SetForeground(red, (int)Ui.Parse(value, 0f, 255f), blue)),
+                    value => editor.SetActiveColor(red, (int)Ui.Parse(value, 0f, 255f), blue)),
                 Ui.Slider("Blue", blue, 0f, 255f, 1f, string.Empty,
-                    value => editor.SetForeground(red, green, (int)Ui.Parse(value, 0f, 255f)))),
+                    value => editor.SetActiveColor(red, green, (int)Ui.Parse(value, 0f, 255f)))),
 
             Ui.Section("Swatches", Div(new() { ClassName = "swatches" }, [.. rows])));
     }
+
+    /// <summary>Builds one colour-target tab for the fill, outline or shadow.</summary>
+    private static Node TargetButton(PaintSession editor, TextColorTarget target, string label) =>
+        Button(new()
+        {
+            ClassName = editor.ColorTarget == target ? "btn is-on" : "btn",
+            Title = "Edit the " + label.ToLowerInvariant() + " colour",
+            OnClick = () =>
+            {
+                editor.EditTextColour(target);
+                editor.Refresh?.Invoke();
+            },
+        }, Text(label));
 
     /// <summary>Draws the saturation/value square and the current colour marker.</summary>
     private static void DrawSquare(CanvasContext context, PaintSession editor)
@@ -131,13 +152,13 @@ public sealed class ColorPanel : Component
             }
         }
 
-        (float _, float markerSaturation, float markerValue) = Rgba.ToHsv(editor.Foreground);
+        (float _, float markerSaturation, float markerValue) = Rgba.ToHsv(editor.ActiveColor);
         float x = markerSaturation * (SquareWidth - 1);
         float y = (1f - markerValue) * (SquareHeight - 1);
 
         context.FillEllipse(new Rect(x - 6f, y - 6f, 12f, 12f), 0xCC000000);
         context.FillEllipse(new Rect(x - 5f, y - 5f, 10f, 10f), 0xFFFFFFFF);
-        context.FillEllipse(new Rect(x - 3.5f, y - 3.5f, 7f, 7f), Rgba.Opaque(editor.Foreground));
+        context.FillEllipse(new Rect(x - 3.5f, y - 3.5f, 7f, 7f), Rgba.Opaque(editor.ActiveColor));
     }
 
     /// <summary>Draws the hue strip and the current hue marker.</summary>
@@ -172,7 +193,7 @@ public sealed class ColorPanel : Component
     /// <summary>Reads a click in the hue strip as a hue rotation.</summary>
     private static void PickHue(PaintSession editor, float x)
     {
-        (float _, float saturation, float value) = Rgba.ToHsv(editor.Foreground);
+        (float _, float saturation, float value) = Rgba.ToHsv(editor.ActiveColor);
         editor.SetHsv(Math.Clamp(x / HueWidth, 0f, 0.999f), saturation, value);
     }
 }

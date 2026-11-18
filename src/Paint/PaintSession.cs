@@ -41,7 +41,7 @@ public sealed class PaintSession
     private uint[]? _effectBase;
     private PaintLayer? _textLayer;
     private uint[]? _textBase;
-    private byte[]? _textCoverage;
+    private TextArtwork? _textArtwork;
     private int _textBitmapWidth;
     private int _textBitmapHeight;
     private int _textOriginX;
@@ -49,7 +49,6 @@ public sealed class PaintSession
     private string _textRenderKey = string.Empty;
     private bool _textFontAvailable;
     private int[] _fontMatches = [];
-    private bool _fontScrollDragging;
     private TextHandle _textHandle;
     private int _textDragX;
     private int _textDragY;
@@ -296,6 +295,10 @@ public sealed class PaintSession
 
         CommitPreviews();
         Tool = tool;
+        IsFontMenuOpen = false;
+        IsFontSearchFocused = false;
+        IsTextFxOpen = false;
+        ColorTarget = TextColorTarget.Fill;
         Status = NameOf(tool) + " tool";
         Changed();
     }
@@ -308,11 +311,65 @@ public sealed class PaintSession
         Changed();
     }
 
+    /// <summary>Sets whichever text colour the colour panel is editing.</summary>
+    public void SetActiveColor(int r, int g, int b)
+    {
+        uint color = Rgba.FromRgb(r, g, b);
+        switch (ColorTarget)
+        {
+            case TextColorTarget.Outline:
+                TextOutlineColor = color;
+                TextPreset = TextPreset.Custom;
+                break;
+
+            case TextColorTarget.Shadow:
+                TextShadowColor = color;
+                TextPreset = TextPreset.Custom;
+                break;
+
+            default:
+                Foreground = color;
+                break;
+        }
+
+        PickerHue = Rgba.ToHsv(color).Hue;
+        RefreshTextPreview();
+        Changed();
+    }
+
+    /// <summary>Sets the active colour from the palette and remembers the picker hue.</summary>
+    public void SetActiveColor(uint color) => SetActiveColor(Rgba.R(color), Rgba.G(color), Rgba.B(color));
+
+    /// <summary>Switches the colour panel to one of the text effect colours and opens it.</summary>
+    public void EditTextColour(TextColorTarget target)
+    {
+        ColorTarget = target;
+        PickerHue = Rgba.ToHsv(ActiveColor).Hue;
+        OpenSideTab(1);
+    }
+
     /// <summary>Sets the foreground colour and remembers the picker hue.</summary>
     public void SetHsv(float hue, float saturation, float value)
     {
         PickerHue = ((hue % 1f) + 1f) % 1f;
-        Foreground = Rgba.FromHsv(PickerHue, saturation, value);
+        uint color = Rgba.FromHsv(PickerHue, saturation, value);
+        switch (ColorTarget)
+        {
+            case TextColorTarget.Outline:
+                TextOutlineColor = color;
+                TextPreset = TextPreset.Custom;
+                break;
+
+            case TextColorTarget.Shadow:
+                TextShadowColor = color;
+                TextPreset = TextPreset.Custom;
+                break;
+
+            default:
+                Foreground = color;
+                break;
+        }
+
         RefreshTextPreview();
         Changed();
     }
@@ -324,8 +381,12 @@ public sealed class PaintSession
         Changed();
     }
 
-    /// <summary>Opens the colour tab.</summary>
-    public void OpenColourTab() => OpenSideTab(1);
+    /// <summary>Opens the colour tab and edits the text fill colour.</summary>
+    public void OpenColourTab()
+    {
+        ColorTarget = TextColorTarget.Fill;
+        OpenSideTab(1);
+    }
 
     /// <summary>Sets the foreground colour.</summary>
     public void SetForeground(uint color)
@@ -341,6 +402,7 @@ public sealed class PaintSession
     {
         (Foreground, Background) = (Background, Foreground);
         PickerHue = Rgba.ToHsv(Foreground).Hue;
+        ColorTarget = TextColorTarget.Fill;
         RefreshTextPreview();
         Changed();
     }
@@ -351,6 +413,7 @@ public sealed class PaintSession
         Foreground = Rgba.FromRgb(0x1A, 0x1A, 0x1A);
         Background = Rgba.White;
         PickerHue = 0f;
+        ColorTarget = TextColorTarget.Fill;
         RefreshTextPreview();
         Changed();
     }
@@ -845,7 +908,7 @@ public sealed class PaintSession
         }
 
         Selection = new Selection(left, top, newWidth, newHeight);
-        Status = $"Resize {newWidth} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â {newHeight}";
+        Status = $"Resize {newWidth} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {newHeight}";
         Document.MarkDirty();
     }
 
@@ -1007,8 +1070,8 @@ public sealed class PaintSession
 
         _clipboard = image;
         Status = image.Empty
-            ? $"Copied {image.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â {image.Height} (empty area)"
-            : $"Copied {image.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â {image.Height}{note}";
+            ? $"Copied {image.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {image.Height} (empty area)"
+            : $"Copied {image.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {image.Height}{note}";
         Changed();
     }
 
@@ -1021,7 +1084,7 @@ public sealed class PaintSession
         }
 
         _clipboard = image;
-        Status = $"Copied merged {image.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â {image.Height}";
+        Status = $"Copied merged {image.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {image.Height}";
         Changed();
     }
 
@@ -1046,7 +1109,7 @@ public sealed class PaintSession
         _clipboard = image;
         PushUndo("Cut");
         ClearRegion(layer);
-        Status = $"Cut {image.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â {image.Height}";
+        Status = $"Cut {image.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {image.Height}";
         Changed();
     }
 
@@ -1064,7 +1127,7 @@ public sealed class PaintSession
         PaintLayer layer = new(FreeLayerName("Pasted Layer"), Document.Width, Document.Height);
 
         // Paste back where it was cut from, unless that would hang off the
-        // canvas ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â then centre it, which is what matters across documents.
+        // canvas ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â then centre it, which is what matters across documents.
         int originX = clip.OriginX;
         int originY = clip.OriginY;
         if (originX + clip.Width > Document.Width || originY + clip.Height > Document.Height)
@@ -1094,7 +1157,7 @@ public sealed class PaintSession
         int insertAt = Math.Clamp(Document.ActiveIndex + 1, 0, Document.Layers.Count);
         Document.Layers.Insert(insertAt, layer);
         Document.ActiveIndex = insertAt;
-        Status = $"Pasted {clip.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â {clip.Height}";
+        Status = $"Pasted {clip.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {clip.Height}";
         Changed();
     }
 
@@ -1642,11 +1705,11 @@ public sealed class PaintSession
     /// <summary>Gets how the line is aligned against its anchor.</summary>
     public TextAlign TextAlignment { get; private set; }
 
-    /// <summary>Gets whether the font picker menu is open over the canvas.</summary>
+    /// <summary>Gets whether the font picker menu is open.</summary>
     public bool IsFontMenuOpen { get; private set; }
 
-    /// <summary>Gets the index of the first font row shown in the picker.</summary>
-    public int FontMenuScroll { get; private set; }
+    /// <summary>Gets whether the picker's search field owns the keyboard.</summary>
+    public bool IsFontSearchFocused { get; private set; }
 
     /// <summary>Gets the live search query typed into the font picker.</summary>
     public string FontSearch { get; private set; } = string.Empty;
@@ -1654,17 +1717,27 @@ public sealed class PaintSession
     /// <summary>Gets how many families match <see cref="FontSearch"/>.</summary>
     public int FontMatchCount => _fontMatches.Length;
 
-    /// <summary>Gets how many body rows the picker draws for the current match count.</summary>
-    public int FontMenuBodyRows => TextFonts.BodyRows(FontMatchCount);
-
-    /// <summary>Gets whether the current matches need a scrollbar.</summary>
-    public bool FontMenuHasOverflow => FontMatchCount > TextFonts.MaxVisibleRows;
-
-    /// <summary>Gets the highest first-match offset the picker can scroll to.</summary>
-    public int FontMenuMaxScroll => Math.Max(0, FontMatchCount - TextFonts.MaxVisibleRows);
-
     /// <summary>Gets the global font index for one match slot.</summary>
     public int FontMatchAt(int slot) => _fontMatches[Math.Clamp(slot, 0, _fontMatches.Length - 1)];
+
+    /// <summary>
+    /// Gets the line the picker previews in each family: the text being composed
+    /// when there is any, otherwise the classic sample.
+    /// </summary>
+    public string FontPreviewText
+    {
+        get
+        {
+            string text = TextContent.Replace('\r', ' ').Replace('\n', ' ').Trim();
+            if (text.Length == 0)
+            {
+                return "The quick brown fox";
+            }
+
+            const int Limit = 26;
+            return text.Length <= Limit ? text : text[..Limit].TrimEnd() + "â€¦";
+        }
+    }
 
     /// <summary>Gets whether the cdnfonts URL row is open in the options bar.</summary>
     public bool IsFontAddOpen { get; private set; }
@@ -1692,6 +1765,70 @@ public sealed class PaintSession
 
     /// <summary>Gets the clockwise rotation of the text in degrees.</summary>
     public float TextRotation { get; private set; }
+
+    /// <summary>Gets whether the text is drawn with an outline.</summary>
+    public bool TextOutline { get; private set; }
+
+    /// <summary>Gets the outline thickness in document pixels.</summary>
+    public float TextOutlineWidth { get; private set; } = 3f;
+
+    /// <summary>Gets the outline colour.</summary>
+    public uint TextOutlineColor { get; private set; } = Rgba.FromRgb(0x10, 0x10, 0x14);
+
+    /// <summary>Gets whether the text is drawn with a shadow or glow.</summary>
+    public bool TextShadow { get; private set; }
+
+    /// <summary>Gets the horizontal shadow offset in pixels.</summary>
+    public int TextShadowX { get; private set; } = 4;
+
+    /// <summary>Gets the vertical shadow offset in pixels.</summary>
+    public int TextShadowY { get; private set; } = 4;
+
+    /// <summary>Gets the shadow softness in pixels.</summary>
+    public float TextShadowBlur { get; private set; } = 6f;
+
+    /// <summary>Gets the shadow opacity in the 0-100 range.</summary>
+    public int TextShadowOpacity { get; private set; } = 65;
+
+    /// <summary>Gets the shadow colour.</summary>
+    public uint TextShadowColor { get; private set; } = Rgba.FromRgb(0, 0, 0);
+
+    /// <summary>Gets the last preset applied, or <see cref="TextPreset.Custom"/>.</summary>
+    public TextPreset TextPreset { get; private set; } = TextPreset.None;
+
+    /// <summary>Gets whether the text effects popup is open.</summary>
+    public bool IsTextFxOpen { get; private set; }
+
+    /// <summary>Gets which text colour the colour panel edits.</summary>
+    public TextColorTarget ColorTarget { get; private set; }
+
+    /// <summary>Gets the colour the colour panel is currently editing.</summary>
+    public uint ActiveColor => ColorTarget switch
+    {
+        TextColorTarget.Outline => TextOutlineColor,
+        TextColorTarget.Shadow => TextShadowColor,
+        _ => Foreground,
+    };
+
+    /// <summary>Gets a caption for <see cref="ColorTarget"/>, or an empty string for the fill.</summary>
+    public string ColorTargetLabel => ColorTarget switch
+    {
+        TextColorTarget.Outline => "Outline colour",
+        TextColorTarget.Shadow => "Shadow colour",
+        _ => string.Empty,
+    };
+
+    /// <summary>Gets the outline and shadow settings passed to the rasteriser.</summary>
+    public TextEffectStyle TextEffectStyle => new(
+        TextOutline,
+        TextOutlineWidth,
+        TextOutlineColor,
+        TextShadow,
+        TextShadowX,
+        TextShadowY,
+        TextShadowBlur,
+        TextShadowOpacity,
+        TextShadowColor);
 
     /// <summary>Gets whether a text preview is live on the active layer.</summary>
     public bool HasTextPreview => _textBase is not null;
@@ -1732,7 +1869,7 @@ public sealed class PaintSession
     /// <summary>Handles a press with the text tool: transform box, or a new anchor.</summary>
     public void TextPointerDown(int x, int y)
     {
-        if (HasTextPreview && _textCoverage is not null)
+        if (HasTextPreview && _textArtwork is not null)
         {
             TextHandle handle = HitTextHandle(x, y);
             if (handle != TextHandle.None)
@@ -1760,7 +1897,7 @@ public sealed class PaintSession
             case TextHandle.Rotate:
                 float angle = MathF.Atan2(y - _textDragCenterY, x - _textDragCenterX) * 180f / MathF.PI;
                 TextRotation = _textDragRotation + (angle - _textDragAngle);
-                Status = $"Rotate {TextRotation:0}Â°";
+                Status = $"Rotate {TextRotation:0}Ã‚Â°";
                 TouchText();
                 break;
 
@@ -1832,11 +1969,16 @@ public sealed class PaintSession
         TextFontIndex = Math.Clamp(index, 0, TextFonts.All.Length - 1);
         InvalidateText();
         TouchText();
-        if (IsFontMenuOpen)
-        {
-            EnsureFontSelectionVisible();
-        }
+        Changed();
+    }
 
+    /// <summary>Applies a family chosen from the picker, closes it and reports the choice.</summary>
+    public void ApplyFont(int index)
+    {
+        SelectTextFont(index);
+        IsFontMenuOpen = false;
+        IsFontSearchFocused = false;
+        Status = Font.Name;
         Changed();
     }
 
@@ -1844,26 +1986,36 @@ public sealed class PaintSession
     public void ToggleFontMenu()
     {
         IsFontMenuOpen = !IsFontMenuOpen;
+        IsFontSearchFocused = false;
         if (IsFontMenuOpen)
         {
             IsFontAddOpen = false;
+            IsTextFxOpen = false;
             FontSearch = string.Empty;
-            FontMenuScroll = 0;
-            _fontScrollDragging = false;
             RebuildFontMatches();
-            EnsureFontSelectionVisible();
         }
 
         Status = IsFontMenuOpen ? "Choose a font" : "Ready";
         Changed();
     }
 
-    /// <summary>Scrolls the font picker by a number of rows, clamped to the matches.</summary>
-    public void ScrollFontMenu(int delta)
+    /// <summary>Replaces the search text from the picker's input field.</summary>
+    public void SetFontSearch(string text)
     {
-        FontMenuScroll = Math.Clamp(FontMenuScroll + delta, 0, FontMenuMaxScroll);
+        string value = text ?? string.Empty;
+        if (FontSearch == value)
+        {
+            return;
+        }
+
+        FontSearch = value;
+        RebuildFontMatches();
+        Status = value.Length == 0 ? "Choose a font" : "Search: " + value;
         Changed();
     }
+
+    /// <summary>Records whether the picker's search field owns the keyboard.</summary>
+    public void SetFontSearchFocused(bool focused) => IsFontSearchFocused = focused;
 
     /// <summary>Adds typed text to the font search and refreshes the matches.</summary>
     public void AppendFontSearch(string text)
@@ -1874,7 +2026,6 @@ public sealed class PaintSession
         }
 
         FontSearch += text.ToLowerInvariant();
-        FontMenuScroll = 0;
         RebuildFontMatches();
         Status = "Search: " + FontSearch;
         Changed();
@@ -1889,13 +2040,17 @@ public sealed class PaintSession
         }
 
         FontSearch = FontSearch[..^1];
-        FontMenuScroll = 0;
         RebuildFontMatches();
         Status = FontSearch.Length == 0 ? "Choose a font" : "Search: " + FontSearch;
         Changed();
     }
 
     /// <summary>Handles a key press while the font picker is open.</summary>
+    /// <remarks>
+    /// When the search field has focus it performs its own text editing, so only
+    /// navigation and commit keys are handled here. Without focus, printable
+    /// keys still drive type-to-search.
+    /// </remarks>
     public void FontMenuKey(string key)
     {
         if (key is "Escape")
@@ -1904,9 +2059,21 @@ public sealed class PaintSession
             return;
         }
 
-        if (key is "Backspace" or "Back")
+        if (!IsFontSearchFocused && key is "Backspace" or "Back")
         {
             BackspaceFontSearch();
+            return;
+        }
+
+        if (!IsFontSearchFocused && key == "Space")
+        {
+            AppendFontSearch(" ");
+            return;
+        }
+
+        if (!IsFontSearchFocused && key.Length == 1 && !char.IsControl(key[0]))
+        {
+            AppendFontSearch(key);
             return;
         }
 
@@ -1915,11 +2082,7 @@ public sealed class PaintSession
             if (FontMatchCount > 0)
             {
                 int highlighted = Array.IndexOf(_fontMatches, TextFontIndex);
-                int index = highlighted >= 0 ? TextFontIndex : FontMatchAt(0);
-                IsFontMenuOpen = false;
-                SelectTextFont(index);
-                Status = Font.Name;
-                Changed();
+                ApplyFont(highlighted >= 0 ? TextFontIndex : FontMatchAt(0));
             }
 
             return;
@@ -1938,53 +2101,7 @@ public sealed class PaintSession
                 ? (direction > 0 ? 0 : FontMatchCount - 1)
                 : Math.Clamp(current + direction, 0, FontMatchCount - 1);
             SelectTextFont(FontMatchAt(next));
-            EnsureFontSelectionVisible();
             Status = Font.Name;
-            return;
-        }
-
-        if (key is "PageUp" or "PageDown")
-        {
-            ScrollFontMenu(key == "PageUp" ? -TextFonts.MaxVisibleRows : TextFonts.MaxVisibleRows);
-            return;
-        }
-
-        if (key is "Home" or "End")
-        {
-            FontMenuScroll = key == "Home" ? 0 : FontMenuMaxScroll;
-            Changed();
-            return;
-        }
-
-        if (key == "Space")
-        {
-            AppendFontSearch(" ");
-            return;
-        }
-
-        if (key.Length == 1 && !char.IsControl(key[0]))
-        {
-            AppendFontSearch(key);
-        }
-    }
-
-    /// <summary>Makes sure the selected family is inside the visible menu window.</summary>
-    private void EnsureFontSelectionVisible()
-    {
-        FontMenuScroll = Math.Clamp(FontMenuScroll, 0, FontMenuMaxScroll);
-        int slot = Array.IndexOf(_fontMatches, TextFontIndex);
-        if (slot < 0)
-        {
-            return;
-        }
-
-        if (slot < FontMenuScroll)
-        {
-            FontMenuScroll = slot;
-        }
-        else if (slot >= FontMenuScroll + TextFonts.MaxVisibleRows)
-        {
-            FontMenuScroll = Math.Min(slot - TextFonts.MaxVisibleRows + 1, FontMenuMaxScroll);
         }
     }
 
@@ -2013,8 +2130,6 @@ public sealed class PaintSession
 
             _fontMatches = [.. matches];
         }
-
-        FontMenuScroll = Math.Clamp(FontMenuScroll, 0, FontMenuMaxScroll);
     }
 
     /// <summary>Closes the font picker menu.</summary>
@@ -2026,7 +2141,7 @@ public sealed class PaintSession
         }
 
         IsFontMenuOpen = false;
-        _fontScrollDragging = false;
+        IsFontSearchFocused = false;
         Status = NameOf(Tool) + " tool";
         Changed();
     }
@@ -2040,7 +2155,9 @@ public sealed class PaintSession
         }
 
         IsFontMenuOpen = false;
+        IsFontSearchFocused = false;
         IsFontAddOpen = true;
+        IsTextFxOpen = false;
         FontUrl = string.Empty;
         FontImportMessage = string.Empty;
         FontImportFailed = false;
@@ -2105,8 +2222,8 @@ public sealed class PaintSession
 
         IsFontDownloading = true;
         FontImportFailed = false;
-        FontImportMessage = "Downloading…";
-        Status = "Downloading font…";
+        FontImportMessage = "Downloadingâ€¦";
+        Status = "Downloading fontâ€¦";
         Changed();
         return true;
     }
@@ -2136,110 +2253,6 @@ public sealed class PaintSession
         Changed();
     }
 
-    /// <summary>Handles a press while the font picker is open.</summary>
-    public void FontMenuPointerDown(float localX, float localY)
-    {
-        // Clicking the search strip must not dismiss the menu; it is the target
-        // for the type-to-filter interaction.
-        if (localX >= TextFonts.MenuX + 8f
-            && localX <= TextFonts.MenuX + TextFonts.MenuWidth - 8f
-            && localY >= TextFonts.MenuY + TextFonts.MenuPadding
-            && localY <= TextFonts.MenuY + TextFonts.MenuPadding + TextFonts.MenuSearchHeight)
-        {
-            return;
-        }
-
-        if (TryBeginFontScroll(localX, localY))
-        {
-            return;
-        }
-
-        int slot = TextFonts.SlotAt(localX, localY, FontMatchCount);
-        if (slot < 0)
-        {
-            IsFontMenuOpen = false;
-            Status = NameOf(Tool) + " tool";
-            Changed();
-            return;
-        }
-
-        if (slot == FontMenuBodyRows)
-        {
-            IsFontMenuOpen = false;
-            OpenFontAdd();
-            return;
-        }
-
-        if (FontMatchCount == 0)
-        {
-            return;
-        }
-
-        IsFontMenuOpen = false;
-        int index = FontMatchAt(FontMenuScroll + slot);
-        SelectTextFont(index);
-        Status = Font.Name;
-        Changed();
-    }
-
-    /// <summary>Handles a drag on the font picker scrollbar.</summary>
-    public void FontMenuPointerMove(float localX, float localY)
-    {
-        if (_fontScrollDragging)
-        {
-            UpdateFontMenuScroll(localY);
-        }
-    }
-
-    /// <summary>Ends a font picker scrollbar drag.</summary>
-    public void FontMenuPointerUp() => _fontScrollDragging = false;
-
-    /// <summary>Starts dragging the font menu scrollbar when the press is on it.</summary>
-    private bool TryBeginFontScroll(float localX, float localY)
-    {
-        if (!FontMenuHasOverflow)
-        {
-            return false;
-        }
-
-        float left = TextFonts.ScrollbarX - 2f;
-        if (localX < left || localX > left + TextFonts.MenuScrollbarWidth + 4f)
-        {
-            return false;
-        }
-
-        float top = TextFonts.BodyTop;
-        float height = FontMenuBodyRows * TextFonts.MenuRowHeight;
-        if (localY < top || localY > top + height)
-        {
-            return false;
-        }
-
-        _fontScrollDragging = true;
-        UpdateFontMenuScroll(localY);
-        return true;
-    }
-
-    /// <summary>Maps a pointer position on the scrollbar to a first-match offset.</summary>
-    private void UpdateFontMenuScroll(float localY)
-    {
-        int maximum = FontMenuMaxScroll;
-        if (maximum <= 0)
-        {
-            return;
-        }
-
-        float top = TextFonts.BodyTop;
-        float height = FontMenuBodyRows * TextFonts.MenuRowHeight;
-        float ratio = Math.Clamp((localY - top) / height, 0f, 1f);
-        int scroll = (int)MathF.Round(ratio * maximum);
-        if (scroll != FontMenuScroll)
-        {
-            FontMenuScroll = scroll;
-            Changed();
-        }
-    }
-
     /// <summary>Sets the line alignment and previews it.</summary>
     public void SetTextAlign(TextAlign align)
     {
@@ -2267,6 +2280,158 @@ public sealed class PaintSession
     public void ToggleTextItalic()
     {
         TextItalic = !TextItalic;
+        InvalidateText();
+        TouchText();
+        Changed();
+    }
+
+    /// <summary>Opens or closes the text effects popup.</summary>
+    public void ToggleTextFx()
+    {
+        IsTextFxOpen = !IsTextFxOpen;
+        if (IsTextFxOpen)
+        {
+            IsFontMenuOpen = false;
+            IsFontSearchFocused = false;
+            IsFontAddOpen = false;
+        }
+
+        Status = IsTextFxOpen ? "Text effects" : "Ready";
+        Changed();
+    }
+
+    /// <summary>Closes the text effects popup.</summary>
+    public void CloseTextFx()
+    {
+        if (!IsTextFxOpen)
+        {
+            return;
+        }
+
+        IsTextFxOpen = false;
+        Changed();
+    }
+
+    /// <summary>Turns the outline on or off and previews it.</summary>
+    public void SetTextOutline(bool on)
+    {
+        TextOutline = on;
+        TextPreset = TextPreset.Custom;
+        TextEffectsChanged();
+    }
+
+    /// <summary>Sets the outline thickness and previews it.</summary>
+    public void SetTextOutlineWidth(float width)
+    {
+        TextOutlineWidth = Math.Clamp(width, 0.5f, 24f);
+        TextPreset = TextPreset.Custom;
+        TextEffectsChanged();
+    }
+
+    /// <summary>Turns the shadow on or off and previews it.</summary>
+    public void SetTextShadow(bool on)
+    {
+        TextShadow = on;
+        TextPreset = TextPreset.Custom;
+        TextEffectsChanged();
+    }
+
+    /// <summary>Sets the shadow offset and previews it.</summary>
+    public void SetTextShadowOffset(int x, int y)
+    {
+        TextShadowX = Math.Clamp(x, -48, 48);
+        TextShadowY = Math.Clamp(y, -48, 48);
+        TextPreset = TextPreset.Custom;
+        TextEffectsChanged();
+    }
+
+    /// <summary>Sets the shadow softness and previews it.</summary>
+    public void SetTextShadowBlur(float blur)
+    {
+        TextShadowBlur = Math.Clamp(blur, 0f, 32f);
+        TextPreset = TextPreset.Custom;
+        TextEffectsChanged();
+    }
+
+    /// <summary>Sets the shadow opacity and previews it.</summary>
+    public void SetTextShadowOpacity(int opacity)
+    {
+        TextShadowOpacity = Math.Clamp(opacity, 5, 100);
+        TextPreset = TextPreset.Custom;
+        TextEffectsChanged();
+    }
+
+    /// <summary>Applies one of the ready-made effect combinations.</summary>
+    public void ApplyTextPreset(TextPreset preset)
+    {
+        TextPreset = preset;
+        switch (preset)
+        {
+            case TextPreset.None:
+                TextOutline = false;
+                TextShadow = false;
+                break;
+
+            case TextPreset.Outline:
+                TextOutline = true;
+                TextOutlineWidth = 3f;
+                TextShadow = false;
+                break;
+
+            case TextPreset.Shadow:
+                TextOutline = false;
+                TextShadow = true;
+                TextShadowX = 4;
+                TextShadowY = 5;
+                TextShadowBlur = 6f;
+                TextShadowOpacity = 65;
+                break;
+
+            case TextPreset.Glow:
+                TextOutline = false;
+                TextShadow = true;
+                TextShadowX = 0;
+                TextShadowY = 0;
+                TextShadowBlur = 16f;
+                TextShadowOpacity = 90;
+                TextShadowColor = Rgba.FromRgb(0x7F, 0xE7, 0xFF);
+                break;
+
+            case TextPreset.Neon:
+                TextOutline = true;
+                TextOutlineWidth = 1f;
+                TextOutlineColor = Rgba.FromRgb(0x0B, 0x0B, 0x0F);
+                TextShadow = true;
+                TextShadowX = 0;
+                TextShadowY = 0;
+                TextShadowBlur = 18f;
+                TextShadowOpacity = 100;
+                TextShadowColor = Rgba.FromRgb(0x22, 0xE6, 0xFF);
+                break;
+
+            case TextPreset.Retro:
+                TextOutline = true;
+                TextOutlineWidth = 3f;
+                TextOutlineColor = Rgba.FromRgb(0x12, 0x12, 0x1A);
+                TextShadow = true;
+                TextShadowX = 7;
+                TextShadowY = 7;
+                TextShadowBlur = 0f;
+                TextShadowOpacity = 100;
+                TextShadowColor = Rgba.FromRgb(0xFF, 0x4F, 0xA3);
+                break;
+
+            default:
+                break;
+        }
+
+        Status = preset == TextPreset.Custom ? "Text effects" : preset.ToString() + " text";
+        TextEffectsChanged();
+    }
+
+    /// <summary>Re-rasterises and redraws the text after an effect setting changed.</summary>
+    private void TextEffectsChanged()
+    {
         InvalidateText();
         TouchText();
         Changed();
@@ -2313,23 +2478,51 @@ public sealed class PaintSession
         {
             Array.Copy(_textBase, layer.Pixels, _textBase.Length);
         }
-        else if (_textCoverage is null || !_textFontAvailable)
+        else if (_textArtwork is null || _textArtwork.Fill.Length == 0 || !_textFontAvailable)
         {
             Array.Copy(_textBase, layer.Pixels, _textBase.Length);
             Status = "No text font found";
         }
         else
         {
+            TextArtwork art = _textArtwork;
             (float centerX, float centerY) = TextCenter;
-            TextRasterizer.Blit(
+            Array.Copy(_textBase, layer.Pixels, _textBase.Length);
+
+            if (art.Shadow is not null)
+            {
+                TextRasterizer.Overlay(
+                    layer,
+                    Selection,
+                    art.Shadow,
+                    art.Width,
+                    art.Height,
+                    centerX,
+                    centerY,
+                    TextRotation,
+                    TextEffectStyle.ShadowTint);
+            }
+
+            if (art.Outline is not null)
+            {
+                TextRasterizer.Overlay(
+                    layer,
+                    Selection,
+                    art.Outline,
+                    art.Width,
+                    art.Height,
+                    centerX,
+                    centerY,
+                    TextRotation,
+                    TextOutlineColor);
+            }
+
+            TextRasterizer.Overlay(
                 layer,
-                _textBase,
                 Selection,
-                _textCoverage,
-                _textBitmapWidth,
-                _textBitmapHeight,
-                _textOriginX,
-                _textOriginY,
+                art.Fill,
+                art.Width,
+                art.Height,
                 centerX,
                 centerY,
                 TextRotation,
@@ -2352,7 +2545,7 @@ public sealed class PaintSession
         _textHandle = TextHandle.None;
         TextContent = string.Empty;
         TextRotation = 0f;
-        _textCoverage = null;
+        _textArtwork = null;
         _textRenderKey = string.Empty;
         TextGeneration++;
         Status = "Text placed";
@@ -2372,7 +2565,7 @@ public sealed class PaintSession
         _textHandle = TextHandle.None;
         TextContent = string.Empty;
         TextRotation = 0f;
-        _textCoverage = null;
+        _textArtwork = null;
         _textRenderKey = string.Empty;
         TextGeneration++;
         Status = "Text cancelled";
@@ -2392,7 +2585,7 @@ public sealed class PaintSession
         _textHandle = TextHandle.None;
         TextContent = string.Empty;
         TextRotation = 0f;
-        _textCoverage = null;
+        _textArtwork = null;
         _textRenderKey = string.Empty;
         TextGeneration++;
         Document.MarkDirty();
@@ -2401,34 +2594,37 @@ public sealed class PaintSession
     /// <summary>Forces the next text redraw to re-rasterise the glyphs.</summary>
     private void InvalidateText() => _textRenderKey = string.Empty;
 
-    /// <summary>Rasterises the current text when its style or content changed.</summary>
+    /// <summary>Rasterises the current text when its style, content or effects changed.</summary>
     private void EnsureTextBitmap()
     {
-        string key = TextFontIndex + "|" + TextContent + "|" + TextSize.ToString("0.###") + "|" + TextBold + "|" + TextItalic + "|" + TextAlignment;
-        if (key == _textRenderKey && _textCoverage is not null)
+        TextEffectStyle style = TextEffectStyle;
+        string key =
+            $"{TextFontIndex}|{TextContent}|{TextSize:0.###}|{TextBold}|{TextItalic}|{TextAlignment}"
+            + $"|{style.Outline}|{style.OutlineWidth:0.###}|{style.OutlineColor}"
+            + $"|{style.Shadow}|{style.ShadowOffsetX}|{style.ShadowOffsetY}"
+            + $"|{style.ShadowBlur:0.###}|{style.ShadowOpacity}|{style.ShadowColor}";
+
+        if (key == _textRenderKey && _textArtwork is not null)
         {
             return;
         }
 
-        bool ok = TextRasterizer.Render(
+        bool ok = TextRasterizer.RenderStyled(
             Font,
             TextContent,
             TextSize,
             TextBold,
             TextItalic,
             TextAlignment,
-            out byte[] coverage,
-            out int width,
-            out int height,
-            out int originX,
-            out int originY);
+            style,
+            out TextArtwork? artwork);
 
         _textFontAvailable = ok;
-        _textCoverage = coverage.Length > 0 ? coverage : null;
-        _textBitmapWidth = width;
-        _textBitmapHeight = height;
-        _textOriginX = originX;
-        _textOriginY = originY;
+        _textArtwork = artwork is not null && artwork.Fill.Length > 0 ? artwork : null;
+        _textBitmapWidth = artwork?.Width ?? 0;
+        _textBitmapHeight = artwork?.Height ?? 0;
+        _textOriginX = artwork?.OriginX ?? 0;
+        _textOriginY = artwork?.OriginY ?? 0;
         _textRenderKey = key;
     }
 
@@ -2852,7 +3048,7 @@ public sealed class PaintSession
     private static string Shorten(string message)
     {
         string single = message.Replace('\r', ' ').Replace('\n', ' ').Trim();
-        return single.Length <= 72 ? single : single[..69] + "…";
+        return single.Length <= 72 ? single : single[..69] + "â€¦";
     }
 
     /// <summary>Snaps a zoom factor onto the next stop in a direction.</summary>
