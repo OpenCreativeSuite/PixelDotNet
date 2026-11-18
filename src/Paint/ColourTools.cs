@@ -146,6 +146,173 @@ public static class ColourTools
         }
     }
 
+    /// <summary>Mixes source channels into each output channel.</summary>
+    /// <param name="layer">Layer to edit.</param>
+    /// <param name="selection">Optional selection bounds.</param>
+    /// <param name="mix">
+    /// Nine percentages: red from RGB, green from RGB, blue from RGB. 100 keeps the
+    /// channel unchanged and 0 removes it.
+    /// </param>
+    public static void ChannelMix(PaintLayer layer, Selection? selection, float[] mix)
+    {
+        if (mix.Length < 9)
+        {
+            return;
+        }
+
+        uint[] pixels = layer.Pixels;
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            if (!Included(layer, selection, i))
+            {
+                continue;
+            }
+
+            uint pixel = pixels[i];
+            int alpha = Rgba.A(pixel);
+            if (alpha == 0)
+            {
+                continue;
+            }
+
+            int red = Rgba.R(pixel);
+            int green = Rgba.G(pixel);
+            int blue = Rgba.B(pixel);
+
+            int outRed = Clamp((int)MathF.Round(
+                (red * mix[0] / 100f) + (green * mix[1] / 100f) + (blue * mix[2] / 100f)));
+            int outGreen = Clamp((int)MathF.Round(
+                (red * mix[3] / 100f) + (green * mix[4] / 100f) + (blue * mix[5] / 100f)));
+            int outBlue = Clamp((int)MathF.Round(
+                (red * mix[6] / 100f) + (green * mix[7] / 100f) + (blue * mix[8] / 100f)));
+
+            pixels[i] = Rgba.Pack(alpha, outRed, outGreen, outBlue);
+        }
+    }
+
+    /// <summary>Applies CMYK-style offsets to nine selective-colour ranges.</summary>
+    /// <param name="layer">Layer to edit.</param>
+    /// <param name="selection">Optional selection bounds.</param>
+    /// <param name="offsets">
+    /// Thirty-six values: four offsets (cyan, magenta, yellow, black) for each of
+    /// red, yellow, green, cyan, blue, magenta, whites, neutrals and blacks.
+    /// </param>
+    public static void SelectiveColour(PaintLayer layer, Selection? selection, float[] offsets)
+    {
+        const int Ranges = 9;
+        if (offsets.Length < Ranges * 4)
+        {
+            return;
+        }
+
+        uint[] pixels = layer.Pixels;
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            if (!Included(layer, selection, i))
+            {
+                continue;
+            }
+
+            uint pixel = pixels[i];
+            int alpha = Rgba.A(pixel);
+            if (alpha == 0)
+            {
+                continue;
+            }
+
+            int red = Rgba.R(pixel);
+            int green = Rgba.G(pixel);
+            int blue = Rgba.B(pixel);
+
+            float adjustCyan = 0f;
+            float adjustMagenta = 0f;
+            float adjustYellow = 0f;
+            float adjustBlack = 0f;
+
+            for (int range = 0; range < Ranges; range++)
+            {
+                float weight = RangeWeight(range, red, green, blue);
+                if (weight <= 0f)
+                {
+                    continue;
+                }
+
+                adjustCyan += offsets[(range * 4) + 0] * weight;
+                adjustMagenta += offsets[(range * 4) + 1] * weight;
+                adjustYellow += offsets[(range * 4) + 2] * weight;
+                adjustBlack += offsets[(range * 4) + 3] * weight;
+            }
+
+            int outRed = Clamp(red
+                - (int)MathF.Round(adjustCyan * 2.55f)
+                - (int)MathF.Round(adjustBlack * 2.55f));
+            int outGreen = Clamp(green
+                - (int)MathF.Round(adjustMagenta * 2.55f)
+                - (int)MathF.Round(adjustBlack * 2.55f));
+            int outBlue = Clamp(blue
+                - (int)MathF.Round(adjustYellow * 2.55f)
+                - (int)MathF.Round(adjustBlack * 2.55f));
+
+            pixels[i] = Rgba.Pack(alpha, outRed, outGreen, outBlue);
+        }
+    }
+
+    /// <summary>Computes how strongly a pixel belongs to a selective-colour range.</summary>
+    private static float RangeWeight(int range, int red, int green, int blue)
+    {
+        float r = red / 255f;
+        float g = green / 255f;
+        float b = blue / 255f;
+        float max = MathF.Max(r, MathF.Max(g, b));
+        float min = MathF.Min(r, MathF.Min(g, b));
+        float saturation = max <= 0f ? 0f : (max - min) / max;
+        float luminance = (0.299f * r) + (0.587f * g) + (0.114f * b);
+
+        if (range <= 5)
+        {
+            float hue = Hue(red, green, blue);
+            float target = range * 60f;
+            float distance = MathF.Abs(hue - target);
+            distance = MathF.Min(distance, 360f - distance);
+            return saturation * MathF.Max(0f, 1f - (distance / 60f));
+        }
+
+        return range switch
+        {
+            6 => Math.Clamp((luminance - 0.72f) / 0.28f, 0f, 1f) * (1f - saturation),
+            7 => (1f - saturation) * (1f - MathF.Abs((luminance * 2f) - 1f)),
+            _ => Math.Clamp((0.28f - luminance) / 0.28f, 0f, 1f),
+        };
+    }
+
+    /// <summary>Returns the hue of a colour in degrees.</summary>
+    private static float Hue(int red, int green, int blue)
+    {
+        int max = Math.Max(red, Math.Max(green, blue));
+        int min = Math.Min(red, Math.Min(green, blue));
+        int delta = max - min;
+        if (delta == 0)
+        {
+            return 0f;
+        }
+
+        float hue;
+        if (max == red)
+        {
+            hue = 60f * ((green - blue) / (float)delta);
+        }
+        else if (max == green)
+        {
+            hue = 60f * (2f + ((blue - red) / (float)delta));
+        }
+        else
+        {
+            hue = 60f * (4f + ((red - green) / (float)delta));
+        }
+
+        return hue < 0f ? hue + 360f : hue;
+    }
+
     /// <summary>Splits the active layer into red, green and blue grayscale layers.</summary>
     /// <param name="document">Document receiving the layers.</param>
     /// <param name="source">Layer to split.</param>

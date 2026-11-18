@@ -371,6 +371,7 @@ public static class HelpCatalog
                 "Invert flips every colour channel; Desaturate removes colour while keeping luminance.",
                 "Flip Horizontal and Flip Vertical mirror the active layer or selection bounds.",
                 "Image Size scales the artwork; Canvas Size changes the document bounds without scaling.",
+                "Colour Tools groups balance, threshold, gradient map, replace colour, channel mixer, selective colour and channel splitting.",
             ],
             [
                 "Invert makes quick negatives and mask-like looks.",

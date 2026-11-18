@@ -4834,6 +4834,8 @@ public sealed class PaintSession
     // ---- colour tools ------------------------------------------------------
 
     private readonly float[] _colourBalance = new float[9];
+    private readonly float[] _channelMix = new float[9];
+    private readonly float[] _selectiveColour = new float[36];
 
     /// <summary>Gets whether the colour tools dialog is open.</summary>
     public bool IsColourToolsOpen { get; private set; }
@@ -4860,6 +4862,20 @@ public sealed class PaintSession
     public float BalanceValue(int index) =>
         index >= 0 && index < _colourBalance.Length ? _colourBalance[index] : 0f;
 
+    /// <summary>Gets one channel-mixer percentage.</summary>
+    public float ChannelMixValue(int index) =>
+        index >= 0 && index < _channelMix.Length ? _channelMix[index] : 0f;
+
+    /// <summary>Gets the selective-colour range being edited, 0-8.</summary>
+    public int SelectiveRange { get; private set; }
+
+    /// <summary>Gets one of the four offsets for the selected colour range.</summary>
+    public float SelectiveValue(int channel)
+    {
+        int index = (SelectiveRange * 4) + channel;
+        return index >= 0 && index < _selectiveColour.Length ? _selectiveColour[index] : 0f;
+    }
+
     /// <summary>Opens the colour tools dialog.</summary>
     public void ShowColourToolsDialog()
     {
@@ -4874,6 +4890,12 @@ public sealed class PaintSession
         ReplaceTo = Background;
         ReplaceTolerance = 32;
         Array.Clear(_colourBalance);
+        Array.Clear(_channelMix);
+        _channelMix[0] = 100f;
+        _channelMix[4] = 100f;
+        _channelMix[8] = 100f;
+        Array.Clear(_selectiveColour);
+        SelectiveRange = 0;
         Status = "Colour tools";
         Changed();
     }
@@ -4949,6 +4971,83 @@ public sealed class PaintSession
             ReplaceTolerance = Math.Clamp(value, 0, 255);
             Changed();
         }
+    }
+
+    /// <summary>Updates one channel-mixer percentage.</summary>
+    public void SetChannelMixValue(int index, float value)
+    {
+        if (index < 0 || index >= _channelMix.Length)
+        {
+            return;
+        }
+
+        _channelMix[index] = Math.Clamp(value, -200f, 200f);
+        Changed();
+    }
+
+    /// <summary>Restores the identity channel mix.</summary>
+    public void ResetChannelMix()
+    {
+        Array.Clear(_channelMix);
+        _channelMix[0] = 100f;
+        _channelMix[4] = 100f;
+        _channelMix[8] = 100f;
+        Changed();
+    }
+
+    /// <summary>Selects which selective-colour range the sliders edit.</summary>
+    public void SelectSelectiveRange(int range)
+    {
+        SelectiveRange = Math.Clamp(range, 0, 8);
+        Changed();
+    }
+
+    /// <summary>Updates one offset for the selected colour range.</summary>
+    public void SetSelectiveValue(int channel, float value)
+    {
+        int index = (SelectiveRange * 4) + channel;
+        if (index < 0 || index >= _selectiveColour.Length)
+        {
+            return;
+        }
+
+        _selectiveColour[index] = Math.Clamp(value, -100f, 100f);
+        Changed();
+    }
+
+    /// <summary>Clears every selective-colour offset.</summary>
+    public void ResetSelectiveColour()
+    {
+        Array.Clear(_selectiveColour);
+        Changed();
+    }
+
+    /// <summary>Applies the channel mixer to the active layer.</summary>
+    public void ApplyChannelMix()
+    {
+        if (!CanEditActiveLayer(out PaintLayer layer))
+        {
+            return;
+        }
+
+        PushUndo("Channel Mixer");
+        ColourTools.ChannelMix(layer, Selection, _channelMix);
+        Status = "Channel mixer";
+        Changed();
+    }
+
+    /// <summary>Applies the selective-colour offsets to the active layer.</summary>
+    public void ApplySelectiveColour()
+    {
+        if (!CanEditActiveLayer(out PaintLayer layer))
+        {
+            return;
+        }
+
+        PushUndo("Selective Colour");
+        ColourTools.SelectiveColour(layer, Selection, _selectiveColour);
+        Status = "Selective colour";
+        Changed();
     }
 
     /// <summary>Applies a threshold to the active layer.</summary>

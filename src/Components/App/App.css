@@ -1281,3 +1281,18 @@ canvas {
 .style-body {
     flex: 1 1 auto;
 }
+
+.style-chips {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 4px;
+    min-height: 24px;
+    overflow: hidden;
+}
+
+.style-chips .btn {
+    height: 22px;
+    padding: 0 7px;
+    font-size: 10px;
+}

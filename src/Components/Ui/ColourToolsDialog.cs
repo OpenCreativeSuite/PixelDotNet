@@ -84,6 +84,18 @@ public sealed class ColourToolsDialog : Component
                                 editor.SetReplaceTolerance(value);
                                 editor.Refresh?.Invoke();
                             }))),
+                    Section(
+                        "Channel Mixer",
+                        "Apply",
+                        "Each output channel is a weighted sum of the source channels.",
+                        editor.ApplyChannelMix,
+                        MixRows(editor)),
+                    Section(
+                        "Selective Colour",
+                        "Apply",
+                        "Pick a colour range, then shift its cyan, magenta, yellow or black.",
+                        editor.ApplySelectiveColour,
+                        SelectiveRows(editor)),
                     Div(new() { ClassName = "style-section" },
                         Div(new() { ClassName = "style-section-head" },
                             Span(new() { ClassName = "style-section-title" }, Text("Split Channels")),
@@ -141,6 +153,100 @@ public sealed class ColourToolsDialog : Component
         }
 
         return Div(new() { ClassName = "style-rows" }, rows);
+    }
+
+    /// <summary>Builds the nine channel-mixer sliders.</summary>
+    private static Node MixRows(PaintSession editor)
+    {
+        string[] labels =
+        [
+            "Red: from red",
+            "Red: from green",
+            "Red: from blue",
+            "Green: from red",
+            "Green: from green",
+            "Green: from blue",
+            "Blue: from red",
+            "Blue: from green",
+            "Blue: from blue",
+        ];
+
+        Node[] rows = new Node[labels.Length];
+        for (int i = 0; i < labels.Length; i++)
+        {
+            int index = i;
+            rows[i] = Ui.Slider(
+                labels[i],
+                editor.ChannelMixValue(index),
+                -200f,
+                200f,
+                1f,
+                " %",
+                value =>
+                {
+                    editor.SetChannelMixValue(index, Ui.Parse(value, -200f, 200f));
+                    editor.Refresh?.Invoke();
+                });
+        }
+
+        return Div(new() { ClassName = "style-rows" },
+            [.. rows, Ui.Button("Reset", "Restore the identity mix", () =>
+            {
+                editor.ResetChannelMix();
+                editor.Refresh?.Invoke();
+            })]);
+    }
+
+    /// <summary>Builds the selective-colour range chips and CMYK sliders.</summary>
+    private static Node SelectiveRows(PaintSession editor)
+    {
+        string[] ranges = ["Reds", "Yellows", "Greens", "Cyans", "Blues", "Magentas", "Whites", "Neutrals", "Blacks"];
+        string[] channels = ["Cyan", "Magenta", "Yellow", "Black"];
+
+        Node[] sliders = new Node[channels.Length];
+        for (int i = 0; i < channels.Length; i++)
+        {
+            int index = i;
+            sliders[i] = Ui.Slider(
+                channels[i],
+                editor.SelectiveValue(index),
+                -100f,
+                100f,
+                1f,
+                " %",
+                value =>
+                {
+                    editor.SetSelectiveValue(index, Ui.Parse(value, -100f, 100f));
+                    editor.Refresh?.Invoke();
+                });
+        }
+
+        Node[] chips = new Node[ranges.Length];
+        for (int i = 0; i < ranges.Length; i++)
+        {
+            int index = i;
+            chips[i] = Button(new()
+            {
+                ClassName = editor.SelectiveRange == index ? "btn is-on" : "btn",
+                Title = "Edit " + ranges[i],
+                OnClick = () =>
+                {
+                    editor.SelectSelectiveRange(index);
+                    editor.Refresh?.Invoke();
+                },
+            }, Text(ranges[i]));
+        }
+
+        Node[] all = new Node[sliders.Length + 2];
+        all[0] = Div(new() { ClassName = "style-chips" }, chips);
+        Array.Copy(sliders, 0, all, 1, sliders.Length);
+        all[^1] = Ui.Button("Reset", "Clear every selective offset", () =>
+        {
+            editor.ResetSelectiveColour();
+            editor.Refresh?.Invoke();
+        });
+
+        return Div(new() { ClassName = "style-rows" }, all);
     }
 
     /// <summary>Builds a labelled row of colour swatches.</summary>
