@@ -41,6 +41,11 @@ public sealed class PaintDocument
 
     private readonly uint[] _composite;
     private readonly uint[] _groupBuffer;
+    private readonly uint[] _layerBuffer;
+    private readonly byte[] _alphaBuffer;
+    private readonly byte[] _alphaScratch;
+    private readonly byte[] _alphaScratch2;
+    private readonly byte[] _alphaScratch3;
     private readonly List<PaintRun> _runs = [];
     private PaintRun[] _runArray = [];
     private bool _dirty = true;
@@ -52,6 +57,11 @@ public sealed class PaintDocument
         Height = height;
         _composite = new uint[width * height];
         _groupBuffer = new uint[width * height];
+        _layerBuffer = new uint[width * height];
+        _alphaBuffer = new byte[width * height];
+        _alphaScratch = new byte[width * height];
+        _alphaScratch2 = new byte[width * height];
+        _alphaScratch3 = new byte[width * height];
         Layers = [];
     }
 
@@ -189,7 +199,7 @@ public sealed class PaintDocument
     }
 
     /// <summary>Composites one layer onto a target buffer.</summary>
-    private static void CompositeLayerOnto(uint[] target, PaintLayer layer)
+    private void CompositeLayerOnto(uint[] target, PaintLayer layer)
     {
         if (!layer.Visible)
         {
@@ -212,6 +222,59 @@ public sealed class PaintDocument
             return;
         }
 
+        if (!layer.Style.HasAny)
+        {
+            BlendPixels(target, layer, layerAlpha);
+            return;
+        }
+
+        Array.Clear(_layerBuffer);
+        Array.Clear(_alphaBuffer);
+        uint[] pixels = layer.Pixels;
+        byte[]? mask = layer.Mask;
+        bool clipped = layer.ClipToBelow;
+
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            uint source = pixels[i];
+            int alpha = (int)(source >> 24);
+            if (alpha == 0)
+            {
+                continue;
+            }
+
+            alpha = alpha * layerAlpha / 255;
+            if (mask is not null)
+            {
+                alpha = alpha * mask[i] / 255;
+            }
+
+            if (clipped)
+            {
+                alpha = alpha * Rgba.A(target[i]) / 255;
+            }
+
+            if (alpha == 0)
+            {
+                continue;
+            }
+
+            _layerBuffer[i] = (source & 0x00FFFFFFu) | ((uint)alpha << 24);
+            _alphaBuffer[i] = (byte)alpha;
+        }
+
+        ApplyStylesUnder(target, layer.Style, clipped);
+        BlendPixels(target, _layerBuffer, layer);
+
+        if (layer.Style.Stroke && layer.Style.StrokeInside)
+        {
+            ApplyInsideStroke(target, layer.Style);
+        }
+    }
+
+    /// <summary>Blends a layer's pixels into a target buffer.</summary>
+    private static void BlendPixels(uint[] target, PaintLayer layer, int layerAlpha)
+    {
         uint[] pixels = layer.Pixels;
         byte[]? mask = layer.Mask;
         bool clipped = layer.ClipToBelow;
@@ -249,6 +312,268 @@ public sealed class PaintDocument
             target[i] = mode == BlendMode.Normal || Rgba.A(target[i]) == 0
                 ? Rgba.Over(target[i], source, alpha)
                 : Rgba.Blend(target[i], source, alpha, mode);
+        }
+    }
+
+    /// <summary>Blends a prepared pixel buffer into a target buffer.</summary>
+    private static void BlendPixels(uint[] target, uint[] source, PaintLayer layer)
+    {
+        BlendMode mode = layer.Blend;
+
+        for (int i = 0; i < source.Length; i++)
+        {
+            uint pixel = source[i];
+            int alpha = (int)(pixel >> 24);
+            if (alpha == 0)
+            {
+                continue;
+            }
+
+            target[i] = mode == BlendMode.Normal || Rgba.A(target[i]) == 0
+                ? Rgba.Over(target[i], pixel, alpha)
+                : Rgba.Blend(target[i], pixel, alpha, mode);
+        }
+    }
+
+    /// <summary>Draws shadow, glow and outside stroke beneath the layer.</summary>
+    private void ApplyStylesUnder(uint[] target, LayerStyle style, bool clipped)
+    {
+        if (style.DropShadow)
+        {
+            BlurAlpha(_alphaBuffer, _alphaScratch, (int)MathF.Round(style.DropShadowBlur));
+            float radians = style.DropShadowAngle * MathF.PI / 180f;
+            int offsetX = (int)MathF.Round(MathF.Cos(radians) * style.DropShadowDistance);
+            int offsetY = (int)MathF.Round(MathF.Sin(radians) * style.DropShadowDistance);
+            BlendStyle(
+                target,
+                _alphaScratch,
+                style.DropShadowColor,
+                style.DropShadowOpacity,
+                clipped,
+                offsetX,
+                offsetY);
+        }
+
+        if (style.OuterGlow)
+        {
+            BlurAlpha(_alphaBuffer, _alphaScratch, (int)MathF.Round(style.OuterGlowSize));
+            for (int i = 0; i < _alphaScratch.Length; i++)
+            {
+                _alphaScratch[i] = (byte)Math.Max(0, _alphaScratch[i] - _alphaBuffer[i]);
+            }
+
+            BlendStyle(
+                target,
+                _alphaScratch,
+                style.OuterGlowColor,
+                style.OuterGlowOpacity,
+                clipped,
+                0,
+                0);
+        }
+
+        if (style.Stroke && !style.StrokeInside)
+        {
+            DilateAlpha(_alphaBuffer, _alphaScratch, (int)MathF.Round(style.StrokeWidth));
+            for (int i = 0; i < _alphaScratch.Length; i++)
+            {
+                _alphaScratch[i] = (byte)Math.Max(0, _alphaScratch[i] - _alphaBuffer[i]);
+            }
+
+            BlendStyle(
+                target,
+                _alphaScratch,
+                style.StrokeColor,
+                style.StrokeOpacity,
+                clipped,
+                0,
+                0);
+        }
+    }
+
+    /// <summary>Draws an inside stroke over the layer pixels.</summary>
+    private void ApplyInsideStroke(uint[] target, LayerStyle style)
+    {
+        for (int i = 0; i < _alphaScratch2.Length; i++)
+        {
+            _alphaScratch2[i] = (byte)(255 - _alphaBuffer[i]);
+        }
+
+        DilateAlpha(
+            _alphaScratch2,
+            _alphaScratch,
+            (int)MathF.Round(style.StrokeWidth));
+
+        for (int i = 0; i < _alphaScratch.Length; i++)
+        {
+            _alphaScratch[i] = (byte)Math.Max(
+                0,
+                _alphaBuffer[i] - (255 - _alphaScratch[i]));
+        }
+
+        BlendStyle(target, _alphaScratch, style.StrokeColor, style.StrokeOpacity, false, 0, 0);
+    }
+
+    /// <summary>Blends a coloured alpha mask into the target at an offset.</summary>
+    private void BlendStyle(
+        uint[] target,
+        byte[] alpha,
+        uint color,
+        float opacity,
+        bool clipped,
+        int offsetX,
+        int offsetY)
+    {
+        int strength = (int)MathF.Round(Math.Clamp(opacity, 0f, 1f) * 255f);
+        strength = strength * Rgba.A(color) / 255;
+        if (strength <= 0)
+        {
+            return;
+        }
+
+        for (int y = 0; y < Height; y++)
+        {
+            int sourceY = y - offsetY;
+            if (sourceY < 0 || sourceY >= Height)
+            {
+                continue;
+            }
+
+            int targetRow = y * Width;
+            int sourceRow = sourceY * Width;
+
+            for (int x = 0; x < Width; x++)
+            {
+                int sourceX = x - offsetX;
+                if (sourceX < 0 || sourceX >= Width)
+                {
+                    continue;
+                }
+
+                int a = alpha[sourceRow + sourceX];
+                if (a == 0)
+                {
+                    continue;
+                }
+
+                a = a * strength / 255;
+                if (clipped)
+                {
+                    a = a * Rgba.A(target[targetRow + x]) / 255;
+                }
+
+                if (a > 0)
+                {
+                    target[targetRow + x] = Rgba.Over(target[targetRow + x], color, a);
+                }
+            }
+        }
+    }
+
+    /// <summary>Blurs an alpha mask with a separable box filter.</summary>
+    private void BlurAlpha(byte[] source, byte[] destination, int radius)
+    {
+        if (radius <= 0)
+        {
+            Array.Copy(source, destination, source.Length);
+            return;
+        }
+
+        radius = Math.Min(radius, 40);
+        BoxBlurHorizontal(source, _alphaScratch2, radius);
+        BoxBlurVertical(_alphaScratch2, destination, radius);
+    }
+
+    /// <summary>Horizontal box blur with clamped edges.</summary>
+    private void BoxBlurHorizontal(byte[] source, byte[] destination, int radius)
+    {
+        int span = (radius * 2) + 1;
+
+        for (int y = 0; y < Height; y++)
+        {
+            int row = y * Width;
+            int sum = 0;
+
+            for (int x = -radius; x <= radius; x++)
+            {
+                sum += source[row + Math.Clamp(x, 0, Width - 1)];
+            }
+
+            for (int x = 0; x < Width; x++)
+            {
+                destination[row + x] = (byte)(sum / span);
+                sum -= source[row + Math.Clamp(x - radius, 0, Width - 1)];
+                sum += source[row + Math.Clamp(x + radius + 1, 0, Width - 1)];
+            }
+        }
+    }
+
+    /// <summary>Vertical box blur with clamped edges.</summary>
+    private void BoxBlurVertical(byte[] source, byte[] destination, int radius)
+    {
+        int span = (radius * 2) + 1;
+
+        for (int x = 0; x < Width; x++)
+        {
+            int sum = 0;
+
+            for (int y = -radius; y <= radius; y++)
+            {
+                sum += source[(Math.Clamp(y, 0, Height - 1) * Width) + x];
+            }
+
+            for (int y = 0; y < Height; y++)
+            {
+                destination[(y * Width) + x] = (byte)(sum / span);
+                sum -= source[(Math.Clamp(y - radius, 0, Height - 1) * Width) + x];
+                sum += source[(Math.Clamp(y + radius + 1, 0, Height - 1) * Width) + x];
+            }
+        }
+    }
+
+    /// <summary>Dilates an alpha mask with a separable maximum filter.</summary>
+    private void DilateAlpha(byte[] source, byte[] destination, int radius)
+    {
+        if (radius <= 0)
+        {
+            Array.Copy(source, destination, source.Length);
+            return;
+        }
+
+        radius = Math.Min(radius, 40);
+        int span = (radius * 2) + 1;
+
+        for (int y = 0; y < Height; y++)
+        {
+            int row = y * Width;
+            for (int x = 0; x < Width; x++)
+            {
+                int best = 0;
+                int start = Math.Max(0, x - radius);
+                int end = Math.Min(Width - 1, x + radius);
+                for (int sample = start; sample <= end; sample++)
+                {
+                    best = Math.Max(best, source[row + sample]);
+                }
+
+                _alphaScratch3[row + x] = (byte)best;
+            }
+        }
+
+        for (int x = 0; x < Width; x++)
+        {
+            for (int y = 0; y < Height; y++)
+            {
+                int best = 0;
+                int start = Math.Max(0, y - radius);
+                int end = Math.Min(Height - 1, y + radius);
+                for (int sample = start; sample <= end; sample++)
+                {
+                    best = Math.Max(best, _alphaScratch3[(sample * Width) + x]);
+                }
+
+                destination[(y * Width) + x] = (byte)best;
+            }
         }
     }
 

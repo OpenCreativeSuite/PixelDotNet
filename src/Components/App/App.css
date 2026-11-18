@@ -1192,3 +1192,82 @@ canvas {
     font-size: 10.5px;
     color: #9aa3ad;
 }
+
+/* ---- layer styles ---- */
+
+.style-panel {
+    width: 520px;
+    max-height: calc(100% - 56px);
+    overflow: hidden;
+}
+
+.style-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 18px;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.style-section {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #33373e;
+}
+
+.style-section:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.style-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.style-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #eef1f5;
+}
+
+.style-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.style-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.style-swatches {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.style-swatch {
+    flex-shrink: 0;
+    border-radius: 3px;
+    cursor: pointer;
+    box-shadow:
+        0 0 0 1px #0d0f12,
+        inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.style-swatch.is-on {
+    box-shadow:
+        0 0 0 1px #0d0f12,
+        0 0 0 2px #2f8df0;
+}
+
+.style-swatch.is-foreground {
+    margin-left: 7px;
+}

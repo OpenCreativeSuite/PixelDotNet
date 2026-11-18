@@ -64,6 +64,7 @@ public sealed class MenuBar : Component
             new("Duplicate Layer", "Ctrl+J", NeverDim, session => session.DuplicateLayer()),
             new("New Group", "", session => session.Document.Active.Group is null, session => session.GroupActiveLayer()),
             new("Ungroup", "", session => session.Document.Active.Group is not null, session => session.UngroupActiveLayer()),
+            new("Layer Style...", "", NeverDim, session => session.ShowLayerStyleDialog(session.Document.ActiveIndex)),
             new("Merge Down", "Ctrl+E", session => session.Document.ActiveIndex > 0, session => session.MergeDown()),
             new("Delete Layer", "", session => session.Document.Layers.Count > 1, session => session.DeleteActiveLayer()),
         ]),

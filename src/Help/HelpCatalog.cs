@@ -383,6 +383,7 @@ public static class HelpCatalog
             [
                 "New Layer adds an empty layer above the active one; Duplicate copies the active layer.",
                 "New Group wraps the active layer in a folder; Ungroup takes it back out.",
+                "Layer Style adds a non-destructive shadow, stroke or glow.",
                 "Merge Down combines into the layer below; Delete removes the active layer.",
             ],
             [
@@ -481,6 +482,20 @@ public static class HelpCatalog
             [
                 "Paint soft edges with a feathered brush instead of erasing pixels.",
                 "Masks are undoable and never destroy the layer pixels.",
+            ]);
+
+        Add("layer.style", Icons.Sparkles, "Layer Style", "",
+            "Non-destructive drop shadow, stroke and outer glow around a layer.",
+            [
+                "Styles redraw from the layer's pixels, so painting or masking the layer updates them.",
+                "Drop Shadow offsets a blurred copy in the shadow colour.",
+                "Stroke can sit outside or inside the layer edge.",
+                "Outer Glow fades a coloured halo outward from the layer edge.",
+            ],
+            [
+                "Use a modest shadow distance and blur for a lifted look.",
+                "A white inside stroke separates artwork from a busy background.",
+                "Styles are saved in .pxd projects and survive undo.",
             ]);
 
         Add("layer.group", Icons.FolderPlus, "New Group", "",

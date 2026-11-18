@@ -89,6 +89,9 @@ public sealed class PaintLayer
     /// <summary>Gets or sets the group this layer belongs to, if any.</summary>
     public LayerGroup? Group { get; set; }
 
+    /// <summary>Gets the non-destructive shadow, stroke and glow settings.</summary>
+    public LayerStyle Style { get; } = new();
+
     /// <summary>Gets whether this layer contributes pixels or an adjustment.</summary>
     public LayerKind Kind { get; }
 

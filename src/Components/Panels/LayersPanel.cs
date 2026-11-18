@@ -344,6 +344,13 @@ public sealed class LayersPanel : Component
                     : $"{LabelOf(layer.Blend)} | {Ui.Format(layer.Opacity * 100f)}%" + (layer.ClipToBelow ? " | clipped" : string.Empty)))),
         Ui.Tip(editor, Button(new()
         {
+            ClassName = layer.Style.HasAny ? "layer-btn is-on" : "layer-btn is-dim",
+            Title = "Layer style",
+            OnClick = () => editor.ShowLayerStyleDialog(index),
+        }, Ui.Icon(Icons.Sparkles)),
+        Icons.Sparkles, "Layer Style", "layer.style"),
+        Ui.Tip(editor, Button(new()
+        {
             ClassName = layer.Locked ? "layer-btn is-on" : "layer-btn is-dim",
             Title = layer.Locked ? "Unlock the layer" : "Lock the layer",
             OnClick = () => editor.ToggleLock(index),

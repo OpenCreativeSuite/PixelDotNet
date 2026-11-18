@@ -97,6 +97,16 @@ public sealed class Viewport : Component
             return;
         }
 
+        if (editor.IsLayerStyleOpen)
+        {
+            if (key == "Escape")
+            {
+                editor.CloseLayerStyleDialog();
+            }
+
+            return;
+        }
+
         if (editor.IsLayerMenuOpen)
         {
             if (key == "Escape")

@@ -20,7 +20,7 @@ public static class ProjectFile
     public const string Extension = ".pxd";
 
     private const string Signature = "PXDP";
-    private const int Version = 1;
+    private const int Version = 2;
 
     /// <summary>Gets whether a file name has the project extension.</summary>
     public static bool IsProject(string path) =>
@@ -86,6 +86,23 @@ public static class ProjectFile
                 writer.Write(x);
                 writer.Write(y);
             }
+
+            LayerStyle style = layer.Style;
+            writer.Write(style.DropShadow);
+            writer.Write(style.DropShadowColor);
+            writer.Write(style.DropShadowOpacity);
+            writer.Write(style.DropShadowDistance);
+            writer.Write(style.DropShadowAngle);
+            writer.Write(style.DropShadowBlur);
+            writer.Write(style.Stroke);
+            writer.Write(style.StrokeColor);
+            writer.Write(style.StrokeOpacity);
+            writer.Write(style.StrokeWidth);
+            writer.Write(style.StrokeInside);
+            writer.Write(style.OuterGlow);
+            writer.Write(style.OuterGlowColor);
+            writer.Write(style.OuterGlowOpacity);
+            writer.Write(style.OuterGlowSize);
 
             byte[] pixels = new byte[layer.Pixels.Length * sizeof(uint)];
             Buffer.BlockCopy(layer.Pixels, 0, pixels, 0, pixels.Length);
@@ -211,6 +228,26 @@ public static class ProjectFile
                 {
                     layer.AdjustmentCurve.Add((reader.ReadSingle(), reader.ReadSingle()));
                 }
+            }
+
+            if (version >= 2)
+            {
+                LayerStyle style = layer.Style;
+                style.DropShadow = reader.ReadBoolean();
+                style.DropShadowColor = reader.ReadUInt32();
+                style.DropShadowOpacity = reader.ReadSingle();
+                style.DropShadowDistance = reader.ReadSingle();
+                style.DropShadowAngle = reader.ReadSingle();
+                style.DropShadowBlur = reader.ReadSingle();
+                style.Stroke = reader.ReadBoolean();
+                style.StrokeColor = reader.ReadUInt32();
+                style.StrokeOpacity = reader.ReadSingle();
+                style.StrokeWidth = reader.ReadSingle();
+                style.StrokeInside = reader.ReadBoolean();
+                style.OuterGlow = reader.ReadBoolean();
+                style.OuterGlowColor = reader.ReadUInt32();
+                style.OuterGlowOpacity = reader.ReadSingle();
+                style.OuterGlowSize = reader.ReadSingle();
             }
 
             int pixelBytes = reader.ReadInt32();

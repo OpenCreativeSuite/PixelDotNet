@@ -125,7 +125,17 @@ public sealed class App : Component
                 ClassName = "file-menu-backdrop",
                 OnClick = () => editor.CloseLayerMenu(),
             })),
-            Show(editor.IsLayerMenuOpen, C<LayerMenu>()));
+            Show(editor.IsLayerMenuOpen, C<LayerMenu>()),
+            Show(editor.IsLayerStyleOpen, Div(new()
+            {
+                ClassName = "resize-backdrop",
+                OnClick = () =>
+                {
+                    editor.CloseLayerStyleDialog();
+                    editor.Refresh?.Invoke();
+                },
+            })),
+            Show(editor.IsLayerStyleOpen, C<LayerStyleDialog>()));
 
         root.BindRef(rootRef);
         if (rootRef.Value is { Width: > 0, Height: > 0 } bounds)

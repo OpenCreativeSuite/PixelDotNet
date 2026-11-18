@@ -81,6 +81,7 @@ public sealed class LayerMenu : Component
                     layer.Visible ? "Hide Layer" : "Show Layer",
                     "visible"),
                 Div(new() { ClassName = "file-menu-sep" }),
+                Item(editor, Icons.Sparkles, "Layer Style...", "style"),
                 Item(editor, Icons.FolderPlus, "New Group", "group", layer.Group is null),
                 Item(editor, Icons.FolderMinus, "Ungroup", "ungroup", layer.Group is not null),
                 Div(new() { ClassName = "file-menu-sep" }),

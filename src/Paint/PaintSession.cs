@@ -2227,6 +2227,7 @@ public sealed class PaintSession
         copy.Adopt(source.CapturePixels());
         copy.AdoptMask(source.CaptureMask());
         copy.CopyAdjustmentFrom(source);
+        copy.Style.CopyFrom(source.Style);
 
         int insertAt = Math.Clamp(Document.ActiveIndex + 1, 0, Document.Layers.Count);
         Document.Layers.Insert(insertAt, copy);
@@ -2693,6 +2694,9 @@ public sealed class PaintSession
                 break;
             case "clip":
                 ToggleClipToBelow();
+                break;
+            case "style":
+                ShowLayerStyleDialog(index);
                 break;
             case "lock":
                 ToggleLock(index);
@@ -4755,6 +4759,62 @@ public sealed class PaintSession
         return name + " " + suffix;
     }
 
+    // ---- layer styles ------------------------------------------------------
+
+    /// <summary>Gets whether the layer style dialog is open.</summary>
+    public bool IsLayerStyleOpen { get; private set; }
+
+    /// <summary>Gets the layer index the style dialog edits.</summary>
+    public int LayerStyleIndex { get; private set; } = -1;
+
+    /// <summary>Gets the layer the style dialog edits.</summary>
+    public PaintLayer? LayerStyleLayer =>
+        LayerStyleIndex >= 0 && LayerStyleIndex < Document.Layers.Count
+            ? Document.Layers[LayerStyleIndex]
+            : null;
+
+    /// <summary>Gets the style settings the dialog edits.</summary>
+    public LayerStyle? LayerStyleTarget => LayerStyleLayer?.Style;
+
+    /// <summary>Opens the style editor for a layer.</summary>
+    public void ShowLayerStyleDialog(int index)
+    {
+        if (index < 0 || index >= Document.Layers.Count)
+        {
+            return;
+        }
+
+        Tip = null;
+        OpenMenu = null;
+        FinishInteraction();
+        LayerStyleIndex = index;
+        IsLayerStyleOpen = true;
+        PushUndo("Layer Style");
+        Status = "Layer style: " + Document.Layers[index].Name;
+        Changed();
+    }
+
+    /// <summary>Closes the style editor.</summary>
+    public void CloseLayerStyleDialog()
+    {
+        if (!IsLayerStyleOpen)
+        {
+            return;
+        }
+
+        IsLayerStyleOpen = false;
+        LayerStyleIndex = -1;
+        Status = "Ready";
+        Changed();
+    }
+
+    /// <summary>Marks the composite dirty after a style setting changed.</summary>
+    public void TouchLayerStyle()
+    {
+        Document.MarkDirty();
+        Changed();
+    }
+
     // ---- batch processing --------------------------------------------------
 
     /// <summary>Gets whether the batch dialog is open.</summary>
@@ -5288,6 +5348,7 @@ public sealed class PaintSession
             layer.CopyAdjustmentFrom(source);
         }
 
+        layer.Style.CopyFrom(source.Style);
         return layer;
     }
 
@@ -6794,7 +6855,8 @@ public sealed class PaintSession
                     layer.AdjustmentBlack,
                     layer.AdjustmentWhite,
                     layer.AdjustmentGamma,
-                    layer.IsAdjustment ? [.. layer.AdjustmentCurve] : null);
+                    layer.IsAdjustment ? [.. layer.AdjustmentCurve] : null,
+                    layer.Style.Clone());
             }
 
             GroupState[] groups = new GroupState[document.Groups.Count];
@@ -6844,6 +6906,7 @@ public sealed class PaintSession
                 frame.Layer.Blend = frame.Blend;
                 frame.Layer.Locked = frame.Locked;
                 frame.Layer.ClipToBelow = frame.ClipToBelow;
+                frame.Layer.Style.CopyFrom(frame.Style);
                 frame.Layer.Adjustment = frame.Adjustment;
                 frame.Layer.AdjustmentBlack = frame.AdjustmentBlack;
                 frame.Layer.AdjustmentWhite = frame.AdjustmentWhite;
@@ -6883,6 +6946,7 @@ public sealed class PaintSession
             float AdjustmentBlack,
             float AdjustmentWhite,
             float AdjustmentGamma,
-            List<(float X, float Y)>? Curve);
+            List<(float X, float Y)>? Curve,
+            LayerStyle Style);
     }
 }
