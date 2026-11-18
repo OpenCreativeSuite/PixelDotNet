@@ -176,8 +176,13 @@ public sealed class OptionsBar : Component
                 editor.Refresh?.Invoke();
             },
         }, Ui.Icon(Icons.Sparkles, "btn-icon"), Text("FX")), Icons.Sparkles, "Text Effects", "options.fx"),
-        Ui.Tip(editor, Ui.Swatch("text-color-chip", editor.Foreground, "Text colour — click to open the colour panel", editor.OpenColourTab, 22, 22),
+        Ui.Tip(editor, Ui.Swatch("text-color-chip", editor.Foreground, "Text colour - click to open the colour panel", editor.OpenColourTab, 22, 22),
             Icons.Palette, "Text Colour", "tab.colour"),
+        Ui.Toggle("Text layer", "Keep the text editable as a text layer", editor.TextAsLayer, () =>
+        {
+            editor.TextAsLayer = !editor.TextAsLayer;
+            editor.Refresh?.Invoke();
+        }),
         Ui.Tip(editor, Ui.Button("Place", "Commit the text (Enter)", () =>
         {
             editor.ApplyText();
@@ -418,7 +423,26 @@ public sealed class OptionsBar : Component
                 editor.Refresh?.Invoke();
             }),
             Span(new() { ClassName = "options-note" }, Text("Click to add points; click the first point or press Enter to close")),
-            Ui.Button("Finish", "Close the path", editor.FinishPenPath, editor.IsPenActive)),
+            Ui.Button("Finish", "Close the path", editor.FinishPenPath, editor.IsPenActive),
+            Ui.Button(
+                editor.IsPathNodeEditing ? "Nodes On" : "Edit Nodes",
+                "Drag the selected path layer's anchors and handles",
+                editor.TogglePathNodeEdit,
+                editor.CanEditPathNodes || editor.IsPathNodeEditing),
+            Show(editor.IsPathNodeEditing, Ui.Button(
+                "Add Node",
+                "Insert a node after the selected one",
+                editor.AddPathNode,
+                editor.SelectedPathNode >= 0)),
+            Show(editor.IsPathNodeEditing, Ui.Button(
+                "Delete Node",
+                "Remove the selected path node",
+                editor.DeleteSelectedPathNode,
+                editor.SelectedPathNode >= 0)),
+            Show(editor.IsPathNodeEditing, Ui.Button(
+                "Done",
+                "Finish editing path nodes",
+                editor.EndPathNodeEdit))),
 
         PaintTool.Eyedropper => Span(new() { ClassName = "options-note" }, Text("Click anywhere to sample the composited colour")),
 

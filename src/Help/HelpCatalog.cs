@@ -226,16 +226,18 @@ public static class HelpCatalog
             ]);
 
         Add("tool.pen", Icons.PenNib, "Pen", "P",
-            "Build a closed polygon path point by point.",
+            "Draws editable Bezier paths point by point.",
             [
                 "Click to add a corner anchor; drag while placing it to pull symmetric Bezier handles for a curve.",
                 "Click the first point again or press Enter to close the path.",
                 "The finished path becomes an editable shape layer, filled or stroked with the current colour.",
-                "Esc cancels a path in progress.",
+                "Edit Nodes lets you drag anchors and handles, add a node by clicking a segment, or delete the selected node.",
+                "Esc cancels a path in progress or leaves node editing.",
             ],
             [
                 "Use Fill for solid silhouettes and Stroke for outlined artwork.",
                 "The path stays editable from Layer > Edit Shape until you rasterize it.",
+                "Text on Path turns any path layer into a text baseline.",
             ]);
 
         Add("tool.gradient", Icons.Gradient, "Gradient", "G",
@@ -275,6 +277,8 @@ public static class HelpCatalog
             "Places live text with font, size, alignment and effects.",
             [
                 "Click to set the baseline, type in the options bar, then drag the handles to move, scale or rotate. Place bakes it in; Cancel discards it.",
+                "Turn on Text layer before placing to keep editable text; Layer > Edit Text reopens its settings.",
+                "Layer > Text on Path makes the selected path layer the baseline for a text layer.",
                 "The FX panel adds outlines, shadows, glows and presets with separate fill, outline and shadow colours.",
             ],
             [
@@ -360,7 +364,8 @@ public static class HelpCatalog
                 "Open and Save use the in-app file browser and can write PNG, JPEG, BMP or TGA.",
                 "Open Project and Save Project use the .pxd format, which keeps layers, masks, groups, adjustment layers and guides.",
                 "Batch Process resizes and converts every supported image in a folder.",
-                "Export SVG writes shape and path layers as vector elements and embeds other layers as a PNG.",
+                "Export SVG writes shape, path and text layers as vector elements and embeds other layers as a PNG.",
+                "Import SVG turns rects, ellipses, lines, polygons, paths, text and embedded images into layers.",
                 "Right-click a file row to rename, copy, cut, paste or delete it.",
             ],
             [
@@ -403,6 +408,7 @@ public static class HelpCatalog
                 "New Group wraps the active layer in a folder; Ungroup takes it back out.",
                 "Convert to Smart Object keeps the original pixels so repeated transforms stay sharp; Rasterize bakes the result.",
                 "Shape tools with Shape layer enabled create editable rectangles, ellipses and lines; Edit Shape changes the geometry.",
+                "Edit Path Nodes drags Bezier anchors and handles; Edit Text edits a text layer, and Text on Path wraps it around a path.",
                 "Layer Style adds a non-destructive shadow, stroke or glow.",
                 "Merge Down combines into the layer below; Delete removes the active layer.",
             ],

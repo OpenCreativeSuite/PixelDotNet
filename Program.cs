@@ -176,7 +176,17 @@ public sealed class App : Component
                     editor.Refresh?.Invoke();
                 },
             })),
-            Show(editor.IsShapeEditOpen, C<ShapeEditDialog>()));
+            Show(editor.IsShapeEditOpen, C<ShapeEditDialog>()),
+            Show(editor.IsTextEditOpen, Div(new()
+            {
+                ClassName = "resize-backdrop",
+                OnClick = () =>
+                {
+                    editor.CancelTextEdit();
+                    editor.Refresh?.Invoke();
+                },
+            })),
+            Show(editor.IsTextEditOpen, C<TextEditDialog>()));
 
         root.BindRef(rootRef);
         if (rootRef.Value is { Width: > 0, Height: > 0 } bounds)

@@ -341,7 +341,9 @@ public sealed class LayersPanel : Component
             Span(new() { ClassName = "layer-meta" },
                 Text(layer.IsShapeLayer
                     ? $"{layer.Shape?.Kind} shape | {Ui.Format(layer.Opacity * 100f)}%"
-                    : layer.IsSmartObject
+                    : layer.IsTextLayer
+                        ? $"Text | {Ui.Format(layer.Opacity * 100f)}%"
+                        : layer.IsSmartObject
                         ? $"Smart Object | {Ui.Format(layer.Opacity * 100f)}%"
                         : layer.IsAdjustment
                         ? $"{layer.Adjustment} adjustment | {Ui.Format(layer.Opacity * 100f)}%"

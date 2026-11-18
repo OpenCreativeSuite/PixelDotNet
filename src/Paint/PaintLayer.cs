@@ -17,6 +17,9 @@ public enum LayerKind
 
     /// <summary>A non-destructive rectangle, ellipse or line.</summary>
     Shape,
+
+    /// <summary>Editable vector text rasterised into the layer cache.</summary>
+    Text,
 }
 
 /// <summary>The adjustment used by an adjustment layer.</summary>
@@ -112,6 +115,37 @@ public sealed class PaintLayer
 
     /// <summary>Gets whether this layer draws editable shape geometry.</summary>
     public bool IsShapeLayer => Kind == LayerKind.Shape && Shape is not null;
+
+    /// <summary>Gets whether this layer draws editable text.</summary>
+    public bool IsTextLayer => Kind == LayerKind.Text && Text is not null;
+
+    /// <summary>Gets the editable text geometry, if this is a text layer.</summary>
+    public TextData? Text { get; private set; }
+
+    /// <summary>Installs text data and rebuilds the pixel cache.</summary>
+    public void AdoptText(TextData text)
+    {
+        Text = text;
+        Kind = LayerKind.Text;
+        TextOps.Render(this);
+    }
+
+    /// <summary>Rebuilds the pixel cache, resolving an attached path when possible.</summary>
+    public void RefreshText(PaintDocument? document) => TextOps.Render(this, document);
+
+    /// <summary>Bakes the text into its pixel cache and becomes a raster layer.</summary>
+    public void RasterizeText()
+    {
+        Text = null;
+        Kind = LayerKind.Raster;
+    }
+
+    /// <summary>Restores text data from a snapshot without rerendering.</summary>
+    public void RestoreText(TextData? text, LayerKind kind)
+    {
+        Text = text;
+        Kind = kind;
+    }
 
     /// <summary>Gets the editable shape geometry, if this is a shape layer.</summary>
     public ShapeData? Shape { get; private set; }

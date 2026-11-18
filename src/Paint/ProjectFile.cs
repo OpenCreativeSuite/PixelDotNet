@@ -20,7 +20,7 @@ public static class ProjectFile
     public const string Extension = ".pxd";
 
     private const string Signature = "PXDP";
-    private const int Version = 6;
+    private const int Version = 7;
 
     /// <summary>Gets whether a file name has the project extension.</summary>
     public static bool IsProject(string path) =>
@@ -132,9 +132,11 @@ public static class ProjectFile
                 writer.Write(shape.Width);
                 writer.Write(shape.Height);
                 writer.Write(shape.Fill);
+                writer.Write(shape.Stroke);
                 writer.Write(shape.StrokeWidth);
                 writer.Write(shape.FillColor);
                 writer.Write(shape.StrokeColor);
+                writer.Write(shape.Closed);
 
                 if (shape.Kind == ShapeKind.Path && shape.Points is { } points)
                 {
@@ -148,6 +150,52 @@ public static class ProjectFile
                         writer.Write(node.OutX);
                         writer.Write(node.OutY);
                     }
+                }
+            }
+
+            writer.Write(layer.IsTextLayer);
+            if (layer.IsTextLayer && layer.Text is { } text)
+            {
+                writer.Write(text.Content);
+                writer.Write(text.FontIndex);
+                writer.Write(text.Size);
+                writer.Write(text.Bold);
+                writer.Write(text.Italic);
+                writer.Write((int)text.Align);
+                writer.Write(text.Color);
+                writer.Write(text.X);
+                writer.Write(text.Y);
+                writer.Write(text.Rotation);
+                writer.Write(text.Outline);
+                writer.Write(text.OutlineWidth);
+                writer.Write(text.OutlineColor);
+                writer.Write(text.Shadow);
+                writer.Write(text.ShadowX);
+                writer.Write(text.ShadowY);
+                writer.Write(text.ShadowBlur);
+                writer.Write(text.ShadowOpacity);
+                writer.Write(text.ShadowColor);
+                writer.Write(text.PathLayer ?? string.Empty);
+                writer.Write(text.PathOffset);
+                writer.Write(text.PathClosed);
+                writer.Write(text.LetterSpacing);
+
+                if (text.Path is { } textPath)
+                {
+                    writer.Write(textPath.Count);
+                    foreach (PathNode node in textPath)
+                    {
+                        writer.Write(node.X);
+                        writer.Write(node.Y);
+                        writer.Write(node.InX);
+                        writer.Write(node.InY);
+                        writer.Write(node.OutX);
+                        writer.Write(node.OutY);
+                    }
+                }
+                else
+                {
+                    writer.Write(0);
                 }
             }
 
@@ -343,10 +391,21 @@ public static class ProjectFile
                     Width = reader.ReadSingle(),
                     Height = reader.ReadSingle(),
                     Fill = reader.ReadBoolean(),
-                    StrokeWidth = reader.ReadSingle(),
-                    FillColor = reader.ReadUInt32(),
-                    StrokeColor = reader.ReadUInt32(),
                 };
+
+                if (version >= 7)
+                {
+                    shape.Stroke = reader.ReadBoolean();
+                }
+
+                shape.StrokeWidth = reader.ReadSingle();
+                shape.FillColor = reader.ReadUInt32();
+                shape.StrokeColor = reader.ReadUInt32();
+
+                if (version >= 7)
+                {
+                    shape.Closed = reader.ReadBoolean();
+                }
 
                 if (version >= 5 && shape.Kind == ShapeKind.Path)
                 {
@@ -383,6 +442,68 @@ public static class ProjectFile
                 }
 
                 layer.AdoptShape(shape);
+            }
+
+            if (version >= 7 && reader.ReadBoolean())
+            {
+                TextData text = new()
+                {
+                    Content = reader.ReadString(),
+                    FontIndex = reader.ReadInt32(),
+                    Size = reader.ReadSingle(),
+                    Bold = reader.ReadBoolean(),
+                    Italic = reader.ReadBoolean(),
+                    Align = (TextAlign)reader.ReadInt32(),
+                    Color = reader.ReadUInt32(),
+                    X = reader.ReadSingle(),
+                    Y = reader.ReadSingle(),
+                    Rotation = reader.ReadSingle(),
+                    Outline = reader.ReadBoolean(),
+                    OutlineWidth = reader.ReadSingle(),
+                    OutlineColor = reader.ReadUInt32(),
+                    Shadow = reader.ReadBoolean(),
+                    ShadowX = reader.ReadInt32(),
+                    ShadowY = reader.ReadInt32(),
+                    ShadowBlur = reader.ReadSingle(),
+                    ShadowOpacity = reader.ReadInt32(),
+                    ShadowColor = reader.ReadUInt32(),
+                    PathLayer = reader.ReadString(),
+                    PathOffset = reader.ReadSingle(),
+                    PathClosed = reader.ReadBoolean(),
+                    LetterSpacing = reader.ReadSingle(),
+                };
+
+                int pathCount = reader.ReadInt32();
+                if (pathCount < 0 || pathCount > 100000)
+                {
+                    throw new InvalidDataException("Text on a path has an invalid point count.");
+                }
+
+                if (pathCount > 0)
+                {
+                    List<PathNode> textPath = new(pathCount);
+                    for (int point = 0; point < pathCount; point++)
+                    {
+                        textPath.Add(new PathNode
+                        {
+                            X = reader.ReadSingle(),
+                            Y = reader.ReadSingle(),
+                            InX = reader.ReadSingle(),
+                            InY = reader.ReadSingle(),
+                            OutX = reader.ReadSingle(),
+                            OutY = reader.ReadSingle(),
+                        });
+                    }
+
+                    text.Path = textPath;
+                }
+
+                if (text.PathLayer.Length == 0)
+                {
+                    text.PathLayer = null;
+                }
+
+                layer.AdoptText(text);
             }
 
             int pixelBytes = reader.ReadInt32();

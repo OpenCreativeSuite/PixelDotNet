@@ -22,12 +22,14 @@ public sealed class FileDialog : Component
         bool project = editor.FileDialogProject;
         bool svg = editor.FileDialogSvg;
         string title = svg
-            ? "Export SVG"
+            ? saving ? "Export SVG" : "Import SVG"
             : project
                 ? saving ? "Save Project" : "Open Project"
                 : saving ? "Save Image" : "Open Image";
         string summary = svg
-            ? "Shapes stay vector; other layers are embedded as a PNG."
+            ? saving
+                ? "Shapes and text stay vector; other layers are embedded as a PNG."
+                : "Choose an SVG to import as editable shape and text layers."
             : project
                 ? saving
                     ? "Keep layers, masks, groups and guides in a .pxd file."

@@ -20,6 +20,54 @@ public static class TextRasterizer
     /// <summary>Gets whether a usable font was found for the requested style.</summary>
     public static bool CanRender(TextFont font, bool bold, bool italic) => Face(font, bold, italic) is not null;
 
+    /// <summary>Measures the advance of every character, including kerning, in pixels.</summary>
+    /// <param name="font">The font family to use.</param>
+    /// <param name="text">The line to measure.</param>
+    /// <param name="size">Font size in document pixels.</param>
+    /// <param name="bold">Whether to use the bold face.</param>
+    /// <param name="italic">Whether to use the italic face.</param>
+    /// <param name="advances">One advance per character in the string.</param>
+    /// <returns>False when no font could be loaded.</returns>
+    public static bool MeasureGlyphs(
+        TextFont font,
+        string text,
+        float size,
+        bool bold,
+        bool italic,
+        out float[] advances)
+    {
+        advances = new float[text.Length];
+
+        if (Face(font, bold, italic) is not { } face)
+        {
+            return false;
+        }
+
+        float scale = stbtt_ScaleForPixelHeight(face.Info, Math.Clamp(size, 4f, 400f));
+        unsafe
+        {
+            int previous = 0;
+            for (int i = 0; i < text.Length; i++)
+            {
+                int codepoint = text[i];
+                float advance = 0f;
+                if (previous != 0)
+                {
+                    advance += stbtt_GetCodepointKernAdvance(face.Info, previous, codepoint) * scale;
+                }
+
+                int advanceWidth;
+                int bearing;
+                stbtt_GetCodepointHMetrics(face.Info, codepoint, &advanceWidth, &bearing);
+                advance += advanceWidth * scale;
+                advances[i] = advance;
+                previous = codepoint;
+            }
+        }
+
+        return true;
+    }
+
     /// <summary>Renders text into a coverage bitmap laid out around the baseline origin.</summary>
     /// <param name="font">The font family to use.</param>
     /// <param name="text">The single line of text.</param>

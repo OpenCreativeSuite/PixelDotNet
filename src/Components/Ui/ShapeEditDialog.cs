@@ -66,6 +66,12 @@ public sealed class ShapeEditDialog : Component
                                 shape.Fill = !shape.Fill;
                                 editor.TouchShape();
                                 editor.Refresh?.Invoke();
+                            }),
+                            Ui.Toggle("Outline", "Draw the outline", shape.Stroke, () =>
+                            {
+                                shape.Stroke = !shape.Stroke;
+                                editor.TouchShape();
+                                editor.Refresh?.Invoke();
                             })),
                         Colors(editor, "Fill", shape.FillColor, color =>
                         {
@@ -86,6 +92,13 @@ public sealed class ShapeEditDialog : Component
                             editor.CancelShapeEdit();
                             editor.Refresh?.Invoke();
                         }),
+                        Show(shape.Kind == ShapeKind.Path,
+                            Ui.Button("Edit Nodes", "Drag the path anchors and handles on the canvas", () =>
+                            {
+                                editor.CommitShapeEdit();
+                                editor.StartPathNodeEdit();
+                                editor.Refresh?.Invoke();
+                            })),
                         Ui.Button("Done", "Keep the shape", () =>
                         {
                             editor.CommitShapeEdit();

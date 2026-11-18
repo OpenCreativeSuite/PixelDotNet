@@ -24,6 +24,9 @@ public sealed class ShapeData
     /// <summary>Gets or sets whether the interior is filled.</summary>
     public bool Fill { get; set; } = true;
 
+    /// <summary>Gets or sets whether the outline is drawn.</summary>
+    public bool Stroke { get; set; } = true;
+
     /// <summary>Gets or sets the outline width in pixels.</summary>
     public float StrokeWidth { get; set; } = 2f;
 
@@ -36,6 +39,9 @@ public sealed class ShapeData
     /// <summary>Gets or sets the anchor and handle points for a path shape.</summary>
     public List<PathNode>? Points { get; set; }
 
+    /// <summary>Gets or sets whether a path joins its last point back to the first.</summary>
+    public bool Closed { get; set; } = true;
+
     /// <summary>Returns an independent copy of this shape.</summary>
     public ShapeData Clone() => new()
     {
@@ -45,10 +51,12 @@ public sealed class ShapeData
         Width = Width,
         Height = Height,
         Fill = Fill,
+        Stroke = Stroke,
         StrokeWidth = StrokeWidth,
         FillColor = FillColor,
         StrokeColor = StrokeColor,
         Points = Points is null ? null : [.. Points],
+        Closed = Closed,
     };
 
     /// <summary>Copies every setting from another shape.</summary>
@@ -60,10 +68,12 @@ public sealed class ShapeData
         Width = source.Width;
         Height = source.Height;
         Fill = source.Fill;
+        Stroke = source.Stroke;
         StrokeWidth = source.StrokeWidth;
         FillColor = source.FillColor;
         StrokeColor = source.StrokeColor;
         Points = source.Points is null ? null : [.. source.Points];
+        Closed = source.Closed;
     }
 }
 
@@ -143,18 +153,22 @@ public static class ShapeOps
 
         if (shape.Kind == ShapeKind.Path && shape.Points is { Count: >= 2 } nodes)
         {
-            List<(float X, float Y)> points = FlattenPath(nodes);
+            List<(float X, float Y)> points = Flatten(nodes, shape.Closed);
 
-            if (shape.Fill)
+            if (shape.Fill && shape.Closed)
             {
                 FillPolygon(layer, points, shape.FillColor);
             }
 
-            for (int i = 0; i < points.Count; i++)
+            int segments = shape.Closed ? points.Count : points.Count - 1;
+            if (shape.Stroke)
             {
-                (float x1, float y1) = points[i];
-                (float x2, float y2) = points[(i + 1) % points.Count];
-                DrawLine(layer, x1, y1, x2, y2, stroke, shape.StrokeColor);
+                for (int i = 0; i < segments; i++)
+                {
+                    (float x1, float y1) = points[i];
+                    (float x2, float y2) = points[(i + 1) % points.Count];
+                    DrawLine(layer, x1, y1, x2, y2, stroke, shape.StrokeColor);
+                }
             }
 
             return;
@@ -162,7 +176,11 @@ public static class ShapeOps
 
         if (shape.Kind == ShapeKind.Line)
         {
-            DrawLine(layer, left, top, right, bottom, stroke, shape.StrokeColor);
+            if (shape.Stroke)
+            {
+                DrawLine(layer, left, top, right, bottom, stroke, shape.StrokeColor);
+            }
+
             return;
         }
 
@@ -182,32 +200,38 @@ public static class ShapeOps
                 filled: true,
                 stroke,
                 shape.FillColor,
-                255,
+                Rgba.A(shape.FillColor),
                 null);
         }
 
-        PaintOps.Shape(
-            layer,
-            layer.Pixels,
-            left,
-            top,
-            right,
-            bottom,
-            ellipse,
-            filled: false,
-            stroke,
-            shape.StrokeColor,
-            255,
-            null);
+        if (shape.Stroke)
+        {
+            PaintOps.Shape(
+                layer,
+                layer.Pixels,
+                left,
+                top,
+                right,
+                bottom,
+                ellipse,
+                filled: false,
+                stroke,
+                shape.StrokeColor,
+                Rgba.A(shape.StrokeColor),
+                null);
+        }
     }
 
-    /// <summary>Flattens a closed cubic path into short line segments.</summary>
-    private static List<(float X, float Y)> FlattenPath(IReadOnlyList<PathNode> nodes)
+    /// <summary>Flattens a cubic path into short line segments.</summary>
+    public static List<(float X, float Y)> Flatten(
+        IReadOnlyList<PathNode> nodes,
+        bool closed = true)
     {
         const int Steps = 20;
         List<(float X, float Y)> points = [];
+        int segments = closed ? nodes.Count : nodes.Count - 1;
 
-        for (int i = 0; i < nodes.Count; i++)
+        for (int i = 0; i < segments; i++)
         {
             PathNode a = nodes[i];
             PathNode b = nodes[(i + 1) % nodes.Count];
@@ -228,8 +252,19 @@ public static class ShapeOps
             }
         }
 
+        if (!closed && nodes.Count > 0)
+        {
+            points.Add((nodes[^1].X, nodes[^1].Y));
+        }
+
         return points;
     }
+
+    /// <summary>Flattens the geometry of any path shape.</summary>
+    public static List<(float X, float Y)> Flatten(ShapeData shape) =>
+        shape.Points is { Count: >= 2 } nodes
+            ? Flatten(nodes, shape.Closed)
+            : [];
 
     /// <summary>Fills a closed polygon with a scanline pass.</summary>
     private static void FillPolygon(
@@ -332,7 +367,7 @@ public static class ShapeOps
                 layer.Pixels[row + x] = Rgba.Over(
                     layer.Pixels[row + x],
                     color,
-                    (int)(coverage * 255f));
+                    (int)(coverage * Rgba.A(color)));
             }
         }
     }

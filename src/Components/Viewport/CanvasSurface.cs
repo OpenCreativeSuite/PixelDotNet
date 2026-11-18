@@ -207,6 +207,61 @@ public sealed class CanvasSurface : Component
         DrawBrushOutline(context, editor, zoom, canvasNode);
         DrawMeshWarp(context, editor, zoom);
         DrawPenPath(context, editor, zoom);
+        DrawPathNodes(context, editor, zoom);
+    }
+
+    /// <summary>Draws path anchors, handles and the highlighted outline.</summary>
+    private static void DrawPathNodes(CanvasContext context, PaintSession editor, float zoom)
+    {
+        if (!editor.IsPathNodeEditing || editor.PathNodeShape is not { } shape)
+        {
+            return;
+        }
+
+        if (shape.Points is not { Count: >= 2 } points)
+        {
+            return;
+        }
+
+        List<(float X, float Y)> flat = ShapeOps.Flatten(shape);
+        for (int i = 0; i + 1 < flat.Count; i++)
+        {
+            DrawLine(
+                context,
+                flat[i].X * zoom,
+                flat[i].Y * zoom,
+                flat[i + 1].X * zoom,
+                flat[i + 1].Y * zoom,
+                0x99FFC24D);
+        }
+
+        for (int i = 0; i < points.Count; i++)
+        {
+            PathNode node = points[i];
+            float x = node.X * zoom;
+            float y = node.Y * zoom;
+
+            if (node.HasHandles)
+            {
+                DrawLine(context, x, y, node.InX * zoom, node.InY * zoom, 0xCCFFC24D);
+                DrawLine(context, x, y, node.OutX * zoom, node.OutY * zoom, 0xCCFFC24D);
+                context.FillEllipse(
+                    new Rect((node.InX * zoom) - 3f, (node.InY * zoom) - 3f, 6f, 6f),
+                    0xFFFFC24D);
+                context.FillEllipse(
+                    new Rect((node.OutX * zoom) - 3f, (node.OutY * zoom) - 3f, 6f, 6f),
+                    0xFFFFC24D);
+            }
+
+            bool selected = i == editor.SelectedPathNode;
+            float size = selected ? 13f : 9f;
+            context.FillEllipse(
+                new Rect(x - (size * 0.5f), y - (size * 0.5f), size, size),
+                selected ? 0xFFFFC24D : 0xFFFFFFFF);
+            context.FillEllipse(
+                new Rect(x - 2.5f, y - 2.5f, 5f, 5f),
+                0xFF101215);
+        }
     }
 
     /// <summary>Draws the in-progress pen path and its anchor points.</summary>

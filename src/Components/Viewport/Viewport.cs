@@ -107,6 +107,16 @@ public sealed class Viewport : Component
             return;
         }
 
+        if (editor.IsTextEditOpen)
+        {
+            if (key == "Escape")
+            {
+                editor.CancelTextEdit();
+            }
+
+            return;
+        }
+
         if (editor.IsSmartTransformOpen)
         {
             if (key == "Escape")
@@ -245,6 +255,21 @@ public sealed class Viewport : Component
         {
             editor.CloseTextFx();
             return;
+        }
+
+        if (editor.IsPathNodeEditing)
+        {
+            if (key is "Escape" or "Return" or "Enter")
+            {
+                editor.EndPathNodeEdit();
+                return;
+            }
+
+            if (key == "Delete")
+            {
+                editor.DeleteSelectedPathNode();
+                return;
+            }
         }
 
         if (editor.Tool == PaintTool.Pen && editor.IsPenActive)

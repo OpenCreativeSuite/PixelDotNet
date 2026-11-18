@@ -154,6 +154,16 @@ public sealed class PaintSession
     private float _penPreviewX;
     private float _penPreviewY;
     private int _penDragNode = -1;
+    private bool _textAsLayer;
+    private bool _isPathNodeEditing;
+    private int _pathNodeEditIndex = -1;
+    private int _selectedPathNode = -1;
+    private int _pathNodeDrag = -1;
+    private int _pathHandleDrag;
+    private bool _pathUndoPushed;
+    private float _pathDragX;
+    private float _pathDragY;
+    private TextData? _textEditBackup;
     private bool _quickSelecting;
     private bool _quickSubtractGesture;
     private byte[]? _quickMask;
@@ -304,6 +314,51 @@ public sealed class PaintSession
 
     /// <summary>Gets the editable shape data for the dialog.</summary>
     public ShapeData? ShapeEditTarget => ShapeEditLayer?.Shape;
+
+    /// <summary>Gets or sets whether the text tool creates editable text layers.</summary>
+    public bool TextAsLayer
+    {
+        get => _textAsLayer;
+        set => _textAsLayer = value;
+    }
+
+    /// <summary>Gets whether the text-layer editor is open.</summary>
+    public bool IsTextEditOpen { get; private set; }
+
+    /// <summary>Gets the text layer being edited.</summary>
+    public int TextEditIndex { get; private set; } = -1;
+
+    /// <summary>Gets the text layer the editor targets.</summary>
+    public PaintLayer? TextEditLayer =>
+        TextEditIndex >= 0 && TextEditIndex < Document.Layers.Count
+            ? Document.Layers[TextEditIndex]
+            : null;
+
+    /// <summary>Gets the editable text data for the dialog.</summary>
+    public TextData? TextEditTarget => TextEditLayer?.Text;
+
+    /// <summary>Gets whether path nodes are being edited on the canvas.</summary>
+    public bool IsPathNodeEditing => _isPathNodeEditing;
+
+    /// <summary>Gets the index of the path layer being node-edited.</summary>
+    public int PathNodeEditIndex => _pathNodeEditIndex;
+
+    /// <summary>Gets the path layer being node-edited.</summary>
+    public PaintLayer? PathNodeLayer =>
+        _pathNodeEditIndex >= 0 && _pathNodeEditIndex < Document.Layers.Count
+            ? Document.Layers[_pathNodeEditIndex]
+            : null;
+
+    /// <summary>Gets the path data being node-edited.</summary>
+    public ShapeData? PathNodeShape => PathNodeLayer?.Shape;
+
+    /// <summary>Gets the index of the selected path node, or -1.</summary>
+    public int SelectedPathNode => _selectedPathNode;
+
+    /// <summary>Gets whether the active layer is a path that can be node-edited.</summary>
+    public bool CanEditPathNodes =>
+        Document.Active.IsShapeLayer
+        && Document.Active.Shape is { Kind: ShapeKind.Path, Points: { Count: >= 2 } };
 
     /// <summary>Gets whether a pen path is in progress.</summary>
     public bool IsPenActive => _penPoints.Count > 0;
@@ -588,6 +643,11 @@ public sealed class PaintSession
         if (tool != PaintTool.Pen && _penPoints.Count > 0)
         {
             CancelPenPath();
+        }
+
+        if (_isPathNodeEditing)
+        {
+            EndPathNodeEdit();
         }
 
         Tool = tool;
@@ -981,6 +1041,12 @@ public sealed class PaintSession
         _lastX = documentX;
         _lastY = documentY;
 
+        if (IsPathNodeEditing)
+        {
+            PathNodePointerDown(documentX, documentY);
+            return;
+        }
+
         if (MaskEditing && Tool is not (
             PaintTool.Brush
             or PaintTool.Eraser
@@ -1116,7 +1182,9 @@ public sealed class PaintSession
             return;
         }
 
-        if (Document.Active.IsSmartObject || Document.Active.IsShapeLayer)
+        if (Document.Active.IsSmartObject
+            || Document.Active.IsShapeLayer
+            || Document.Active.IsTextLayer)
         {
             Status = "Rasterize the layer to paint";
             Changed();
@@ -1184,6 +1252,12 @@ public sealed class PaintSession
         (float documentX, float documentY) = ToDocument(localX, localY);
         CursorX = (int)MathF.Floor(documentX);
         CursorY = (int)MathF.Floor(documentY);
+
+        if (IsPathNodeEditing)
+        {
+            PathNodePointerMove(documentX, documentY);
+            return;
+        }
 
         if (Tool == PaintTool.QuickSelect)
         {
@@ -1316,6 +1390,12 @@ public sealed class PaintSession
         (float documentX, float documentY) = ToDocument(localX, localY);
         CursorX = (int)MathF.Floor(documentX);
         CursorY = (int)MathF.Floor(documentY);
+
+        if (IsPathNodeEditing)
+        {
+            PathNodePointerUp();
+            return;
+        }
 
         if (Tool == PaintTool.QuickSelect)
         {
@@ -2229,7 +2309,7 @@ public sealed class PaintSession
         PaintLayer layer = new(FreeLayerName("Pasted Layer"), Document.Width, Document.Height);
 
         // Paste back where it was cut from, unless that would hang off the
-        // canvas ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â then centre it, which is what matters across documents.
+        // canvas ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â then centre it, which is what matters across documents.
         int originX = clip.OriginX;
         int originY = clip.OriginY;
         if (originX + clip.Width > Document.Width || originY + clip.Height > Document.Height)
@@ -2437,6 +2517,11 @@ public sealed class PaintSession
         if (source.IsShapeLayer && source.Shape is { } shape)
         {
             copy.AdoptShape(shape.Clone());
+        }
+
+        if (source.IsTextLayer && source.Text is { } text)
+        {
+            copy.AdoptText(text.Clone());
         }
 
         int insertAt = Math.Clamp(Document.ActiveIndex + 1, 0, Document.Layers.Count);
@@ -2922,6 +3007,18 @@ public sealed class PaintSession
                 break;
             case "shapeRaster":
                 RasterizeShape();
+                break;
+            case "pathNodes":
+                TogglePathNodeEdit();
+                break;
+            case "textOnPath":
+                CreateTextOnPath();
+                break;
+            case "textEdit":
+                ShowTextEditDialog();
+                break;
+            case "textRaster":
+                RasterizeText();
                 break;
             case "lock":
                 ToggleLock(index);
@@ -4537,6 +4634,15 @@ public sealed class PaintSession
             return;
         }
 
+        bool madeLayer = false;
+        if (TextAsLayer && TextContent.Length > 0)
+        {
+            _textLayer?.Adopt(_textBase);
+            TextData created = TextDataFromSession();
+            CreateTextLayer(created, TextLayerName(created));
+            madeLayer = true;
+        }
+
         _textBase = null;
         _textLayer = null;
         _textHandle = TextHandle.None;
@@ -4545,7 +4651,7 @@ public sealed class PaintSession
         _textArtwork = null;
         _textRenderKey = string.Empty;
         TextGeneration++;
-        Status = "Text placed";
+        Status = madeLayer ? "Text layer created" : "Text placed";
         Changed();
     }
 
@@ -5715,6 +5821,13 @@ public sealed class PaintSession
             return false;
         }
 
+        if (layer.IsTextLayer)
+        {
+            Status = "Rasterize the text first";
+            Changed();
+            return false;
+        }
+
         return true;
     }
 
@@ -6006,6 +6119,587 @@ public sealed class PaintSession
         Changed();
     }
 
+    // ---- path node editing -------------------------------------------------
+
+    /// <summary>Enters or leaves on-canvas path-node editing.</summary>
+    public void TogglePathNodeEdit()
+    {
+        if (IsPathNodeEditing)
+        {
+            EndPathNodeEdit();
+        }
+        else
+        {
+            StartPathNodeEdit();
+        }
+    }
+
+    /// <summary>Starts editing the active path layer's anchors and handles.</summary>
+    public void StartPathNodeEdit()
+    {
+        PaintLayer layer = Document.Active;
+        if (!layer.IsShapeLayer
+            || layer.Shape is not { Kind: ShapeKind.Path, Points: { Count: >= 2 } })
+        {
+            Status = "Select a path layer first";
+            Changed();
+            return;
+        }
+
+        if (IsShapeEditOpen)
+        {
+            CommitShapeEdit();
+        }
+
+        Tip = null;
+        OpenMenu = null;
+        FinishInteraction();
+        _pathNodeEditIndex = Document.ActiveIndex;
+        _selectedPathNode = -1;
+        _pathNodeDrag = -1;
+        _isPathNodeEditing = true;
+        Status = "Drag an anchor or handle; click a segment to add a node";
+        Changed();
+    }
+
+    /// <summary>Stops on-canvas path-node editing.</summary>
+    public void EndPathNodeEdit()
+    {
+        if (!_isPathNodeEditing)
+        {
+            return;
+        }
+
+        _isPathNodeEditing = false;
+        _pathNodeEditIndex = -1;
+        _selectedPathNode = -1;
+        _pathNodeDrag = -1;
+        _pathUndoPushed = false;
+        Status = "Path editing finished";
+        Changed();
+    }
+
+    /// <summary>Removes the selected path anchor, if the path keeps three points.</summary>
+    public void DeleteSelectedPathNode()
+    {
+        if (!_isPathNodeEditing
+            || PathNodeShape is not { } shape
+            || shape.Points is not { } points
+            || _selectedPathNode < 0
+            || _selectedPathNode >= points.Count)
+        {
+            Status = "Select a path node first";
+            Changed();
+            return;
+        }
+
+        if (points.Count <= 3)
+        {
+            Status = "A path needs at least three nodes";
+            Changed();
+            return;
+        }
+
+        PushUndo("Delete Path Node");
+        points.RemoveAt(_selectedPathNode);
+        _selectedPathNode = Math.Min(_selectedPathNode, points.Count - 1);
+        _pathNodeDrag = -1;
+        UpdatePathBounds(shape);
+        RefreshPathLayer(PathNodeLayer!);
+        Status = "Path node deleted";
+        Changed();
+    }
+
+    /// <summary>Inserts a new anchor halfway along the selected node's outgoing segment.</summary>
+    public void AddPathNode()
+    {
+        if (!_isPathNodeEditing
+            || PathNodeShape is not { } shape
+            || shape.Points is not { } points
+            || points.Count < 2)
+        {
+            Changed();
+            return;
+        }
+
+        if (_selectedPathNode < 0 || _selectedPathNode >= points.Count)
+        {
+            Status = "Select a path node first";
+            Changed();
+            return;
+        }
+
+        PushUndo("Add Path Node");
+        PathNode a = points[_selectedPathNode];
+        PathNode b = points[(_selectedPathNode + 1) % points.Count];
+        (float x, float y) = CubicPoint(a, b, 0.5f);
+        int insertAt = _selectedPathNode + 1;
+        points.Insert(insertAt, new PathNode(x, y));
+        _selectedPathNode = insertAt;
+        UpdatePathBounds(shape);
+        RefreshPathLayer(PathNodeLayer!);
+        Status = "Path node added";
+        Changed();
+    }
+
+    /// <summary>Handles a canvas press while path nodes are visible.</summary>
+    private void PathNodePointerDown(float x, float y)
+    {
+        if (PathNodeShape is not { } shape || shape.Points is not { } points)
+        {
+            EndPathNodeEdit();
+            return;
+        }
+
+        float threshold = 8f / MathF.Max(Zoom, 0.05f);
+        float limit = threshold * threshold;
+
+        int node = -1;
+        int handle = 0;
+        float best = limit;
+
+        for (int i = 0; i < points.Count; i++)
+        {
+            PathNode candidate = points[i];
+            if (!candidate.HasHandles)
+            {
+                continue;
+            }
+
+            float inDistance = DistanceSquared(candidate.InX, candidate.InY, x, y);
+            if (inDistance < best)
+            {
+                best = inDistance;
+                node = i;
+                handle = -1;
+            }
+
+            float outDistance = DistanceSquared(candidate.OutX, candidate.OutY, x, y);
+            if (outDistance < best)
+            {
+                best = outDistance;
+                node = i;
+                handle = 1;
+            }
+        }
+
+        if (node < 0)
+        {
+            for (int i = 0; i < points.Count; i++)
+            {
+                float distance = DistanceSquared(points[i].X, points[i].Y, x, y);
+                if (distance < best)
+                {
+                    best = distance;
+                    node = i;
+                    handle = 0;
+                }
+            }
+        }
+
+        if (node >= 0)
+        {
+            _selectedPathNode = node;
+            _pathNodeDrag = node;
+            _pathHandleDrag = handle;
+            _pathUndoPushed = false;
+            _pathDragX = x;
+            _pathDragY = y;
+            Status = handle == 0
+                ? "Drag the anchor"
+                : "Drag the Bezier handle";
+            Changed();
+            return;
+        }
+
+        if (TryInsertPathNode(points, x, y, threshold, out int inserted))
+        {
+            PushUndo("Add Path Node");
+            _selectedPathNode = inserted;
+            _pathNodeDrag = inserted;
+            _pathHandleDrag = 0;
+            _pathUndoPushed = true;
+            UpdatePathBounds(shape);
+            RefreshPathLayer(PathNodeLayer!);
+            Status = "Path node added";
+            Changed();
+            return;
+        }
+
+        _selectedPathNode = -1;
+        _pathNodeDrag = -1;
+        Status = "Path editing: drag a node, or click a segment to add one";
+        Changed();
+    }
+
+    /// <summary>Drags the selected anchor or one of its handles.</summary>
+    private void PathNodePointerMove(float x, float y)
+    {
+        if (PathNodeShape is not { } shape
+            || shape.Points is not { } points
+            || _pathNodeDrag < 0
+            || _pathNodeDrag >= points.Count)
+        {
+            return;
+        }
+
+        PathNode node = points[_pathNodeDrag];
+        if (!_pathUndoPushed)
+        {
+            PushUndo("Edit Path");
+            _pathUndoPushed = true;
+        }
+
+        float dx = x - _pathDragX;
+        float dy = y - _pathDragY;
+
+        if (_pathHandleDrag == 0)
+        {
+            node.X += dx;
+            node.Y += dy;
+            node.InX += dx;
+            node.InY += dy;
+            node.OutX += dx;
+            node.OutY += dy;
+        }
+        else if (_pathHandleDrag < 0)
+        {
+            node.InX = x;
+            node.InY = y;
+            if (!InputState.Alt)
+            {
+                node.OutX = (node.X * 2f) - x;
+                node.OutY = (node.Y * 2f) - y;
+            }
+        }
+        else
+        {
+            node.OutX = x;
+            node.OutY = y;
+            if (!InputState.Alt)
+            {
+                node.InX = (node.X * 2f) - x;
+                node.InY = (node.Y * 2f) - y;
+            }
+        }
+
+        points[_pathNodeDrag] = node;
+        _pathDragX = x;
+        _pathDragY = y;
+        UpdatePathBounds(shape);
+        RefreshPathLayer(PathNodeLayer!);
+        Status = _pathHandleDrag == 0
+            ? $"Node {_pathNodeDrag + 1} at {MathF.Round(node.X)}, {MathF.Round(node.Y)}"
+            : "Curve handle";
+        Changed();
+    }
+
+    /// <summary>Ends an anchor or handle drag.</summary>
+    private void PathNodePointerUp()
+    {
+        if (_pathNodeDrag < 0)
+        {
+            return;
+        }
+
+        _pathNodeDrag = -1;
+        _pathHandleDrag = 0;
+        _pathUndoPushed = false;
+        Status = "Path updated";
+        Changed();
+    }
+
+    /// <summary>Inserts a corner node on the nearest path segment.</summary>
+    private static bool TryInsertPathNode(
+        List<PathNode> points,
+        float x,
+        float y,
+        float threshold,
+        out int inserted)
+    {
+        inserted = -1;
+        int segments = points.Count;
+        float best = threshold * threshold;
+        int bestSegment = -1;
+        float bestX = 0f;
+        float bestY = 0f;
+
+        for (int i = 0; i < segments; i++)
+        {
+            PathNode a = points[i];
+            PathNode b = points[(i + 1) % points.Count];
+
+            for (int step = 1; step < 20; step++)
+            {
+                float t = step / 20f;
+                (float px, float py) = CubicPoint(a, b, t);
+                float distance = DistanceSquared(px, py, x, y);
+                if (distance < best)
+                {
+                    best = distance;
+                    bestSegment = i;
+                    bestX = px;
+                    bestY = py;
+                }
+            }
+        }
+
+        if (bestSegment < 0)
+        {
+            return false;
+        }
+
+        inserted = bestSegment + 1;
+        points.Insert(inserted, new PathNode(bestX, bestY));
+        return true;
+    }
+
+    /// <summary>Recomputes a path shape's bounding box from its anchors.</summary>
+    private static void UpdatePathBounds(ShapeData shape)
+    {
+        if (shape.Points is not { Count: > 0 } points)
+        {
+            return;
+        }
+
+        float left = float.MaxValue;
+        float top = float.MaxValue;
+        float right = float.MinValue;
+        float bottom = float.MinValue;
+
+        foreach (PathNode node in points)
+        {
+            left = MathF.Min(left, node.X);
+            top = MathF.Min(top, node.Y);
+            right = MathF.Max(right, node.X);
+            bottom = MathF.Max(bottom, node.Y);
+        }
+
+        shape.X = left;
+        shape.Y = top;
+        shape.Width = right - left;
+        shape.Height = bottom - top;
+    }
+
+    /// <summary>Rerenders a path layer and any text attached to it.</summary>
+    private void RefreshPathLayer(PaintLayer layer)
+    {
+        layer.RefreshShape();
+        foreach (PaintLayer other in Document.Layers)
+        {
+            if (other.IsTextLayer
+                && !string.IsNullOrEmpty(other.Text?.PathLayer)
+                && string.Equals(
+                    other.Text.PathLayer,
+                    layer.Name,
+                    StringComparison.Ordinal))
+            {
+                other.RefreshText(Document);
+            }
+        }
+
+        Document.MarkDirty();
+    }
+
+    /// <summary>Evaluates a cubic segment at a parameter value.</summary>
+    private static (float X, float Y) CubicPoint(PathNode a, PathNode b, float t)
+    {
+        float inv = 1f - t;
+        float x = (inv * inv * inv * a.X)
+            + (3f * inv * inv * t * a.OutX)
+            + (3f * inv * t * t * b.InX)
+            + (t * t * t * b.X);
+        float y = (inv * inv * inv * a.Y)
+            + (3f * inv * inv * t * a.OutY)
+            + (3f * inv * t * t * b.InY)
+            + (t * t * t * b.Y);
+        return (x, y);
+    }
+
+    /// <summary>Squared distance between a point and a coordinate.</summary>
+    private static float DistanceSquared(float ax, float ay, float bx, float by)
+    {
+        float dx = ax - bx;
+        float dy = ay - by;
+        return (dx * dx) + (dy * dy);
+    }
+
+    // ---- text layers -------------------------------------------------------
+
+    /// <summary>Opens the editor for the active text layer.</summary>
+    public void ShowTextEditDialog()
+    {
+        PaintLayer layer = Document.Active;
+        if (!layer.IsTextLayer || layer.Text is null)
+        {
+            Status = "Select a text layer first";
+            Changed();
+            return;
+        }
+
+        Tip = null;
+        OpenMenu = null;
+        FinishInteraction();
+        TextEditIndex = Document.ActiveIndex;
+        _textEditBackup = layer.Text.Clone();
+        IsTextEditOpen = true;
+        PushUndo("Edit Text");
+        Status = "Edit text";
+        Changed();
+    }
+
+    /// <summary>Rerenders the edited text after a setting changes.</summary>
+    public void TouchTextLayer()
+    {
+        if (TextEditLayer is not { } layer || layer.Text is null)
+        {
+            return;
+        }
+
+        layer.RefreshText(Document);
+        Document.MarkDirty();
+        Changed();
+    }
+
+    /// <summary>Keeps the text edits and closes the dialog.</summary>
+    public void CommitTextEdit()
+    {
+        if (!IsTextEditOpen)
+        {
+            return;
+        }
+
+        IsTextEditOpen = false;
+        TextEditIndex = -1;
+        _textEditBackup = null;
+        Status = "Text updated";
+        Changed();
+    }
+
+    /// <summary>Restores the text captured when the editor opened.</summary>
+    public void CancelTextEdit()
+    {
+        if (!IsTextEditOpen)
+        {
+            return;
+        }
+
+        if (TextEditLayer is { } layer
+            && layer.Text is { } text
+            && _textEditBackup is { } backup)
+        {
+            text.CopyFrom(backup);
+            layer.RefreshText(Document);
+            Document.MarkDirty();
+        }
+
+        IsTextEditOpen = false;
+        TextEditIndex = -1;
+        _textEditBackup = null;
+        Status = "Text edit cancelled";
+        Changed();
+    }
+
+    /// <summary>Creates a text layer that follows the selected path layer.</summary>
+    public void CreateTextOnPath()
+    {
+        PaintLayer pathLayer = Document.Active;
+        if (!pathLayer.IsShapeLayer
+            || pathLayer.Shape is not { Kind: ShapeKind.Path, Points: { Count: >= 2 } } path)
+        {
+            Status = "Select a path layer first";
+            Changed();
+            return;
+        }
+
+        PushUndo("Text on Path");
+        TextData data = TextDataFromSession();
+        data.Content = data.Content.Length > 0 ? data.Content : "Text on Path";
+        data.Path = [.. path.Points];
+        data.PathLayer = pathLayer.Name;
+        data.PathClosed = path.Closed;
+        data.PathOffset = 0f;
+        data.Rotation = 0f;
+
+        int insertAt = CreateTextLayer(data, "Path Text");
+        TextEditIndex = insertAt;
+        _textEditBackup = data.Clone();
+        IsTextEditOpen = true;
+        Status = "Text on path";
+        Changed();
+    }
+
+    /// <summary>Bakes the active text layer into raster pixels.</summary>
+    public void RasterizeText()
+    {
+        PaintLayer layer = Document.Active;
+        if (!layer.IsTextLayer)
+        {
+            Status = "Select a text layer first";
+            Changed();
+            return;
+        }
+
+        PushUndo("Rasterize Text");
+        layer.RasterizeText();
+        Document.MarkDirty();
+        Status = "Rasterized text";
+        Changed();
+    }
+
+    /// <summary>Snapshots the current text-tool settings into editable text data.</summary>
+    private TextData TextDataFromSession() => new()
+    {
+        Content = TextContent,
+        FontIndex = TextFontIndex,
+        Size = TextSize,
+        Bold = TextBold,
+        Italic = TextItalic,
+        Align = TextAlignment,
+        Color = Foreground,
+        X = TextX,
+        Y = TextY,
+        Rotation = TextRotation,
+        Outline = TextOutline,
+        OutlineWidth = TextOutlineWidth,
+        OutlineColor = TextOutlineColor,
+        Shadow = TextShadow,
+        ShadowX = TextShadowX,
+        ShadowY = TextShadowY,
+        ShadowBlur = TextShadowBlur,
+        ShadowOpacity = TextShadowOpacity,
+        ShadowColor = TextShadowColor,
+    };
+
+    /// <summary>Inserts a rendered text layer above the active layer.</summary>
+    private int CreateTextLayer(TextData data, string name)
+    {
+        LayerGroup? group = Document.Active.Group;
+        PaintLayer layer = new(FreeLayerName(name), Document.Width, Document.Height)
+        {
+            Group = group,
+        };
+
+        layer.AdoptText(data);
+        int insertAt = Math.Clamp(Document.ActiveIndex + 1, 0, Document.Layers.Count);
+        Document.Layers.Insert(insertAt, layer);
+        Document.ActiveIndex = insertAt;
+        Document.MarkDirty();
+        return insertAt;
+    }
+
+    /// <summary>Uses the first line of new text as its layer name.</summary>
+    private static string TextLayerName(TextData data)
+    {
+        string name = data.Content.Replace('\r', ' ').Replace('\n', ' ').Trim();
+        if (name.Length == 0)
+        {
+            return "Text";
+        }
+
+        return name.Length <= 24 ? name : name[..24].TrimEnd();
+    }
+
     // ---- smart objects -----------------------------------------------------
 
     private float _smartBackupX;
@@ -6042,6 +6736,13 @@ public sealed class PaintSession
         if (layer.IsSmartObject)
         {
             Status = "Layer is already a smart object";
+            Changed();
+            return;
+        }
+
+        if (layer.IsTextLayer || layer.IsShapeLayer)
+        {
+            Status = "Rasterize the vector layer first";
             Changed();
             return;
         }
@@ -6680,7 +7381,7 @@ public sealed class PaintSession
         }
 
         AdoptDocument(resized);
-        Status = $"Image resized to {width} × {height}";
+        Status = $"Image resized to {width} Ã— {height}";
     }
 
     /// <summary>Moves the existing pixels inside a new canvas size.</summary>
@@ -6774,7 +7475,7 @@ public sealed class PaintSession
         }
 
         AdoptDocument(resized);
-        Status = $"Canvas resized to {width} × {height}";
+        Status = $"Canvas resized to {width} Ã— {height}";
     }
 
     /// <summary>Copies group metadata into a resized document.</summary>
@@ -6814,7 +7515,9 @@ public sealed class PaintSession
             width,
             height,
             source.IsBackground,
-            source.IsSmartObject || source.IsShapeLayer ? LayerKind.Raster : source.Kind,
+            source.IsSmartObject || source.IsShapeLayer || source.IsTextLayer
+                ? LayerKind.Raster
+                : source.Kind,
             source.Adjustment)
         {
             Visible = source.Visible,
@@ -7325,6 +8028,10 @@ public sealed class PaintSession
     public void ShowSaveSvgDialog() =>
         ShowFileDialog(FileDialogMode.Save, project: false, svg: true);
 
+    /// <summary>Opens the browser filtered to SVG files.</summary>
+    public void ShowOpenSvgDialog() =>
+        ShowFileDialog(FileDialogMode.Open, project: false, svg: true);
+
     /// <summary>Opens the file browser in one of its modes.</summary>
     private void ShowFileDialog(FileDialogMode mode, bool project, bool svg = false)
     {
@@ -7460,7 +8167,7 @@ public sealed class PaintSession
             return;
         }
 
-        if (FileDialogSvg)
+        if (FileDialogSvg && FileDialogMode == FileDialogMode.Save)
         {
             ConfirmSvgExport();
             return;
@@ -7694,7 +8401,8 @@ public sealed class PaintSession
                             StringComparison.OrdinalIgnoreCase)
                         : FileDialogProject
                             ? ProjectFile.IsProject(file.Name)
-                            : ImageLoader.IsImage(file.Name)))
+                            : ImageLoader.IsImage(file.Name)
+                                || SvgImporter.IsSvg(file.Name)))
                 {
                     files.Add(new FileEntry(file.Name, file.FullName, false));
                 }
@@ -7726,6 +8434,19 @@ public sealed class PaintSession
     {
         try
         {
+            if (SvgImporter.IsSvg(path))
+            {
+                PaintDocument imported = SvgImporter.Load(path);
+                _lastFolder = Path.GetDirectoryName(path) ?? _lastFolder;
+                IsFileDialogOpen = false;
+                FileDialogError = string.Empty;
+                AddDocument(
+                    imported,
+                    FreeName(Path.GetFileNameWithoutExtension(path)),
+                    "Imported " + path);
+                return;
+            }
+
             (int width, int height, uint[] pixels) = ImageLoader.Load(path);
 
             if (width > 8192 || height > 8192)
@@ -8408,7 +9129,8 @@ public sealed class PaintSession
                     layer.SmartRotation,
                     layer.SmartFlipX,
                     layer.SmartFlipY,
-                    layer.Shape?.Clone());
+                    layer.Shape?.Clone(),
+                    layer.Text?.Clone());
             }
 
             GroupState[] groups = new GroupState[document.Groups.Count];
@@ -8472,6 +9194,7 @@ public sealed class PaintSession
                     frame.SmartFlipY,
                     frame.Kind);
                 frame.Layer.RestoreShape(frame.Shape, frame.Kind);
+                frame.Layer.RestoreText(frame.Text, frame.Kind);
                 frame.Layer.Adjustment = frame.Adjustment;
                 frame.Layer.AdjustmentBlack = frame.AdjustmentBlack;
                 frame.Layer.AdjustmentWhite = frame.AdjustmentWhite;
@@ -8524,6 +9247,7 @@ public sealed class PaintSession
             float SmartRotation,
             bool SmartFlipX,
             bool SmartFlipY,
-            ShapeData? Shape);
+            ShapeData? Shape,
+            TextData? Text);
     }
 }

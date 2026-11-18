@@ -84,6 +84,10 @@ public sealed class LayerMenu : Component
                 Item(editor, Icons.Sparkles, "Layer Style...", "style"),
                 Item(editor, Icons.Rectangle, "Edit Shape...", "shapeEdit", layer.IsShapeLayer),
                 Item(editor, Icons.Flatten, "Rasterize Shape", "shapeRaster", layer.IsShapeLayer),
+                Item(editor, Icons.PenNib, "Edit Path Nodes", "pathNodes", layer.IsShapeLayer && layer.Shape?.Kind == ShapeKind.Path),
+                Item(editor, Icons.Text, "Text on Path...", "textOnPath", layer.IsShapeLayer && layer.Shape?.Kind == ShapeKind.Path),
+                Item(editor, Icons.Text, "Edit Text...", "textEdit", layer.IsTextLayer),
+                Item(editor, Icons.Flatten, "Rasterize Text", "textRaster", layer.IsTextLayer),
                 Item(
                     editor,
                     Icons.SmartObject,

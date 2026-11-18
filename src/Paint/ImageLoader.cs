@@ -25,9 +25,15 @@ public static class ImageLoader
     /// <param name="path">Image file to decode.</param>
     /// <returns>The decoded size and pixels.</returns>
     /// <exception cref="InvalidDataException">The file is not a decodable image.</exception>
-    public static (int Width, int Height, uint[] Pixels) Load(string path)
+    public static (int Width, int Height, uint[] Pixels) Load(string path) =>
+        Decode(File.ReadAllBytes(path));
+
+    /// <summary>Decodes image bytes into a packed pixel buffer.</summary>
+    /// <param name="bytes">Encoded PNG, JPEG, BMP or TGA bytes.</param>
+    /// <returns>The decoded size and pixels.</returns>
+    /// <exception cref="InvalidDataException">The bytes are not a decodable image.</exception>
+    public static (int Width, int Height, uint[] Pixels) Decode(byte[] bytes)
     {
-        byte[] bytes = File.ReadAllBytes(path);
         ImageResult image = ImageResult.FromMemory(bytes, ColorComponents.RedGreenBlueAlpha);
 
         if (image.Width <= 0 || image.Height <= 0 || image.Data is null)
