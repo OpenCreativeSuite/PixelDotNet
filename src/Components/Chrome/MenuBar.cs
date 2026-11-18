@@ -28,11 +28,9 @@ public sealed class MenuBar : Component
         [
             new("New Document", "Ctrl+N", NeverDim, session => session.NewDocument(768, 576)),
             new("New Small Document", "", NeverDim, session => session.NewDocument(480, 360)),
+            new("Open...", "Ctrl+O", NeverDim, session => session.ShowOpenDialog()),
+            new("Save...", "Ctrl+S", NeverDim, session => session.ShowSaveDialog()),
             new("Close Document", "Ctrl+W", session => session.CanCloseDocument, session => session.CloseActiveDocument()),
-            new("Save PNG", "Ctrl+S", NeverDim, session => session.SaveImage(ImageFormat.Png)),
-            new("Save JPEG", "", NeverDim, session => session.SaveImage(ImageFormat.Jpeg)),
-            new("Save BMP", "", NeverDim, session => session.SaveImage(ImageFormat.Bmp)),
-            new("Save TGA", "", NeverDim, session => session.SaveImage(ImageFormat.Tga)),
             new("Open Sample", "", NeverDim, session => session.LoadDemo()),
         ]),
         new("Edit",
@@ -114,8 +112,8 @@ public sealed class MenuBar : Component
                     Icons.Redo, "Redo", "quick.redo", "Y"),
                 Div(new() { ClassName = "quick-sep" }),
                 Ui.Tip(editor,
-                    Ui.IconButton(Icons.Save, "Write a PNG to your Pictures folder", editor.SavePng, className: "quick-btn is-primary"),
-                    Icons.Save, "Save PNG", "quick.save", "Ctrl+S")));
+                    Ui.IconButton(Icons.Save, "Choose where to save the image", editor.ShowSaveDialog, className: "quick-btn is-primary"),
+                    Icons.Save, "Save Image", "quick.save", "Ctrl+S")));
     }
 
     /// <summary>Builds one menu title plus its drop-down.</summary>

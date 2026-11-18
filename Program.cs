@@ -89,7 +89,17 @@ public sealed class App : Component
                     editor.Refresh?.Invoke();
                 },
             })),
-            Show(editor.OpenHelp is not null, C<HelpModal>()));
+            Show(editor.OpenHelp is not null, C<HelpModal>()),
+            Show(editor.IsFileDialogOpen, Div(new()
+            {
+                ClassName = "file-backdrop",
+                OnClick = () =>
+                {
+                    editor.CloseFileDialog();
+                    editor.Refresh?.Invoke();
+                },
+            })),
+            Show(editor.IsFileDialogOpen, C<FileDialog>()));
 
         root.BindRef(rootRef);
         if (rootRef.Value is { Width: > 0, Height: > 0 } bounds)

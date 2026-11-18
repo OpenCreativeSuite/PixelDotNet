@@ -5,6 +5,27 @@ using PixelDotNet.Help;
 
 namespace PixelDotNet.Paint;
 
+/// <summary>Which action the file browser is collecting.</summary>
+public enum FileDialogMode
+{
+    /// <summary>Choose an existing image to load.</summary>
+    Open,
+
+    /// <summary>Choose a folder and name to write the image to.</summary>
+    Save,
+}
+
+/// <summary>One row in the file browser: a folder or a supported image file.</summary>
+/// <param name="Name">Display name, without a path.</param>
+/// <param name="FullPath">Absolute path.</param>
+/// <param name="IsDirectory">Whether this row is a folder.</param>
+public readonly record struct FileEntry(string Name, string FullPath, bool IsDirectory);
+
+/// <summary>A shortcut to a well-known folder in the file browser.</summary>
+/// <param name="Label">Short name shown on the button.</param>
+/// <param name="Path">Absolute folder path.</param>
+public readonly record struct FileLocation(string Label, string Path);
+
 /// <summary>
 /// The whole editor state: document, tool settings, selection, zoom, adjustments
 /// and undo history.
@@ -63,6 +84,16 @@ public sealed class PaintSession
     private float _textDragDistance;
     private float _textDragCenterX;
     private float _textDragCenterY;
+
+    private readonly List<FileEntry> _fileEntries = [];
+    private readonly List<FileLocation> _filePlaces = [];
+    private string _lastFolder = string.Empty;
+    private ImageFormat _saveFormat = ImageFormat.Png;
+    private FileEntry? _fileMenuEntry;
+    private string _fileClipboard = string.Empty;
+    private bool _fileClipboardCut;
+    private bool _filePromptIsRename;
+    private string _filePromptTarget = string.Empty;
 
     private PaintLayer? _strokeLayer;
     private uint[]? _strokeBase;
@@ -4048,6 +4079,777 @@ public sealed class PaintSession
         }
 
         return name + " " + suffix;
+    }
+
+    // ---- file browser -----------------------------------------------------
+
+    /// <summary>Gets whether the file browser modal is open.</summary>
+    public bool IsFileDialogOpen { get; private set; }
+
+    /// <summary>Gets whether the browser is opening or saving.</summary>
+    public FileDialogMode FileDialogMode { get; private set; }
+
+    /// <summary>Gets the folder currently listed.</summary>
+    public string FileDialogFolder { get; private set; } = string.Empty;
+
+    /// <summary>Gets the file name typed or selected.</summary>
+    public string FileDialogName { get; private set; } = string.Empty;
+
+    /// <summary>Gets the absolute path of the selected file, or an empty string.</summary>
+    public string FileDialogSelected { get; private set; } = string.Empty;
+
+    /// <summary>Gets the last problem reported by the browser, if any.</summary>
+    public string FileDialogError { get; private set; } = string.Empty;
+
+    /// <summary>Gets the format used when saving.</summary>
+    public ImageFormat FileDialogFormat => _saveFormat;
+
+    /// <summary>Gets whether the row context menu is open.</summary>
+    public bool IsFileMenuOpen { get; private set; }
+
+    /// <summary>Gets the context menu X in window CSS pixels.</summary>
+    public float FileMenuX { get; private set; }
+
+    /// <summary>Gets the context menu Y in window CSS pixels.</summary>
+    public float FileMenuY { get; private set; }
+
+    /// <summary>Gets whether the context menu is acting on a row.</summary>
+    public bool FileMenuHasTarget => _fileMenuEntry is not null;
+
+    /// <summary>Gets whether the context menu target is a folder.</summary>
+    public bool FileMenuIsDirectory => _fileMenuEntry?.IsDirectory == true;
+
+    /// <summary>Gets whether the rename/new-folder prompt is open.</summary>
+    public bool IsFilePromptOpen { get; private set; }
+
+    /// <summary>Gets the prompt title.</summary>
+    public string FilePromptTitle { get; private set; } = string.Empty;
+
+    /// <summary>Gets the name being edited in the prompt.</summary>
+    public string FilePromptValue { get; private set; } = string.Empty;
+
+    /// <summary>Gets whether the file clipboard holds an entry.</summary>
+    public bool HasFileClipboard => _fileClipboard.Length > 0;
+
+    /// <summary>Gets whether the clipboard entry was cut rather than copied.</summary>
+    public bool FileClipboardIsCut => _fileClipboardCut;
+
+    /// <summary>Gets the folder and file rows currently listed.</summary>
+    public IReadOnlyList<FileEntry> FileDialogEntries => _fileEntries;
+
+    /// <summary>Gets shortcuts to well-known folders.</summary>
+    public IReadOnlyList<FileLocation> FileDialogPlaces => _filePlaces;
+
+    /// <summary>Gets the absolute path the dialog would open or write.</summary>
+    public string FileDialogTarget
+    {
+        get
+        {
+            if (FileDialogMode == FileDialogMode.Save)
+            {
+                string stem = FileNameStem(FileDialogName);
+                if (stem.Length == 0)
+                {
+                    stem = FileNameStem(DocumentName);
+                }
+
+                return Combine(FileDialogFolder, stem + ImageExporter.Extension(_saveFormat));
+            }
+
+            string name = FileDialogName.Trim();
+            return name.Length > 0 ? Combine(FileDialogFolder, name) : FileDialogFolder;
+        }
+    }
+
+    /// <summary>Combines a folder and name, returning an empty string when invalid.</summary>
+    private static string Combine(string folder, string name)
+    {
+        try
+        {
+            return Path.Combine(folder, name);
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>Opens the row context menu at a window position.</summary>
+    /// <param name="entry">The row, or null for the empty list background.</param>
+    /// <param name="x">Pointer X in window CSS pixels.</param>
+    /// <param name="y">Pointer Y in window CSS pixels.</param>
+    public void OpenFileContextMenu(FileEntry? entry, float x, float y)
+    {
+        _fileMenuEntry = entry;
+        FileMenuX = MathF.Min(x, MathF.Max(0f, ViewportWidth - 200f));
+        FileMenuY = MathF.Min(y, MathF.Max(0f, ViewportHeight - 220f));
+        IsFileMenuOpen = true;
+        Changed();
+    }
+
+    /// <summary>Closes the row context menu.</summary>
+    public void CloseFileContextMenu()
+    {
+        if (!IsFileMenuOpen)
+        {
+            return;
+        }
+
+        IsFileMenuOpen = false;
+        Changed();
+    }
+
+    /// <summary>Opens the row under the context menu, or navigates into a folder.</summary>
+    public void FileMenuOpen()
+    {
+        if (_fileMenuEntry is not { } entry)
+        {
+            return;
+        }
+
+        IsFileMenuOpen = false;
+        FileDialogActivate(entry);
+    }
+
+    /// <summary>Remembers the row as cut.</summary>
+    public void FileMenuCut()
+    {
+        if (_fileMenuEntry is not { } entry)
+        {
+            return;
+        }
+
+        _fileClipboard = entry.FullPath;
+        _fileClipboardCut = true;
+        IsFileMenuOpen = false;
+        Status = "Cut " + entry.Name;
+        Changed();
+    }
+
+    /// <summary>Remembers the row as copied.</summary>
+    public void FileMenuCopy()
+    {
+        if (_fileMenuEntry is not { } entry)
+        {
+            return;
+        }
+
+        _fileClipboard = entry.FullPath;
+        _fileClipboardCut = false;
+        IsFileMenuOpen = false;
+        Status = "Copied " + entry.Name;
+        Changed();
+    }
+
+    /// <summary>Pastes the clipboard entry into the current or target folder.</summary>
+    public void FileMenuPaste()
+    {
+        string source = _fileClipboard;
+        if (source.Length == 0)
+        {
+            return;
+        }
+
+        string folder = _fileMenuEntry is { IsDirectory: true } target
+            ? target.FullPath
+            : FileDialogFolder;
+
+        try
+        {
+            bool directory = Directory.Exists(source);
+            string name = Path.GetFileName(source);
+            string destination = UniquePath(folder, name, directory);
+
+            if (directory)
+            {
+                if (_fileClipboardCut)
+                {
+                    Directory.Move(source, destination);
+                }
+                else
+                {
+                    CopyDirectory(source, destination);
+                }
+            }
+            else if (_fileClipboardCut)
+            {
+                File.Move(source, destination);
+            }
+            else
+            {
+                File.Copy(source, destination);
+            }
+
+            if (_fileClipboardCut)
+            {
+                _fileClipboard = string.Empty;
+                _fileClipboardCut = false;
+            }
+
+            IsFileMenuOpen = false;
+            FileDialogError = string.Empty;
+            Status = "Pasted " + name;
+            RefreshFileEntries();
+        }
+        catch (Exception error)
+        {
+            IsFileMenuOpen = false;
+            FileDialogError = error.Message;
+            Status = "Paste failed: " + error.Message;
+        }
+
+        Changed();
+    }
+
+    /// <summary>Starts renaming the row under the context menu.</summary>
+    public void FileMenuRename()
+    {
+        if (_fileMenuEntry is not { } entry)
+        {
+            return;
+        }
+
+        _filePromptIsRename = true;
+        _filePromptTarget = entry.FullPath;
+        FilePromptTitle = "Rename " + (entry.IsDirectory ? "folder" : "file");
+        FilePromptValue = entry.Name;
+        IsFileMenuOpen = false;
+        IsFilePromptOpen = true;
+        FileDialogError = string.Empty;
+        Changed();
+    }
+
+    /// <summary>Deletes the row under the context menu.</summary>
+    public void FileMenuDelete()
+    {
+        if (_fileMenuEntry is not { } entry)
+        {
+            return;
+        }
+
+        try
+        {
+            if (entry.IsDirectory)
+            {
+                // Only empty folders are removed; this is a browser, not a
+                // recursive delete tool.
+                Directory.Delete(entry.FullPath);
+            }
+            else
+            {
+                File.Delete(entry.FullPath);
+            }
+
+            IsFileMenuOpen = false;
+            FileDialogError = string.Empty;
+            Status = "Deleted " + entry.Name;
+            RefreshFileEntries();
+        }
+        catch (Exception error)
+        {
+            IsFileMenuOpen = false;
+            FileDialogError = error.Message;
+            Status = "Delete failed: " + error.Message;
+        }
+
+        Changed();
+    }
+
+    /// <summary>Opens the new-folder prompt.</summary>
+    public void FileMenuNewFolder()
+    {
+        _filePromptIsRename = false;
+        _filePromptTarget = string.Empty;
+        FilePromptTitle = "New folder";
+        FilePromptValue = "New Folder";
+        IsFileMenuOpen = false;
+        IsFilePromptOpen = true;
+        FileDialogError = string.Empty;
+        Changed();
+    }
+
+    /// <summary>Relists the current folder.</summary>
+    public void FileMenuRefresh()
+    {
+        IsFileMenuOpen = false;
+        RefreshFileEntries();
+        Changed();
+    }
+
+    /// <summary>Updates the rename/new-folder prompt text.</summary>
+    public void FilePromptSetValue(string value)
+    {
+        FilePromptValue = value;
+        Changed();
+    }
+
+    /// <summary>Closes the prompt without applying it.</summary>
+    public void FilePromptCancel()
+    {
+        if (!IsFilePromptOpen)
+        {
+            return;
+        }
+
+        IsFilePromptOpen = false;
+        FilePromptValue = string.Empty;
+        FileDialogError = string.Empty;
+        Changed();
+    }
+
+    /// <summary>Applies the rename or new-folder prompt.</summary>
+    public void FilePromptConfirm()
+    {
+        if (!IsFilePromptOpen)
+        {
+            return;
+        }
+
+        string name = FilePromptValue.Trim();
+        if (name.Length == 0)
+        {
+            FileDialogError = "Enter a name.";
+            Changed();
+            return;
+        }
+
+        if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+            || name.IndexOf(Path.DirectorySeparatorChar) >= 0
+            || name.IndexOf(Path.AltDirectorySeparatorChar) >= 0)
+        {
+            FileDialogError = "The name contains characters that are not allowed.";
+            Changed();
+            return;
+        }
+
+        try
+        {
+            if (_filePromptIsRename)
+            {
+                string parent = Path.GetDirectoryName(_filePromptTarget) ?? FileDialogFolder;
+                string destination = Path.Combine(parent, name);
+
+                if (!string.Equals(_filePromptTarget, destination, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (File.Exists(destination) || Directory.Exists(destination))
+                    {
+                        FileDialogError = "A file or folder with that name already exists.";
+                        Changed();
+                        return;
+                    }
+
+                    if (Directory.Exists(_filePromptTarget))
+                    {
+                        Directory.Move(_filePromptTarget, destination);
+                    }
+                    else
+                    {
+                        File.Move(_filePromptTarget, destination);
+                    }
+                }
+
+                Status = "Renamed to " + name;
+            }
+            else
+            {
+                string destination = UniquePath(FileDialogFolder, name, isDirectory: true);
+                Directory.CreateDirectory(destination);
+                Status = "Created " + Path.GetFileName(destination);
+            }
+
+            IsFilePromptOpen = false;
+            FilePromptValue = string.Empty;
+            FileDialogError = string.Empty;
+            RefreshFileEntries();
+        }
+        catch (Exception error)
+        {
+            FileDialogError = error.Message;
+            Status = "File action failed: " + error.Message;
+        }
+
+        Changed();
+    }
+
+    /// <summary>Returns a destination path that does not collide with an existing entry.</summary>
+    private static string UniquePath(string folder, string name, bool isDirectory)
+    {
+        string destination = Path.Combine(folder, name);
+        if (!File.Exists(destination) && !Directory.Exists(destination))
+        {
+            return destination;
+        }
+
+        string stem = isDirectory ? name : Path.GetFileNameWithoutExtension(name);
+        string extension = isDirectory ? string.Empty : Path.GetExtension(name);
+
+        for (int index = 2; index < 1000; index++)
+        {
+            destination = Path.Combine(folder, stem + " (" + index + ")" + extension);
+            if (!File.Exists(destination) && !Directory.Exists(destination))
+            {
+                return destination;
+            }
+        }
+
+        return Path.Combine(folder, stem + "-" + Guid.NewGuid().ToString("N")[..6] + extension);
+    }
+
+    /// <summary>Copies a folder tree without following reparse points.</summary>
+    private static void CopyDirectory(string source, string destination)
+    {
+        Directory.CreateDirectory(destination);
+
+        foreach (string file in Directory.EnumerateFiles(source))
+        {
+            File.Copy(file, Path.Combine(destination, Path.GetFileName(file)));
+        }
+
+        foreach (string folder in Directory.EnumerateDirectories(source))
+        {
+            CopyDirectory(folder, Path.Combine(destination, Path.GetFileName(folder)));
+        }
+    }
+
+    /// <summary>Opens the browser to choose an image file.</summary>
+    public void ShowOpenDialog()
+    {
+        Tip = null;
+        OpenMenu = null;
+        FinishInteraction();
+        FileDialogMode = FileDialogMode.Open;
+        IsFileDialogOpen = true;
+        FileDialogName = string.Empty;
+        FileDialogSelected = string.Empty;
+        FileDialogError = string.Empty;
+        FileDialogFolder = StartFolder();
+        RefreshFilePlaces();
+        RefreshFileEntries();
+        Status = "Choose an image to open";
+        Changed();
+    }
+
+    /// <summary>Opens the browser to choose where the current image is written.</summary>
+    public void ShowSaveDialog()
+    {
+        Tip = null;
+        OpenMenu = null;
+        FinishInteraction();
+        FileDialogMode = FileDialogMode.Save;
+        IsFileDialogOpen = true;
+        FileDialogSelected = string.Empty;
+        FileDialogError = string.Empty;
+        FileDialogFolder = StartFolder();
+        FileDialogName = FileNameStem(DocumentName) + ImageExporter.Extension(_saveFormat);
+        RefreshFilePlaces();
+        RefreshFileEntries();
+        Status = "Choose where to save";
+        Changed();
+    }
+
+    /// <summary>Closes the browser without touching the document.</summary>
+    public void CloseFileDialog()
+    {
+        if (!IsFileDialogOpen)
+        {
+            return;
+        }
+
+        IsFileDialogOpen = false;
+        FileDialogError = string.Empty;
+        Status = "Ready";
+        Changed();
+    }
+
+    /// <summary>Lists another folder, or reports why it cannot be listed.</summary>
+    public void FileDialogNavigate(string path)
+    {
+        try
+        {
+            string full = Path.GetFullPath(path.Trim().Trim('"'));
+            if (!Directory.Exists(full))
+            {
+                FileDialogError = "Folder not found: " + full;
+                Changed();
+                return;
+            }
+
+            FileDialogFolder = full;
+            FileDialogSelected = string.Empty;
+            FileDialogError = string.Empty;
+            RefreshFileEntries();
+            Changed();
+        }
+        catch (Exception error)
+        {
+            FileDialogError = error.Message;
+            Changed();
+        }
+    }
+
+    /// <summary>Lists the parent of the current folder.</summary>
+    public void FileDialogGoUp()
+    {
+        DirectoryInfo? parent = Directory.GetParent(FileDialogFolder);
+        if (parent is not null)
+        {
+            FileDialogNavigate(parent.FullName);
+        }
+    }
+
+    /// <summary>Lists one of the well-known folders.</summary>
+    public void FileDialogUsePlace(FileLocation place) => FileDialogNavigate(place.Path);
+
+    /// <summary>Handles a click on a row: folders navigate, files are selected.</summary>
+    public void FileDialogActivate(FileEntry entry)
+    {
+        if (entry.IsDirectory)
+        {
+            FileDialogNavigate(entry.FullPath);
+            return;
+        }
+
+        FileDialogName = entry.Name;
+        FileDialogSelected = entry.FullPath;
+        FileDialogError = string.Empty;
+        Changed();
+    }
+
+    /// <summary>Updates the file name field.</summary>
+    public void FileDialogSetName(string name)
+    {
+        FileDialogName = name;
+        FileDialogSelected = string.Empty;
+        FileDialogError = string.Empty;
+        Changed();
+    }
+
+    /// <summary>Chooses the output format and fixes the name's extension.</summary>
+    public void FileDialogSetFormat(ImageFormat format)
+    {
+        _saveFormat = format;
+        string stem = FileNameStem(FileDialogName);
+        if (stem.Length == 0)
+        {
+            stem = FileNameStem(DocumentName);
+        }
+
+        FileDialogName = stem + ImageExporter.Extension(format);
+        FileDialogError = string.Empty;
+        Changed();
+    }
+
+    /// <summary>Opens or saves according to the browser mode.</summary>
+    public void ConfirmFileDialog()
+    {
+        if (!IsFileDialogOpen)
+        {
+            return;
+        }
+
+        if (FileDialogMode == FileDialogMode.Open)
+        {
+            string name = FileDialogName.Trim();
+            if (name.Length == 0)
+            {
+                FileDialogError = "Choose an image to open.";
+                Changed();
+                return;
+            }
+
+            string path;
+            try
+            {
+                path = Path.Combine(FileDialogFolder, name);
+            }
+            catch (Exception error)
+            {
+                FileDialogError = error.Message;
+                Changed();
+                return;
+            }
+
+            if (!File.Exists(path))
+            {
+                FileDialogError = "File not found: " + name;
+                Changed();
+                return;
+            }
+
+            OpenImageFile(path);
+            return;
+        }
+
+        string stem = FileNameStem(FileDialogName);
+        if (stem.Length == 0)
+        {
+            FileDialogError = "Enter a file name.";
+            Changed();
+            return;
+        }
+
+        string target = Path.Combine(FileDialogFolder, stem + ImageExporter.Extension(_saveFormat));
+        SaveImageFile(target);
+    }
+
+    /// <summary>Resolves the file name without its extension.</summary>
+    private static string FileNameStem(string name)
+    {
+        string filename = Path.GetFileName(name.Trim());
+        string stem = Path.GetFileNameWithoutExtension(filename);
+        return stem.Length > 0 ? stem : filename;
+    }
+
+    /// <summary>Picks the folder the browser starts in.</summary>
+    private string StartFolder()
+    {
+        if (_lastFolder.Length > 0 && Directory.Exists(_lastFolder))
+        {
+            return _lastFolder;
+        }
+
+        string pictures = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+        if (pictures.Length > 0 && Directory.Exists(pictures))
+        {
+            return pictures;
+        }
+
+        return Environment.CurrentDirectory;
+    }
+
+    /// <summary>Rebuilds the quick-folder shortcuts.</summary>
+    private void RefreshFilePlaces()
+    {
+        _filePlaces.Clear();
+        AddPlace("Pictures", Environment.SpecialFolder.MyPictures);
+        AddPlace("Desktop", Environment.SpecialFolder.Desktop);
+        AddPlace("Documents", Environment.SpecialFolder.MyDocuments);
+        AddPlace("Home", Environment.SpecialFolder.UserProfile);
+
+        string downloads = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            "Downloads");
+        if (Directory.Exists(downloads))
+        {
+            _filePlaces.Add(new FileLocation("Downloads", downloads));
+        }
+    }
+
+    /// <summary>Adds a shortcut when the folder exists.</summary>
+    private void AddPlace(string label, Environment.SpecialFolder special)
+    {
+        string path = Environment.GetFolderPath(special);
+        if (path.Length > 0 && Directory.Exists(path))
+        {
+            _filePlaces.Add(new FileLocation(label, path));
+        }
+    }
+
+    /// <summary>Lists the folders and supported images in the current folder.</summary>
+    private void RefreshFileEntries()
+    {
+        _fileEntries.Clear();
+        FileDialogError = string.Empty;
+        List<FileEntry> folders = [];
+        List<FileEntry> files = [];
+
+        try
+        {
+            DirectoryInfo folder = new(FileDialogFolder);
+            foreach (FileSystemInfo entry in folder.EnumerateFileSystemInfos())
+            {
+                if (entry is DirectoryInfo directory)
+                {
+                    folders.Add(new FileEntry(directory.Name, directory.FullName, true));
+                }
+                else if (entry is FileInfo file && ImageLoader.IsImage(file.Name))
+                {
+                    files.Add(new FileEntry(file.Name, file.FullName, false));
+                }
+            }
+        }
+        catch (Exception error)
+        {
+            FileDialogError = error.Message;
+        }
+
+        folders.Sort(static (left, right) =>
+            StringComparer.OrdinalIgnoreCase.Compare(left.Name, right.Name));
+        files.Sort(static (left, right) =>
+            StringComparer.OrdinalIgnoreCase.Compare(left.Name, right.Name));
+
+        const int MaxEntries = 500;
+        _fileEntries.AddRange(folders);
+        _fileEntries.AddRange(files);
+
+        if (_fileEntries.Count > MaxEntries)
+        {
+            _fileEntries.RemoveRange(MaxEntries, _fileEntries.Count - MaxEntries);
+            FileDialogError = "Showing the first " + MaxEntries + " entries.";
+        }
+    }
+
+    /// <summary>Loads an image file into a new tab.</summary>
+    private void OpenImageFile(string path)
+    {
+        try
+        {
+            (int width, int height, uint[] pixels) = ImageLoader.Load(path);
+
+            if (width > 8192 || height > 8192)
+            {
+                FileDialogError = "The image is larger than 8192 pixels on a side.";
+                Changed();
+                return;
+            }
+
+            PaintDocument document = new(width, height);
+            PaintLayer layer = new(Path.GetFileNameWithoutExtension(path), width, height);
+            layer.Adopt(pixels);
+            document.Layers.Add(layer);
+            document.ActiveIndex = 0;
+            document.MarkDirty();
+
+            _lastFolder = Path.GetDirectoryName(path) ?? _lastFolder;
+            IsFileDialogOpen = false;
+            FileDialogError = string.Empty;
+            AddDocument(document, FreeName(Path.GetFileNameWithoutExtension(path)), "Opened " + path);
+        }
+        catch (Exception error)
+        {
+            FileDialogError = error.Message;
+            Status = "Open failed: " + error.Message;
+            Changed();
+        }
+    }
+
+    /// <summary>Writes the composite to an explicit path.</summary>
+    private void SaveImageFile(string path)
+    {
+        try
+        {
+            CommitPreviews();
+            Document.MarkDirty();
+            File.WriteAllBytes(
+                path,
+                ImageExporter.Encode(
+                    Document.Composite,
+                    Document.Width,
+                    Document.Height,
+                    _saveFormat));
+
+            _lastFolder = Path.GetDirectoryName(path) ?? _lastFolder;
+            IsFileDialogOpen = false;
+            FileDialogError = string.Empty;
+            Status = "Saved " + path;
+        }
+        catch (Exception error)
+        {
+            FileDialogError = error.Message;
+            Status = "Save failed: " + error.Message;
+        }
+
+        Changed();
     }
 
     /// <summary>Writes the flattened document as a PNG next to the user's pictures.</summary>

@@ -116,6 +116,27 @@ public static class Icons
     /// <summary>A document tab.</summary>
     public const string Document = "fa-image";
 
+    /// <summary>A folder in the file browser.</summary>
+    public const string Folder = "fa-folder";
+
+    /// <summary>A folder being opened.</summary>
+    public const string FolderOpen = "fa-folder-open";
+
+    /// <summary>Go to the parent folder.</summary>
+    public const string Up = "fa-arrow-up";
+
+    /// <summary>Cut a file.</summary>
+    public const string Scissors = "fa-scissors";
+
+    /// <summary>Paste a file.</summary>
+    public const string Paste = "fa-paste";
+
+    /// <summary>Rename a file.</summary>
+    public const string Pen = "fa-pen";
+
+    /// <summary>Create a folder.</summary>
+    public const string FolderPlus = "fa-folder-plus";
+
     /// <summary>The text tool.</summary>
     public const string Text = "fa-font";
 

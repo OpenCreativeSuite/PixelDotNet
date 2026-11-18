@@ -97,6 +97,40 @@ public sealed class Viewport : Component
             return;
         }
 
+        if (editor.IsFileDialogOpen)
+        {
+            if (editor.IsFilePromptOpen)
+            {
+                if (key == "Escape")
+                {
+                    editor.FilePromptCancel();
+                }
+                else if (key is "Return" or "Enter")
+                {
+                    editor.FilePromptConfirm();
+                }
+
+                return;
+            }
+
+            if (editor.IsFileMenuOpen && key == "Escape")
+            {
+                editor.CloseFileContextMenu();
+                return;
+            }
+
+            if (key == "Escape")
+            {
+                editor.CloseFileDialog();
+            }
+            else if (key is "Return" or "Enter")
+            {
+                editor.ConfirmFileDialog();
+            }
+
+            return;
+        }
+
         if (editor.OpenHelp is not null && key == "Escape")
         {
             editor.CloseHelp();
@@ -199,8 +233,11 @@ public sealed class Viewport : Component
             case "Ctrl+N":
                 editor.NewDocument(768, 576);
                 break;
+            case "Ctrl+O":
+                editor.ShowOpenDialog();
+                break;
             case "Ctrl+S":
-                editor.SavePng();
+                editor.ShowSaveDialog();
                 break;
             case "Ctrl+W":
                 editor.CloseActiveDocument();
