@@ -140,6 +140,9 @@ public static class Icons
     /// <summary>Remove a folder.</summary>
     public const string FolderMinus = "fa-folder-minus";
 
+    /// <summary>A smart object.</summary>
+    public const string SmartObject = "fa-cube";
+
     /// <summary>The text tool.</summary>
     public const string Text = "fa-font";
 

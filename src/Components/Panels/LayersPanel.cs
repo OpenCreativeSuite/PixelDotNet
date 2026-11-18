@@ -339,9 +339,11 @@ public sealed class LayersPanel : Component
         Div(new() { ClassName = "layer-main" },
             Span(new() { ClassName = "layer-name" }, Text(layer.Name)),
             Span(new() { ClassName = "layer-meta" },
-                Text(layer.IsAdjustment
-                    ? $"{layer.Adjustment} adjustment | {Ui.Format(layer.Opacity * 100f)}%"
-                    : $"{LabelOf(layer.Blend)} | {Ui.Format(layer.Opacity * 100f)}%" + (layer.ClipToBelow ? " | clipped" : string.Empty)))),
+                Text(layer.IsSmartObject
+                    ? $"Smart Object | {Ui.Format(layer.Opacity * 100f)}%"
+                    : layer.IsAdjustment
+                        ? $"{layer.Adjustment} adjustment | {Ui.Format(layer.Opacity * 100f)}%"
+                        : $"{LabelOf(layer.Blend)} | {Ui.Format(layer.Opacity * 100f)}%" + (layer.ClipToBelow ? " | clipped" : string.Empty)))),
         Ui.Tip(editor, Button(new()
         {
             ClassName = layer.Style.HasAny ? "layer-btn is-on" : "layer-btn is-dim",

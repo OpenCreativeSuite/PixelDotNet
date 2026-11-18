@@ -82,6 +82,18 @@ public sealed class LayerMenu : Component
                     "visible"),
                 Div(new() { ClassName = "file-menu-sep" }),
                 Item(editor, Icons.Sparkles, "Layer Style...", "style"),
+                Item(
+                    editor,
+                    Icons.SmartObject,
+                    layer.IsSmartObject ? "Rasterize Smart Object" : "Convert to Smart Object",
+                    layer.IsSmartObject ? "smartRaster" : "smartConvert",
+                    !layer.IsAdjustment),
+                Item(
+                    editor,
+                    Icons.Move,
+                    "Smart Object Transform...",
+                    "smartTransform",
+                    layer.IsSmartObject),
                 Item(editor, Icons.FolderPlus, "New Group", "group", layer.Group is null),
                 Item(editor, Icons.FolderMinus, "Ungroup", "ungroup", layer.Group is not null),
                 Div(new() { ClassName = "file-menu-sep" }),

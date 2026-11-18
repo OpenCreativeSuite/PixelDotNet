@@ -1054,6 +1054,13 @@ public sealed class PaintSession
             return;
         }
 
+        if (Document.Active.IsSmartObject)
+        {
+            Status = "Rasterize the smart object to paint";
+            Changed();
+            return;
+        }
+
         switch (Tool)
         {
             case PaintTool.Bucket:
@@ -2301,6 +2308,21 @@ public sealed class PaintSession
         copy.CopyAdjustmentFrom(source);
         copy.Style.CopyFrom(source.Style);
 
+        if (source.IsSmartObject && source.SmartSource is { } smart)
+        {
+            copy.AdoptSmart(
+                (uint[])smart.Clone(),
+                source.SmartSourceWidth,
+                source.SmartSourceHeight,
+                source.SmartX,
+                source.SmartY,
+                source.SmartScaleX,
+                source.SmartScaleY,
+                source.SmartRotation,
+                source.SmartFlipX,
+                source.SmartFlipY);
+        }
+
         int insertAt = Math.Clamp(Document.ActiveIndex + 1, 0, Document.Layers.Count);
         Document.Layers.Insert(insertAt, copy);
         Document.ActiveIndex = insertAt;
@@ -2769,6 +2791,15 @@ public sealed class PaintSession
                 break;
             case "style":
                 ShowLayerStyleDialog(index);
+                break;
+            case "smartConvert":
+                ConvertToSmartObject();
+                break;
+            case "smartRaster":
+                RasterizeSmartObject();
+                break;
+            case "smartTransform":
+                ShowSmartTransformDialog();
                 break;
             case "lock":
                 ToggleLock(index);
@@ -5548,7 +5579,248 @@ public sealed class PaintSession
             return false;
         }
 
+        if (layer.IsSmartObject)
+        {
+            Status = "Rasterize the smart object first";
+            Changed();
+            return false;
+        }
+
         return true;
+    }
+
+    // ---- smart objects -----------------------------------------------------
+
+    private float _smartBackupX;
+    private float _smartBackupY;
+    private float _smartBackupScaleX;
+    private float _smartBackupScaleY;
+    private float _smartBackupRotation;
+    private bool _smartBackupFlipX;
+    private bool _smartBackupFlipY;
+
+    /// <summary>Gets whether the smart-object transform dialog is open.</summary>
+    public bool IsSmartTransformOpen { get; private set; }
+
+    /// <summary>Gets the smart-object layer being transformed.</summary>
+    public int SmartTransformIndex { get; private set; } = -1;
+
+    /// <summary>Gets the layer the smart transform dialog edits.</summary>
+    public PaintLayer? SmartTransformLayer =>
+        SmartTransformIndex >= 0 && SmartTransformIndex < Document.Layers.Count
+            ? Document.Layers[SmartTransformIndex]
+            : null;
+
+    /// <summary>Converts the active raster layer into a smart object.</summary>
+    public void ConvertToSmartObject()
+    {
+        PaintLayer layer = Document.Active;
+        if (layer.IsAdjustment)
+        {
+            Status = "Adjustment layers cannot become smart objects";
+            Changed();
+            return;
+        }
+
+        if (layer.IsSmartObject)
+        {
+            Status = "Layer is already a smart object";
+            Changed();
+            return;
+        }
+
+        PushUndo("Convert to Smart Object");
+        layer.MakeSmart();
+        Document.MarkDirty();
+        Status = "Smart object";
+        Changed();
+    }
+
+    /// <summary>Bakes the smart object's current pixels into a raster layer.</summary>
+    public void RasterizeSmartObject()
+    {
+        PaintLayer layer = Document.Active;
+        if (!layer.IsSmartObject)
+        {
+            Status = "Layer is not a smart object";
+            Changed();
+            return;
+        }
+
+        PushUndo("Rasterize Smart Object");
+        layer.RasterizeSmart();
+        Document.MarkDirty();
+        Status = "Rasterized smart object";
+        Changed();
+    }
+
+    /// <summary>Opens the smart-object transform controls.</summary>
+    public void ShowSmartTransformDialog()
+    {
+        PaintLayer layer = Document.Active;
+        if (!layer.IsSmartObject)
+        {
+            Status = "Convert the layer to a smart object first";
+            Changed();
+            return;
+        }
+
+        Tip = null;
+        OpenMenu = null;
+        FinishInteraction();
+        SmartTransformIndex = Document.ActiveIndex;
+        _smartBackupX = layer.SmartX;
+        _smartBackupY = layer.SmartY;
+        _smartBackupScaleX = layer.SmartScaleX;
+        _smartBackupScaleY = layer.SmartScaleY;
+        _smartBackupRotation = layer.SmartRotation;
+        _smartBackupFlipX = layer.SmartFlipX;
+        _smartBackupFlipY = layer.SmartFlipY;
+        IsSmartTransformOpen = true;
+        PushUndo("Smart Object Transform");
+        Status = "Smart object transform";
+        Changed();
+    }
+
+    /// <summary>Gets one of the smart transform values for the dialog.</summary>
+    public float SmartValue(int index) => SmartTransformLayer switch
+    {
+        null => 0f,
+        { } layer => index switch
+        {
+            0 => layer.SmartX,
+            1 => layer.SmartY,
+            2 => layer.SmartScaleX * 100f,
+            3 => layer.SmartScaleY * 100f,
+            _ => layer.SmartRotation,
+        },
+    };
+
+    /// <summary>Gets whether the smart object is mirrored horizontally.</summary>
+    public bool SmartFlipX => SmartTransformLayer?.SmartFlipX == true;
+
+    /// <summary>Gets whether the smart object is mirrored vertically.</summary>
+    public bool SmartFlipY => SmartTransformLayer?.SmartFlipY == true;
+
+    /// <summary>Updates one smart transform value and rerenders the preview.</summary>
+    public void SetSmartValue(int index, float value)
+    {
+        if (SmartTransformLayer is not { } layer)
+        {
+            return;
+        }
+
+        switch (index)
+        {
+            case 0:
+                layer.SmartX = Math.Clamp(value, -4000f, 4000f);
+                break;
+            case 1:
+                layer.SmartY = Math.Clamp(value, -4000f, 4000f);
+                break;
+            case 2:
+                layer.SmartScaleX = Math.Clamp(value / 100f, 0.01f, 8f);
+                break;
+            case 3:
+                layer.SmartScaleY = Math.Clamp(value / 100f, 0.01f, 8f);
+                break;
+            default:
+                layer.SmartRotation = Math.Clamp(value, -180f, 180f);
+                break;
+        }
+
+        layer.RefreshSmart();
+        Document.MarkDirty();
+        Changed();
+    }
+
+    /// <summary>Mirrors the smart object horizontally.</summary>
+    public void ToggleSmartFlipX()
+    {
+        if (SmartTransformLayer is not { } layer)
+        {
+            return;
+        }
+
+        layer.SmartFlipX = !layer.SmartFlipX;
+        layer.RefreshSmart();
+        Document.MarkDirty();
+        Changed();
+    }
+
+    /// <summary>Mirrors the smart object vertically.</summary>
+    public void ToggleSmartFlipY()
+    {
+        if (SmartTransformLayer is not { } layer)
+        {
+            return;
+        }
+
+        layer.SmartFlipY = !layer.SmartFlipY;
+        layer.RefreshSmart();
+        Document.MarkDirty();
+        Changed();
+    }
+
+    /// <summary>Restores the identity smart transform.</summary>
+    public void ResetSmartTransform()
+    {
+        if (SmartTransformLayer is not { } layer)
+        {
+            return;
+        }
+
+        layer.SmartX = 0f;
+        layer.SmartY = 0f;
+        layer.SmartScaleX = 1f;
+        layer.SmartScaleY = 1f;
+        layer.SmartRotation = 0f;
+        layer.SmartFlipX = false;
+        layer.SmartFlipY = false;
+        layer.RefreshSmart();
+        Document.MarkDirty();
+        Changed();
+    }
+
+    /// <summary>Keeps the transform and closes the dialog.</summary>
+    public void CommitSmartTransform()
+    {
+        if (!IsSmartTransformOpen)
+        {
+            return;
+        }
+
+        IsSmartTransformOpen = false;
+        SmartTransformIndex = -1;
+        Status = "Smart object transformed";
+        Changed();
+    }
+
+    /// <summary>Restores the transform captured when the dialog opened.</summary>
+    public void CancelSmartTransform()
+    {
+        if (!IsSmartTransformOpen)
+        {
+            return;
+        }
+
+        if (SmartTransformLayer is { } layer)
+        {
+            layer.SmartX = _smartBackupX;
+            layer.SmartY = _smartBackupY;
+            layer.SmartScaleX = _smartBackupScaleX;
+            layer.SmartScaleY = _smartBackupScaleY;
+            layer.SmartRotation = _smartBackupRotation;
+            layer.SmartFlipX = _smartBackupFlipX;
+            layer.SmartFlipY = _smartBackupFlipY;
+            layer.RefreshSmart();
+            Document.MarkDirty();
+        }
+
+        IsSmartTransformOpen = false;
+        SmartTransformIndex = -1;
+        Status = "Smart transform cancelled";
+        Changed();
     }
 
     // ---- layer styles ------------------------------------------------------
@@ -6125,7 +6397,7 @@ public sealed class PaintSession
             width,
             height,
             source.IsBackground,
-            source.Kind,
+            source.IsSmartObject ? LayerKind.Raster : source.Kind,
             source.Adjustment)
         {
             Visible = source.Visible,
@@ -7652,7 +7924,18 @@ public sealed class PaintSession
                     layer.AdjustmentWhite,
                     layer.AdjustmentGamma,
                     layer.IsAdjustment ? [.. layer.AdjustmentCurve] : null,
-                    layer.Style.Clone());
+                    layer.Style.Clone(),
+                    layer.Kind,
+                    layer.SmartSource is { } smart ? (uint[])smart.Clone() : null,
+                    layer.SmartSourceWidth,
+                    layer.SmartSourceHeight,
+                    layer.SmartX,
+                    layer.SmartY,
+                    layer.SmartScaleX,
+                    layer.SmartScaleY,
+                    layer.SmartRotation,
+                    layer.SmartFlipX,
+                    layer.SmartFlipY);
             }
 
             GroupState[] groups = new GroupState[document.Groups.Count];
@@ -7703,6 +7986,18 @@ public sealed class PaintSession
                 frame.Layer.Locked = frame.Locked;
                 frame.Layer.ClipToBelow = frame.ClipToBelow;
                 frame.Layer.Style.CopyFrom(frame.Style);
+                frame.Layer.RestoreSmart(
+                    frame.SmartSource,
+                    frame.SmartSourceWidth,
+                    frame.SmartSourceHeight,
+                    frame.SmartX,
+                    frame.SmartY,
+                    frame.SmartScaleX,
+                    frame.SmartScaleY,
+                    frame.SmartRotation,
+                    frame.SmartFlipX,
+                    frame.SmartFlipY,
+                    frame.Kind);
                 frame.Layer.Adjustment = frame.Adjustment;
                 frame.Layer.AdjustmentBlack = frame.AdjustmentBlack;
                 frame.Layer.AdjustmentWhite = frame.AdjustmentWhite;
@@ -7743,6 +8038,17 @@ public sealed class PaintSession
             float AdjustmentWhite,
             float AdjustmentGamma,
             List<(float X, float Y)>? Curve,
-            LayerStyle Style);
+            LayerStyle Style,
+            LayerKind Kind,
+            uint[]? SmartSource,
+            int SmartSourceWidth,
+            int SmartSourceHeight,
+            float SmartX,
+            float SmartY,
+            float SmartScaleX,
+            float SmartScaleY,
+            float SmartRotation,
+            bool SmartFlipX,
+            bool SmartFlipY);
     }
 }

@@ -156,7 +156,17 @@ public sealed class App : Component
                 },
             })),
             Show(editor.IsPerspectiveOpen, C<PerspectiveDialog>()),
-            Show(editor.IsMeshWarpOpen, C<MeshWarpBar>()));
+            Show(editor.IsMeshWarpOpen, C<MeshWarpBar>()),
+            Show(editor.IsSmartTransformOpen, Div(new()
+            {
+                ClassName = "resize-backdrop",
+                OnClick = () =>
+                {
+                    editor.CancelSmartTransform();
+                    editor.Refresh?.Invoke();
+                },
+            })),
+            Show(editor.IsSmartTransformOpen, C<SmartObjectDialog>()));
 
         root.BindRef(rootRef);
         if (rootRef.Value is { Width: > 0, Height: > 0 } bounds)

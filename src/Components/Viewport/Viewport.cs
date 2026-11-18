@@ -97,6 +97,16 @@ public sealed class Viewport : Component
             return;
         }
 
+        if (editor.IsSmartTransformOpen)
+        {
+            if (key == "Escape")
+            {
+                editor.CancelSmartTransform();
+            }
+
+            return;
+        }
+
         if (editor.IsMeshWarpOpen)
         {
             if (key == "Escape")

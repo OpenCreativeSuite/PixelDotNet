@@ -11,6 +11,9 @@ public enum LayerKind
 
     /// <summary>A non-destructive tone adjustment applied to the layers below.</summary>
     Adjustment,
+
+    /// <summary>Pixels retained from a source image and placed with a transform.</summary>
+    SmartObject,
 }
 
 /// <summary>The adjustment used by an adjustment layer.</summary>
@@ -93,13 +96,186 @@ public sealed class PaintLayer
     public LayerStyle Style { get; } = new();
 
     /// <summary>Gets whether this layer contributes pixels or an adjustment.</summary>
-    public LayerKind Kind { get; }
+    public LayerKind Kind { get; set; }
 
     /// <summary>Gets or sets the adjustment kind for an adjustment layer.</summary>
     public AdjustmentKind Adjustment { get; set; }
 
     /// <summary>Gets whether this is an adjustment layer.</summary>
     public bool IsAdjustment => Kind == LayerKind.Adjustment;
+
+    /// <summary>Gets whether this layer keeps an original source image.</summary>
+    public bool IsSmartObject => Kind == LayerKind.SmartObject && SmartSource is not null;
+
+    /// <summary>Gets the retained source pixels of a smart object.</summary>
+    public uint[]? SmartSource { get; private set; }
+
+    /// <summary>Gets the source width in pixels.</summary>
+    public int SmartSourceWidth { get; private set; }
+
+    /// <summary>Gets the source height in pixels.</summary>
+    public int SmartSourceHeight { get; private set; }
+
+    /// <summary>Gets or sets the smart object's X placement in document pixels.</summary>
+    public float SmartX { get; set; }
+
+    /// <summary>Gets or sets the smart object's Y placement in document pixels.</summary>
+    public float SmartY { get; set; }
+
+    /// <summary>Gets or sets the horizontal scale of the smart object.</summary>
+    public float SmartScaleX { get; set; } = 1f;
+
+    /// <summary>Gets or sets the vertical scale of the smart object.</summary>
+    public float SmartScaleY { get; set; } = 1f;
+
+    /// <summary>Gets or sets the rotation of the smart object in degrees.</summary>
+    public float SmartRotation { get; set; }
+
+    /// <summary>Gets or sets whether the smart object is mirrored horizontally.</summary>
+    public bool SmartFlipX { get; set; }
+
+    /// <summary>Gets or sets whether the smart object is mirrored vertically.</summary>
+    public bool SmartFlipY { get; set; }
+
+    /// <summary>Captures the current pixels as a smart-object source.</summary>
+    public void MakeSmart()
+    {
+        if (SmartSource is not null)
+        {
+            return;
+        }
+
+        SmartSource = (uint[])Pixels.Clone();
+        SmartSourceWidth = Width;
+        SmartSourceHeight = Height;
+        SmartX = 0f;
+        SmartY = 0f;
+        SmartScaleX = 1f;
+        SmartScaleY = 1f;
+        SmartRotation = 0f;
+        SmartFlipX = false;
+        SmartFlipY = false;
+        Kind = LayerKind.SmartObject;
+    }
+
+    /// <summary>Installs a smart-object source and transform, then renders the cache.</summary>
+    public void AdoptSmart(
+        uint[] source,
+        int sourceWidth,
+        int sourceHeight,
+        float x,
+        float y,
+        float scaleX,
+        float scaleY,
+        float rotation,
+        bool flipX,
+        bool flipY)
+    {
+        SmartSource = source;
+        SmartSourceWidth = sourceWidth;
+        SmartSourceHeight = sourceHeight;
+        SmartX = x;
+        SmartY = y;
+        SmartScaleX = scaleX <= 0f ? 1f : scaleX;
+        SmartScaleY = scaleY <= 0f ? 1f : scaleY;
+        SmartRotation = rotation;
+        SmartFlipX = flipX;
+        SmartFlipY = flipY;
+        Kind = LayerKind.SmartObject;
+        RefreshSmart();
+    }
+
+    /// <summary>Restores smart-object state from a snapshot without rerendering.</summary>
+    public void RestoreSmart(
+        uint[]? source,
+        int sourceWidth,
+        int sourceHeight,
+        float x,
+        float y,
+        float scaleX,
+        float scaleY,
+        float rotation,
+        bool flipX,
+        bool flipY,
+        LayerKind kind)
+    {
+        SmartSource = source;
+        SmartSourceWidth = sourceWidth;
+        SmartSourceHeight = sourceHeight;
+        SmartX = x;
+        SmartY = y;
+        SmartScaleX = scaleX <= 0f ? 1f : scaleX;
+        SmartScaleY = scaleY <= 0f ? 1f : scaleY;
+        SmartRotation = rotation;
+        SmartFlipX = flipX;
+        SmartFlipY = flipY;
+        Kind = kind;
+    }
+
+    /// <summary>Drops the source and keeps the current rendered pixels.</summary>
+    public void RasterizeSmart()
+    {
+        SmartSource = null;
+        Kind = LayerKind.Raster;
+    }
+
+    /// <summary>Rerenders the layer cache from the smart-object source.</summary>
+    public void RefreshSmart()
+    {
+        if (SmartSource is null
+            || SmartSourceWidth <= 0
+            || SmartSourceHeight <= 0
+            || Pixels.Length != Width * Height)
+        {
+            return;
+        }
+
+        Array.Clear(Pixels);
+        float centerX = SmartX + (SmartSourceWidth * SmartScaleX * 0.5f);
+        float centerY = SmartY + (SmartSourceHeight * SmartScaleY * 0.5f);
+        float radians = SmartRotation * MathF.PI / 180f;
+        float cos = MathF.Cos(radians);
+        float sin = MathF.Sin(radians);
+
+        for (int y = 0; y < Height; y++)
+        {
+            int row = y * Width;
+            float dy = y - centerY;
+            for (int x = 0; x < Width; x++)
+            {
+                float dx = x - centerX;
+                float u = (dx * cos) + (dy * sin);
+                float v = (-dx * sin) + (dy * cos);
+                float sourceX = (u / SmartScaleX) + (SmartSourceWidth * 0.5f);
+                float sourceY = (v / SmartScaleY) + (SmartSourceHeight * 0.5f);
+
+                if (SmartFlipX)
+                {
+                    sourceX = SmartSourceWidth - 1 - sourceX;
+                }
+
+                if (SmartFlipY)
+                {
+                    sourceY = SmartSourceHeight - 1 - sourceY;
+                }
+
+                if (sourceX < -0.5f
+                    || sourceY < -0.5f
+                    || sourceX > SmartSourceWidth - 0.5f
+                    || sourceY > SmartSourceHeight - 0.5f)
+                {
+                    continue;
+                }
+
+                Pixels[row + x] = PerspectiveOps.Sample(
+                    SmartSource,
+                    SmartSourceWidth,
+                    SmartSourceHeight,
+                    sourceX,
+                    sourceY);
+            }
+        }
+    }
 
     /// <summary>Gets or sets the levels black point for an adjustment layer.</summary>
     public float AdjustmentBlack { get; set; }

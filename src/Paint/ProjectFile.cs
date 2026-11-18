@@ -20,7 +20,7 @@ public static class ProjectFile
     public const string Extension = ".pxd";
 
     private const string Signature = "PXDP";
-    private const int Version = 2;
+    private const int Version = 3;
 
     /// <summary>Gets whether a file name has the project extension.</summary>
     public static bool IsProject(string path) =>
@@ -103,6 +103,25 @@ public static class ProjectFile
             writer.Write(style.OuterGlowColor);
             writer.Write(style.OuterGlowOpacity);
             writer.Write(style.OuterGlowSize);
+
+            writer.Write(layer.IsSmartObject);
+            if (layer.IsSmartObject && layer.SmartSource is { } smart)
+            {
+                writer.Write(layer.SmartSourceWidth);
+                writer.Write(layer.SmartSourceHeight);
+                writer.Write(layer.SmartX);
+                writer.Write(layer.SmartY);
+                writer.Write(layer.SmartScaleX);
+                writer.Write(layer.SmartScaleY);
+                writer.Write(layer.SmartRotation);
+                writer.Write(layer.SmartFlipX);
+                writer.Write(layer.SmartFlipY);
+
+                byte[] smartBytes = new byte[smart.Length * sizeof(uint)];
+                Buffer.BlockCopy(smart, 0, smartBytes, 0, smartBytes.Length);
+                writer.Write(smartBytes.Length);
+                writer.Write(smartBytes);
+            }
 
             byte[] pixels = new byte[layer.Pixels.Length * sizeof(uint)];
             Buffer.BlockCopy(layer.Pixels, 0, pixels, 0, pixels.Length);
@@ -248,6 +267,42 @@ public static class ProjectFile
                 style.OuterGlowColor = reader.ReadUInt32();
                 style.OuterGlowOpacity = reader.ReadSingle();
                 style.OuterGlowSize = reader.ReadSingle();
+            }
+
+            if (version >= 3 && reader.ReadBoolean())
+            {
+                int smartWidth = reader.ReadInt32();
+                int smartHeight = reader.ReadInt32();
+                float smartX = reader.ReadSingle();
+                float smartY = reader.ReadSingle();
+                float smartScaleX = reader.ReadSingle();
+                float smartScaleY = reader.ReadSingle();
+                float smartRotation = reader.ReadSingle();
+                bool smartFlipX = reader.ReadBoolean();
+                bool smartFlipY = reader.ReadBoolean();
+                int smartBytes = reader.ReadInt32();
+
+                if (smartWidth < 1
+                    || smartHeight < 1
+                    || smartBytes != smartWidth * smartHeight * sizeof(uint))
+                {
+                    throw new InvalidDataException("A smart object has an invalid source size.");
+                }
+
+                byte[] smartData = reader.ReadBytes(smartBytes);
+                uint[] smartPixels = new uint[smartWidth * smartHeight];
+                Buffer.BlockCopy(smartData, 0, smartPixels, 0, smartBytes);
+                layer.AdoptSmart(
+                    smartPixels,
+                    smartWidth,
+                    smartHeight,
+                    smartX,
+                    smartY,
+                    smartScaleX,
+                    smartScaleY,
+                    smartRotation,
+                    smartFlipX,
+                    smartFlipY);
             }
 
             int pixelBytes = reader.ReadInt32();

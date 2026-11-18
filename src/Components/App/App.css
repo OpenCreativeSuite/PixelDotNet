@@ -1342,3 +1342,9 @@ canvas {
     padding: 0 9px;
     font-size: 10.5px;
 }
+
+.style-options {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
