@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Donkeh.Windowing;
 using PixelDotNet.Help;
 
 namespace PixelDotNet.Paint;
@@ -143,6 +144,11 @@ public sealed class PaintSession
     private bool _stroking;
     private bool _previewing;
     private bool _lassoing;
+    private bool _quickSelecting;
+    private bool _quickSubtractGesture;
+    private byte[]? _quickMask;
+    private int _quickLastX = int.MinValue / 2;
+    private int _quickLastY = int.MinValue / 2;
     private readonly List<(float X, float Y)> _lassoPoints = [];
     private bool _moving;
     private bool _movingSelection;
@@ -252,6 +258,12 @@ public sealed class PaintSession
 
     /// <summary>Gets or sets the magic wand's colour tolerance.</summary>
     public int MagicTolerance { get; set; } = 32;
+
+    /// <summary>Gets or sets the colour tolerance of the quick selection brush.</summary>
+    public int QuickTolerance { get; set; } = 32;
+
+    /// <summary>Gets or sets whether quick selection subtracts instead of adds.</summary>
+    public bool QuickSubtract { get; set; }
 
     /// <summary>Gets or sets whether the magic wand only selects the connected region.</summary>
     public bool MagicContiguous { get; set; } = true;
@@ -471,6 +483,7 @@ public sealed class PaintSession
         PaintTool.EllipseSelect => "Elliptical Select",
         PaintTool.Lasso => "Lasso Select",
         PaintTool.MagicWand => "Magic Wand",
+        PaintTool.QuickSelect => "Quick Selection",
         PaintTool.Brush => "Brush",
         PaintTool.Eraser => "Eraser",
         PaintTool.CloneStamp => "Clone Stamp",
@@ -494,6 +507,7 @@ public sealed class PaintSession
         PaintTool.EllipseSelect => "Q",
         PaintTool.Lasso => "F",
         PaintTool.MagicWand => "W",
+        PaintTool.QuickSelect => "A",
         PaintTool.Brush => "B",
         PaintTool.Eraser => "E",
         PaintTool.CloneStamp => "C",
@@ -519,6 +533,8 @@ public sealed class PaintSession
 
         CommitPreviews();
         Tool = tool;
+        _quickSelecting = false;
+        _quickMask = null;
         IsFontMenuOpen = false;
         IsFontSearchFocused = false;
         IsTextFxOpen = false;
@@ -1005,6 +1021,12 @@ public sealed class PaintSession
             return;
         }
 
+        if (Tool == PaintTool.QuickSelect)
+        {
+            BeginQuickSelection(CursorX, CursorY);
+            return;
+        }
+
         if (Document.Active.Locked)
         {
             Status = "Layer is locked";
@@ -1067,6 +1089,16 @@ public sealed class PaintSession
         (float documentX, float documentY) = ToDocument(localX, localY);
         CursorX = (int)MathF.Floor(documentX);
         CursorY = (int)MathF.Floor(documentY);
+
+        if (Tool == PaintTool.QuickSelect)
+        {
+            if (_quickSelecting)
+            {
+                QuickSelectAt(CursorX, CursorY);
+            }
+
+            return;
+        }
 
         if (_stroking && Tool is PaintTool.CloneStamp or PaintTool.HealingBrush && HasCloneSource)
         {
@@ -1154,6 +1186,21 @@ public sealed class PaintSession
         (float documentX, float documentY) = ToDocument(localX, localY);
         CursorX = (int)MathF.Floor(documentX);
         CursorY = (int)MathF.Floor(documentY);
+
+        if (Tool == PaintTool.QuickSelect)
+        {
+            if (_quickSelecting)
+            {
+                _quickSelecting = false;
+                _quickMask = null;
+                Status = Selection is null
+                    ? "Nothing selected"
+                    : $"Selection {Selection.Width} x {Selection.Height}";
+                Changed();
+            }
+
+            return;
+        }
 
         if (Tool == PaintTool.Text)
         {
@@ -1636,6 +1683,172 @@ public sealed class PaintSession
         Status = Selection is null
             ? "Nothing selected"
             : $"Selection {Selection.Width} x {Selection.Height}";
+        Changed();
+    }
+
+    /// <summary>Starts a brush-driven quick selection stroke.</summary>
+    private void BeginQuickSelection(int x, int y)
+    {
+        int width = Document.Width;
+        int height = Document.Height;
+        if (x < 0 || y < 0 || x >= width || y >= height)
+        {
+            return;
+        }
+
+        CommitPreviews();
+        PushUndo("Quick Selection");
+        _quickSelecting = true;
+        _quickSubtractGesture = QuickSubtract || InputState.Alt;
+        _quickMask = new byte[width * height];
+
+        if (Selection is { } selection)
+        {
+            int left = Math.Max(0, selection.X);
+            int top = Math.Max(0, selection.Y);
+            int right = Math.Min(width, selection.Right);
+            int bottom = Math.Min(height, selection.Bottom);
+
+            for (int sy = top; sy < bottom; sy++)
+            {
+                for (int sx = left; sx < right; sx++)
+                {
+                    if (selection.Contains(sx, sy))
+                    {
+                        _quickMask[(sy * width) + sx] = 255;
+                    }
+                }
+            }
+        }
+
+        _quickLastX = int.MinValue / 2;
+        _quickLastY = int.MinValue / 2;
+        QuickSelectAt(x, y);
+    }
+
+    /// <summary>Adds or removes one quick-selection seed region.</summary>
+    private void QuickSelectAt(int x, int y)
+    {
+        if (_quickMask is null)
+        {
+            return;
+        }
+
+        int spacing = Math.Max(3, (int)(BrushSize * 0.5f));
+        int dx = x - _quickLastX;
+        int dy = y - _quickLastY;
+        if ((dx * dx) + (dy * dy) < spacing * spacing)
+        {
+            return;
+        }
+
+        _quickLastX = x;
+        _quickLastY = y;
+
+        int width = Document.Width;
+        int height = Document.Height;
+        Selection? region = SelectionOps.FromPixels(
+            Document.Composite,
+            width,
+            height,
+            x,
+            y,
+            QuickTolerance,
+            contiguous: true);
+
+        if (region?.Mask is not { } regionMask)
+        {
+            return;
+        }
+
+        byte value = _quickSubtractGesture ? (byte)0 : (byte)255;
+        int left = Math.Max(0, region.X);
+        int top = Math.Max(0, region.Y);
+        int right = Math.Min(width, region.Right);
+        int bottom = Math.Min(height, region.Bottom);
+
+        for (int row = top; row < bottom; row++)
+        {
+            int sourceRow = (row - region.Y) * region.Width;
+            int targetRow = row * width;
+            for (int column = left; column < right; column++)
+            {
+                if (regionMask[sourceRow + (column - region.X)] != 0)
+                {
+                    _quickMask[targetRow + column] = value;
+                }
+            }
+        }
+
+        RebuildQuickSelection();
+        Status = Selection is null
+            ? "Nothing selected"
+            : $"Selection {Selection.Width} x {Selection.Height}";
+        Changed();
+    }
+
+    /// <summary>Publishes the accumulated quick mask as a trimmed selection.</summary>
+    private void RebuildQuickSelection()
+    {
+        if (_quickMask is null)
+        {
+            return;
+        }
+
+        int width = Document.Width;
+        int height = Document.Height;
+        int left = width;
+        int top = height;
+        int right = -1;
+        int bottom = -1;
+
+        for (int y = 0; y < height; y++)
+        {
+            int row = y * width;
+            for (int x = 0; x < width; x++)
+            {
+                if (_quickMask[row + x] == 0)
+                {
+                    continue;
+                }
+
+                left = Math.Min(left, x);
+                top = Math.Min(top, y);
+                right = Math.Max(right, x);
+                bottom = Math.Max(bottom, y);
+            }
+        }
+
+        if (right < left || bottom < top)
+        {
+            Selection = null;
+            return;
+        }
+
+        int trimmedWidth = right - left + 1;
+        int trimmedHeight = bottom - top + 1;
+        byte[] trimmed = new byte[trimmedWidth * trimmedHeight];
+
+        for (int row = 0; row < trimmedHeight; row++)
+        {
+            Array.Copy(
+                _quickMask,
+                ((top + row) * width) + left,
+                trimmed,
+                row * trimmedWidth,
+                trimmedWidth);
+        }
+
+        Selection = Selection.FromMask(left, top, trimmedWidth, trimmedHeight, trimmed);
+    }
+
+    /// <summary>Switches quick selection between adding and subtracting.</summary>
+    public void ToggleQuickSubtract()
+    {
+        QuickSubtract = !QuickSubtract;
+        Status = QuickSubtract
+            ? "Quick Selection: subtract"
+            : "Quick Selection: add";
         Changed();
     }
 
@@ -6019,6 +6232,8 @@ public sealed class PaintSession
     {
         _stroking = false;
         _previewing = false;
+        _quickSelecting = false;
+        _quickMask = null;
         _moving = false;
         _movingSelection = false;
         _resizingSelection = false;

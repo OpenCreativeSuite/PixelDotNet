@@ -15,16 +15,38 @@ public static class SelectionOps
         int seedX,
         int seedY,
         int tolerance,
+        bool contiguous) =>
+        FromPixels(
+            document.Active.Pixels,
+            document.Width,
+            document.Height,
+            seedX,
+            seedY,
+            tolerance,
+            contiguous);
+
+    /// <summary>Selects a colour region directly from a pixel buffer.</summary>
+    /// <param name="source">Pixels to sample, row major.</param>
+    /// <param name="width">Buffer width.</param>
+    /// <param name="height">Buffer height.</param>
+    /// <param name="seedX">Seed X.</param>
+    /// <param name="seedY">Seed Y.</param>
+    /// <param name="tolerance">Per-channel tolerance.</param>
+    /// <param name="contiguous">Whether only the connected region is selected.</param>
+    public static Selection? FromPixels(
+        uint[] source,
+        int width,
+        int height,
+        int seedX,
+        int seedY,
+        int tolerance,
         bool contiguous)
     {
-        int width = document.Width;
-        int height = document.Height;
         if (seedX < 0 || seedY < 0 || seedX >= width || seedY >= height)
         {
             return null;
         }
 
-        uint[] source = document.Active.Pixels;
         int seed = (seedY * width) + seedX;
         uint target = source[seed];
         int targetR = Rgba.R(target);

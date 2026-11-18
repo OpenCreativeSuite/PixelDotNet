@@ -152,6 +152,9 @@ public static class Icons
     /// <summary>Magic wand colour selection.</summary>
     public const string MagicWand = "fa-wand-magic";
 
+    /// <summary>Brush-driven quick selection.</summary>
+    public const string QuickSelect = "fa-wand-magic-sparkles";
+
     /// <summary>Align text left.</summary>
     public const string AlignLeft = "fa-align-left";
 
@@ -187,6 +190,7 @@ public static class Icons
         PaintTool.EllipseSelect => EllipseSelect,
         PaintTool.Lasso => Lasso,
         PaintTool.MagicWand => MagicWand,
+        PaintTool.QuickSelect => QuickSelect,
         PaintTool.Brush => Brush,
         PaintTool.Eraser => Eraser,
         PaintTool.CloneStamp => CloneStamp,

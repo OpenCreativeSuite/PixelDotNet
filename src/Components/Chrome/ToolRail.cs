@@ -13,7 +13,7 @@ public sealed class ToolRail : Component
     private static readonly PaintTool[][] Groups =
     [
         [PaintTool.Move],
-        [PaintTool.Marquee, PaintTool.EllipseSelect, PaintTool.Lasso, PaintTool.MagicWand],
+        [PaintTool.Marquee, PaintTool.EllipseSelect, PaintTool.Lasso, PaintTool.MagicWand, PaintTool.QuickSelect],
         [PaintTool.Brush, PaintTool.Eraser],
         [PaintTool.CloneStamp, PaintTool.HealingBrush, PaintTool.DodgeBurn],
         [PaintTool.Line, PaintTool.Rectangle, PaintTool.Ellipse],

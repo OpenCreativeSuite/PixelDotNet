@@ -364,6 +364,26 @@ public sealed class OptionsBar : Component
             Ui.Tip(editor, Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null),
                 Icons.Close, "Deselect", "options.deselect", "Esc")),
 
+        PaintTool.QuickSelect => F(
+            Ui.Field("Size", editor.BrushSize, 1f, 120f, 1f, " px", value =>
+            {
+                editor.BrushSize = Ui.Parse(value, 1f, 120f);
+                editor.Refresh?.Invoke();
+            }),
+            Ui.Field("Tolerance", editor.QuickTolerance, 0f, 128f, 1f, string.Empty, value =>
+            {
+                editor.QuickTolerance = (int)Ui.Parse(value, 0f, 128f);
+                editor.Refresh?.Invoke();
+            }),
+            Ui.Toggle("Subtract", "Remove the sampled region from the selection", editor.QuickSubtract, () =>
+            {
+                editor.ToggleQuickSubtract();
+                editor.Refresh?.Invoke();
+            }),
+            Span(new() { ClassName = "options-note" }, Text("Drag over an object; hold Alt to subtract")),
+            Ui.Tip(editor, Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null),
+                Icons.Close, "Deselect", "options.deselect", "Esc")),
+
         PaintTool.Move => F(
             Span(new() { ClassName = "options-note" }, Text("Drag to move the selection, or a handle to resize it. With no selection, drag moves the layer.")),
             Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null)),

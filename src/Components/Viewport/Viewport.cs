@@ -204,6 +204,9 @@ public sealed class Viewport : Component
             case "W":
                 editor.SelectTool(PaintTool.MagicWand);
                 break;
+            case "A":
+                editor.SelectTool(PaintTool.QuickSelect);
+                break;
             case "B":
                 editor.SelectTool(PaintTool.Brush);
                 break;

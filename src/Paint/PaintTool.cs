@@ -18,6 +18,9 @@ public enum PaintTool
     /// <summary>Selects a connected colour region under the pointer.</summary>
     MagicWand,
 
+    /// <summary>Grows a selection over similar pixels as the brush is dragged.</summary>
+    QuickSelect,
+
     /// <summary>Paints with the current colour.</summary>
     Brush,
 

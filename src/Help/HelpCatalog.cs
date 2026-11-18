@@ -107,6 +107,19 @@ public static class HelpCatalog
                 "Press Esc to cancel.",
             ]);
 
+        Add("tool.QuickSelect", Icons.QuickSelect, "Quick Selection", "A",
+            "Brush over an object to grow a selection through similar, connected pixels.",
+            [
+                "Each dab samples the composited colour and adds its connected region to the selection.",
+                "Size controls the sampling brush; Tolerance controls how different a pixel may be and still join the region.",
+                "Turn on Subtract, or hold Alt, to remove regions from the selection.",
+            ],
+            [
+                "Start with a small brush on a clean edge; the region usually grows far beyond the dab.",
+                "Lower the tolerance when a selection leaks into the background.",
+                "Deselect first to start a fresh selection.",
+            ]);
+
         Add("tool.magicWand", Icons.MagicWand, "Magic Wand", "W",
             "Selects similar colours on the active layer with one click.",
             [

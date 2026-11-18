@@ -737,7 +737,8 @@ public sealed class CanvasSurface : Component
             or PaintTool.Line
             or PaintTool.CloneStamp
             or PaintTool.HealingBrush
-            or PaintTool.DodgeBurn))
+            or PaintTool.DodgeBurn
+            or PaintTool.QuickSelect))
         {
             return;
         }
