@@ -135,7 +135,17 @@ public sealed class App : Component
                     editor.Refresh?.Invoke();
                 },
             })),
-            Show(editor.IsLayerStyleOpen, C<LayerStyleDialog>()));
+            Show(editor.IsLayerStyleOpen, C<LayerStyleDialog>()),
+            Show(editor.IsColourToolsOpen, Div(new()
+            {
+                ClassName = "resize-backdrop",
+                OnClick = () =>
+                {
+                    editor.CloseColourToolsDialog();
+                    editor.Refresh?.Invoke();
+                },
+            })),
+            Show(editor.IsColourToolsOpen, C<ColourToolsDialog>()));
 
         root.BindRef(rootRef);
         if (rootRef.Value is { Width: > 0, Height: > 0 } bounds)

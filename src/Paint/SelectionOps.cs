@@ -119,6 +119,62 @@ public static class SelectionOps
         return Trim(mask, 0, 0, width, height);
     }
 
+    /// <summary>Combines two selections by union or subtraction.</summary>
+    /// <param name="existing">The selection already on the document, or null.</param>
+    /// <param name="incoming">The new selection shape, or null.</param>
+    /// <param name="subtract">True to remove the incoming shape instead of adding it.</param>
+    /// <param name="width">Document width.</param>
+    /// <param name="height">Document height.</param>
+    /// <returns>The combined selection, or null when nothing remains.</returns>
+    public static Selection? Combine(
+        Selection? existing,
+        Selection? incoming,
+        bool subtract,
+        int width,
+        int height)
+    {
+        if (incoming is null)
+        {
+            return existing;
+        }
+
+        if (existing is null)
+        {
+            return subtract ? null : incoming;
+        }
+
+        byte[] mask = new byte[width * height];
+        PaintSelection(existing, mask, width, height, value: 255);
+        PaintSelection(incoming, mask, width, height, subtract ? (byte)0 : (byte)255);
+        return Trim(mask, 0, 0, width, height);
+    }
+
+    /// <summary>Rasterises a selection into a full document mask.</summary>
+    private static void PaintSelection(
+        Selection selection,
+        byte[] mask,
+        int width,
+        int height,
+        byte value)
+    {
+        int left = Math.Max(0, selection.X);
+        int top = Math.Max(0, selection.Y);
+        int right = Math.Min(width, selection.Right);
+        int bottom = Math.Min(height, selection.Bottom);
+
+        for (int y = top; y < bottom; y++)
+        {
+            int row = y * width;
+            for (int x = left; x < right; x++)
+            {
+                if (selection.Contains(x, y))
+                {
+                    mask[row + x] = value;
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Fills a freehand polygon into a selection. Rows are filled from their edge
     /// crossings, so the cost follows the outline rather than the covered area.

@@ -147,6 +147,8 @@ public sealed class PaintSession
     private bool _quickSelecting;
     private bool _quickSubtractGesture;
     private byte[]? _quickMask;
+    private Selection? _selectionBase;
+    private int _selectionCombine;
     private int _quickLastX = int.MinValue / 2;
     private int _quickLastY = int.MinValue / 2;
     private readonly List<(float X, float Y)> _lassoPoints = [];
@@ -996,7 +998,16 @@ public sealed class PaintSession
         if (Tool == PaintTool.Marquee)
         {
             _previewing = true;
-            Selection = Selection.FromPoints(documentX, documentY, documentX, documentY, Document.Width, Document.Height);
+            _selectionCombine = SelectionCombineMode();
+            _selectionBase = _selectionCombine == 0 ? null : Selection;
+            Selection? incoming = Selection.FromPoints(
+                documentX,
+                documentY,
+                documentX,
+                documentY,
+                Document.Width,
+                Document.Height);
+            Selection = CombineSelection(incoming, _selectionCombine);
             Changed();
             return;
         }
@@ -1004,7 +1015,16 @@ public sealed class PaintSession
         if (Tool == PaintTool.EllipseSelect)
         {
             _previewing = true;
-            Selection = Selection.EllipseFromPoints(documentX, documentY, documentX, documentY, Document.Width, Document.Height);
+            _selectionCombine = SelectionCombineMode();
+            _selectionBase = _selectionCombine == 0 ? null : Selection;
+            Selection? incoming = Selection.EllipseFromPoints(
+                documentX,
+                documentY,
+                documentX,
+                documentY,
+                Document.Width,
+                Document.Height);
+            Selection = CombineSelection(incoming, _selectionCombine);
             Changed();
             return;
         }
@@ -1122,11 +1142,15 @@ public sealed class PaintSession
         {
             if (Tool == PaintTool.Marquee)
             {
-                Selection = Selection.FromPoints(_startX, _startY, documentX, documentY, Document.Width, Document.Height);
+                Selection = CombineSelection(
+                    Selection.FromPoints(_startX, _startY, documentX, documentY, Document.Width, Document.Height),
+                    _selectionCombine);
             }
             else if (Tool == PaintTool.EllipseSelect)
             {
-                Selection = Selection.EllipseFromPoints(_startX, _startY, documentX, documentY, Document.Width, Document.Height);
+                Selection = CombineSelection(
+                    Selection.EllipseFromPoints(_startX, _startY, documentX, documentY, Document.Width, Document.Height),
+                    _selectionCombine);
             }
             else
             {
@@ -1638,6 +1662,8 @@ public sealed class PaintSession
     private void BeginLasso(float x, float y)
     {
         _lassoing = true;
+        _selectionCombine = SelectionCombineMode();
+        _selectionBase = _selectionCombine == 0 ? null : Selection;
         _lassoPoints.Clear();
         _lassoPoints.Add((x, y));
         Status = "Draw a selection";
@@ -1662,7 +1688,11 @@ public sealed class PaintSession
     private void FinishLasso()
     {
         _lassoing = false;
-        Selection = SelectionOps.FromPolygon(_lassoPoints, Document.Width, Document.Height);
+        Selection? polygon = SelectionOps.FromPolygon(
+            _lassoPoints,
+            Document.Width,
+            Document.Height);
+        Selection = CombineSelection(polygon, _selectionCombine);
         _lassoPoints.Clear();
         Status = Selection is null
             ? "Deselected"
@@ -1673,17 +1703,59 @@ public sealed class PaintSession
     /// <summary>Selects the colour region under a pointer position with the wand.</summary>
     private void SelectMagicRegion(int x, int y)
     {
-        Selection = SelectionOps.MagicWand(
+        PushUndo("Magic Wand");
+        Selection? existing = Selection;
+        Selection? region = SelectionOps.MagicWand(
             Document,
             x,
             y,
             MagicTolerance,
             MagicContiguous);
 
+        int mode = SelectionCombineMode();
+        Selection = mode switch
+        {
+            1 => SelectionOps.Combine(existing, region, false, Document.Width, Document.Height),
+            2 => SelectionOps.Combine(existing, region, true, Document.Width, Document.Height),
+            _ => region,
+        };
+
         Status = Selection is null
             ? "Nothing selected"
             : $"Selection {Selection.Width} x {Selection.Height}";
         Changed();
+    }
+
+    /// <summary>Reads the selection combine mode from the live modifiers.</summary>
+    private static int SelectionCombineMode()
+    {
+        if (InputState.Alt)
+        {
+            return 2;
+        }
+
+        return InputState.Shift || InputState.Control ? 1 : 0;
+    }
+
+    /// <summary>Combines a new shape with the selection captured when a drag began.</summary>
+    private Selection? CombineSelection(Selection? incoming, int mode)
+    {
+        return mode switch
+        {
+            1 => SelectionOps.Combine(
+                _selectionBase,
+                incoming,
+                false,
+                Document.Width,
+                Document.Height),
+            2 => SelectionOps.Combine(
+                _selectionBase,
+                incoming,
+                true,
+                Document.Width,
+                Document.Height),
+            _ => incoming,
+        };
     }
 
     /// <summary>Starts a brush-driven quick selection stroke.</summary>
@@ -4759,6 +4831,222 @@ public sealed class PaintSession
         return name + " " + suffix;
     }
 
+    // ---- colour tools ------------------------------------------------------
+
+    private readonly float[] _colourBalance = new float[9];
+
+    /// <summary>Gets whether the colour tools dialog is open.</summary>
+    public bool IsColourToolsOpen { get; private set; }
+
+    /// <summary>Gets the threshold level, 0-255.</summary>
+    public int ThresholdLevel { get; private set; } = 128;
+
+    /// <summary>Gets the dark end of the gradient map.</summary>
+    public uint GradientLow { get; private set; } = 0xFF000000;
+
+    /// <summary>Gets the light end of the gradient map.</summary>
+    public uint GradientHigh { get; private set; } = 0xFFFFFFFF;
+
+    /// <summary>Gets the colour replaced by the replace tool.</summary>
+    public uint ReplaceFrom { get; private set; } = 0xFF000000;
+
+    /// <summary>Gets the replacement colour.</summary>
+    public uint ReplaceTo { get; private set; } = 0xFFFFFFFF;
+
+    /// <summary>Gets the replace-colour tolerance.</summary>
+    public int ReplaceTolerance { get; private set; } = 32;
+
+    /// <summary>Gets one colour-balance slider value.</summary>
+    public float BalanceValue(int index) =>
+        index >= 0 && index < _colourBalance.Length ? _colourBalance[index] : 0f;
+
+    /// <summary>Opens the colour tools dialog.</summary>
+    public void ShowColourToolsDialog()
+    {
+        Tip = null;
+        OpenMenu = null;
+        FinishInteraction();
+        IsColourToolsOpen = true;
+        ThresholdLevel = 128;
+        GradientLow = 0xFF000000;
+        GradientHigh = 0xFFFFFFFF;
+        ReplaceFrom = Foreground;
+        ReplaceTo = Background;
+        ReplaceTolerance = 32;
+        Array.Clear(_colourBalance);
+        Status = "Colour tools";
+        Changed();
+    }
+
+    /// <summary>Closes the colour tools dialog.</summary>
+    public void CloseColourToolsDialog()
+    {
+        if (!IsColourToolsOpen)
+        {
+            return;
+        }
+
+        IsColourToolsOpen = false;
+        Status = "Ready";
+        Changed();
+    }
+
+    /// <summary>Updates the threshold level.</summary>
+    public void SetThresholdLevel(string text)
+    {
+        if (int.TryParse(text, out int value))
+        {
+            ThresholdLevel = Math.Clamp(value, 0, 255);
+            Changed();
+        }
+    }
+
+    /// <summary>Updates one colour-balance slider.</summary>
+    public void SetBalanceValue(int index, float value)
+    {
+        if (index < 0 || index >= _colourBalance.Length)
+        {
+            return;
+        }
+
+        _colourBalance[index] = Math.Clamp(value, -100f, 100f);
+        Changed();
+    }
+
+    /// <summary>Sets the dark gradient-map colour.</summary>
+    public void SetGradientLow(uint color)
+    {
+        GradientLow = color;
+        Changed();
+    }
+
+    /// <summary>Sets the light gradient-map colour.</summary>
+    public void SetGradientHigh(uint color)
+    {
+        GradientHigh = color;
+        Changed();
+    }
+
+    /// <summary>Sets the colour being replaced.</summary>
+    public void SetReplaceFrom(uint color)
+    {
+        ReplaceFrom = color;
+        Changed();
+    }
+
+    /// <summary>Sets the replacement colour.</summary>
+    public void SetReplaceTo(uint color)
+    {
+        ReplaceTo = color;
+        Changed();
+    }
+
+    /// <summary>Sets the replace-colour tolerance.</summary>
+    public void SetReplaceTolerance(string text)
+    {
+        if (int.TryParse(text, out int value))
+        {
+            ReplaceTolerance = Math.Clamp(value, 0, 255);
+            Changed();
+        }
+    }
+
+    /// <summary>Applies a threshold to the active layer.</summary>
+    public void ApplyThreshold()
+    {
+        if (!CanEditActiveLayer(out PaintLayer layer))
+        {
+            return;
+        }
+
+        PushUndo("Threshold");
+        ColourTools.Threshold(layer, Selection, ThresholdLevel);
+        Status = "Threshold " + ThresholdLevel;
+        Changed();
+    }
+
+    /// <summary>Applies a two-colour gradient map to the active layer.</summary>
+    public void ApplyGradientMap()
+    {
+        if (!CanEditActiveLayer(out PaintLayer layer))
+        {
+            return;
+        }
+
+        PushUndo("Gradient Map");
+        ColourTools.GradientMap(layer, Selection, GradientLow, GradientHigh);
+        Status = "Gradient map";
+        Changed();
+    }
+
+    /// <summary>Replaces the selected colour across the active layer.</summary>
+    public void ApplyColourReplace()
+    {
+        if (!CanEditActiveLayer(out PaintLayer layer))
+        {
+            return;
+        }
+
+        PushUndo("Replace Colour");
+        ColourTools.ReplaceColour(
+            layer,
+            Selection,
+            ReplaceFrom,
+            ReplaceTo,
+            ReplaceTolerance);
+        Status = "Replaced colour";
+        Changed();
+    }
+
+    /// <summary>Applies the colour-balance offsets to the active layer.</summary>
+    public void ApplyColourBalance()
+    {
+        if (!CanEditActiveLayer(out PaintLayer layer))
+        {
+            return;
+        }
+
+        PushUndo("Colour Balance");
+        ColourTools.ColourBalance(layer, Selection, _colourBalance);
+        Status = "Colour balance";
+        Changed();
+    }
+
+    /// <summary>Splits the active layer into red, green and blue layers.</summary>
+    public void ApplySplitChannels()
+    {
+        if (!CanEditActiveLayer(out PaintLayer layer))
+        {
+            return;
+        }
+
+        PushUndo("Split Channels");
+        ColourTools.SplitChannels(Document, layer, Selection);
+        Status = "Split channels";
+        Changed();
+    }
+
+    /// <summary>Returns the active layer when it accepts destructive edits.</summary>
+    private bool CanEditActiveLayer(out PaintLayer layer)
+    {
+        layer = Document.Active;
+        if (layer.IsAdjustment)
+        {
+            Status = "Adjustment layers cannot be edited this way";
+            Changed();
+            return false;
+        }
+
+        if (layer.Locked)
+        {
+            Status = "Layer is locked";
+            Changed();
+            return false;
+        }
+
+        return true;
+    }
+
     // ---- layer styles ------------------------------------------------------
 
     /// <summary>Gets whether the layer style dialog is open.</summary>
@@ -6295,6 +6583,8 @@ public sealed class PaintSession
         _previewing = false;
         _quickSelecting = false;
         _quickMask = null;
+        _selectionBase = null;
+        _selectionCombine = 0;
         _moving = false;
         _movingSelection = false;
         _resizingSelection = false;

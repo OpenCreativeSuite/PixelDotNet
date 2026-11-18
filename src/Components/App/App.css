@@ -1271,3 +1271,13 @@ canvas {
 .style-swatch.is-foreground {
     margin-left: 7px;
 }
+
+.colour-tools-panel {
+    width: 580px;
+    height: 700px;
+    max-height: 84vh;
+}
+
+.style-body {
+    flex: 1 1 auto;
+}
