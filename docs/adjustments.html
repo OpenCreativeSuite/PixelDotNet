@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Adjustments and effects - PixelDotNet User Guide</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="index.html">
+            <span class="brand-mark"><span></span><span></span><span></span><span></span></span>
+            PixelDotNet Guide
+        </a>
+        <nav class="mainnav">
+            <a href="index.html">Home</a>
+            <a href="tools.html">Tools</a>
+            <a href="selections.html">Selections</a>
+            <a href="layers.html">Layers</a>
+            <a class="active" href="adjustments.html">Adjustments</a>
+            <a href="files.html">Files</a>
+            <a href="shortcuts.html">Shortcuts</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <div class="pagehead">
+        <h1>Adjustments and effects</h1>
+        <p>This chapter covers colour and tone changes, filters, the Colour Tools window, the intelligent editing tools, image resizing, and flattening. These are the commands that change how a picture looks rather than adding new paint.</p>
+    </div>
+
+    <div class="toc">
+        <strong>On this page</strong>
+        <ol>
+            <li><a href="#adjust">The Adjust tab</a></li>
+            <li><a href="#levels">Levels and Curves</a></li>
+            <li><a href="#adjust-layers">Adjustment layers</a></li>
+            <li><a href="#effects">The Effects tab</a></li>
+            <li><a href="#colour-tools">Colour Tools</a></li>
+            <li><a href="#smart-tools">Perspective, Mesh Warp, Content-Aware Fill</a></li>
+            <li><a href="#red-eye">Red-eye removal</a></li>
+            <li><a href="#image">Invert, Desaturate, and Flip</a></li>
+            <li><a href="#size">Image Size and Canvas Size</a></li>
+            <li><a href="#flatten">Flattening</a></li>
+            <li><a href="#history">History</a></li>
+        </ol>
+    </div>
+
+    <h2 id="adjust">The Adjust tab</h2>
+    <p>Open the <strong>Adjust</strong> tab on the right. It contains live sliders for brightness, contrast, hue, saturation, and lightness, plus Levels and Curves.</p>
+    <p>All of these controls preview on the active layer, or only inside the selection if one exists. They always rebuild from the pixels captured before the adjustment, so moving a slider back and forth does not slowly damage the image.</p>
+    <ul>
+        <li><strong>Brightness</strong> makes the image lighter or darker.</li>
+        <li><strong>Contrast</strong> pushes lights and darks apart or brings them together.</li>
+        <li><strong>Hue</strong> rotates all colours around the colour wheel.</li>
+        <li><strong>Saturation</strong> makes colours stronger or more muted.</li>
+        <li><strong>Lightness</strong> moves the overall tone without changing hue.</li>
+    </ul>
+    <p><strong>Apply</strong> keeps the result as one undo step. <strong>Reset</strong> restores the original pixels.</p>
+
+    <figure>
+        <img src="screenshots/adjust.png" alt="The Adjust tab with brightness, contrast, hue, saturation, levels, and curves">
+        <figcaption>The Adjust tab. Every slider previews live and respects the current selection.</figcaption>
+    </figure>
+
+    <h2 id="levels">Levels and Curves</h2>
+    <h3>Levels</h3>
+    <p>Levels set a black point, a white point, and a midtone gamma. This is the fastest way to fix a picture that looks washed out or too dark.</p>
+    <ul>
+        <li><strong>Black</strong> makes everything below this value pure black.</li>
+        <li><strong>White</strong> makes everything above this value pure white.</li>
+        <li><strong>Midtone</strong> brightens or darkens the values in between.</li>
+    </ul>
+    <p>Move the black slider up until the darkest useful shadows just touch black, and move the white slider down until the brightest highlights just touch white.</p>
+
+    <h3>Curves</h3>
+    <p>Curves map an input tone to an output tone. The horizontal axis is the original tone and the vertical axis is the new tone. A straight line from bottom left to top right changes nothing.</p>
+    <ul>
+        <li>Click the curve to add a point.</li>
+        <li>Drag a point up to brighten that tone, or down to darken it.</li>
+        <li>Drag a point far to the side to change contrast in that range.</li>
+        <li>Drag a point out of the graph to remove it.</li>
+        <li>Use <strong>Reset Curve</strong> to return to the straight line.</li>
+    </ul>
+    <div class="tip">
+        <strong>A simple contrast curve</strong>
+        Add one point in the shadows and pull it slightly down. Add one point in the highlights and pull it slightly up. The image gains contrast without losing detail in the middle.
+    </div>
+
+    <h2 id="adjust-layers">Adjustment layers</h2>
+    <p>A normal adjustment changes pixels. An adjustment layer is different: it sits above the layers below and changes how they look without altering their pixels. You can hide it, fade it, reorder it, or delete it at any time.</p>
+    <ol>
+        <li>Select the layer above which the adjustment should sit.</li>
+        <li>In the Adjust tab, click <strong>Levels Layer</strong> or <strong>Curves Layer</strong>.</li>
+        <li>A new adjustment layer appears in the Layers panel.</li>
+        <li>Select the adjustment layer to edit its sliders.</li>
+        <li>Use its mask or a selection to limit where the adjustment applies.</li>
+    </ol>
+    <p>Adjustment layers affect every visible layer below them in the same group or stack. Move one down if it should affect fewer layers. They are saved in project files.</p>
+
+    <h2 id="effects">The Effects tab</h2>
+    <p>Open the <strong>Effects</strong> tab on the right. Pick an effect and drag the amount slider. The preview is live, and <strong>Apply</strong> bakes the result into the active layer or selection. <strong>Cancel</strong> restores the original pixels.</p>
+    <table>
+        <tr><th>Effect</th><th>What it does</th></tr>
+        <tr><td>Gaussian Blur</td><td>Softens the image evenly. Good for depth and focus.</td></tr>
+        <tr><td>Motion Blur</td><td>Smears pixels horizontally, like movement.</td></tr>
+        <tr><td>Fragment</td><td>Creates a soft, offset echo.</td></tr>
+        <tr><td>Pixelate</td><td>Turns the image into square blocks.</td></tr>
+        <tr><td>Sharpen</td><td>Increases local contrast along edges.</td></tr>
+        <tr><td>Emboss</td><td>Turns edges into a raised grey relief.</td></tr>
+        <tr><td>Edge Detect</td><td>Draws glowing edges on black.</td></tr>
+        <tr><td>Add Noise</td><td>Adds film grain.</td></tr>
+        <tr><td>Posterize</td><td>Reduces each colour channel to a few steps.</td></tr>
+        <tr><td>Vignette</td><td>Darkens the corners of the layer.</td></tr>
+    </table>
+    <p>Effects respect the selection. If you want an effect only on a face, select the face first. If you want to keep the original, duplicate the layer before applying.</p>
+
+    <figure>
+        <img src="screenshots/effects.png" alt="The Effects tab with the effect list and amount slider">
+        <figcaption>The Effects tab. Choose an effect, adjust the amount, then Apply or Cancel.</figcaption>
+    </figure>
+
+    <h2 id="colour-tools">Colour Tools</h2>
+    <p>Choose <strong>Image &gt; Colour Tools...</strong> to open one scrollable window with eight colour operations. Each section has its own <strong>Apply</strong> button, so you can use them in any order. Every action is undoable and respects the selection.</p>
+
+    <h3>Colour Balance</h3>
+    <p>Shift the colours of the shadows, midtones, and highlights separately. Each row is an axis: cyan to red, magenta to green, yellow to blue. Small changes are usually enough.</p>
+
+    <h3>Threshold</h3>
+    <p>Turn the layer into pure black and white. The <strong>Level</strong> slider decides where the cut-off sits. Low values keep more black. High values keep more white.</p>
+
+    <h3>Gradient Map</h3>
+    <p>Map the brightness of the image between two colours. Dark pixels take the <strong>Dark</strong> colour and bright pixels take the <strong>Light</strong> colour. This is a quick way to make duotone posters.</p>
+
+    <h3>Replace Colour</h3>
+    <p>Choose a <strong>From</strong> colour and a <strong>To</strong> colour. Every pixel close to the From colour becomes the To colour. <strong>Tolerance</strong> widens the match. Use a low tolerance for a precise colour and a higher one for a range.</p>
+
+    <h3>Red-Eye Removal</h3>
+    <p>Select the eye with an elliptical selection, then raise the <strong>Strength</strong> slider and apply. The tool neutralises red pupils inside the selection while leaving the rest of the eye alone.</p>
+
+    <h3>Channel Mixer</h3>
+    <p>Each output channel becomes a weighted mix of the source red, green, and blue channels. This is an advanced tool for colour grading and black and white conversions. Use <strong>Reset</strong> to return to the identity mix.</p>
+
+    <h3>Selective Colour</h3>
+    <p>Pick a colour range, then shift its cyan, magenta, yellow, or black amount. Use it to make reds warmer, skies deeper, or skin tones more even. Each range has its own reset.</p>
+
+    <h3>Split Channels</h3>
+    <p>Click <strong>Split</strong> to create three greyscale layers above the active layer, one for red, one for green, and one for blue. This is useful for advanced channel work or for seeing how much each colour contributes.</p>
+
+    <figure>
+        <img src="screenshots/colour.png" alt="The Colour Tools window with Colour Balance, Threshold, Gradient Map, and other sections">
+        <figcaption>Colour Tools. Each section is independent and has its own Apply button.</figcaption>
+    </figure>
+
+    <h2 id="smart-tools">Perspective, Mesh Warp, Content-Aware Fill</h2>
+    <h3>Perspective Transform</h3>
+    <p>Choose <strong>Edit &gt; Perspective Transform...</strong>. The dialog has eight sliders, one pair for each corner of the layer or selection. Move a corner in or out to tilt that side, as if you were adjusting a photo of a building or a poster.</p>
+    <ul>
+        <li><strong>Top left X</strong> and <strong>Top left Y</strong> move the top left corner.</li>
+        <li>The other three corner pairs work the same way.</li>
+        <li><strong>Reset</strong> clears all corner offsets.</li>
+        <li><strong>Cancel</strong> restores the original pixels.</li>
+        <li><strong>Done</strong> keeps the transformed layer.</li>
+    </ul>
+    <p>The transform previews live. It works on the active layer, or only inside the selection when one exists.</p>
+
+    <figure>
+        <img src="screenshots/perspective.png" alt="The Perspective Transform dialog with eight corner offset sliders">
+        <figcaption>Perspective Transform. Move the corner sliders to tilt the layer or selected area.</figcaption>
+    </figure>
+
+    <h3>Mesh Warp</h3>
+    <p>Choose <strong>Edit &gt; Mesh Warp...</strong>. A three by three grid of control points appears on the canvas. Drag any point to bend the layer or selection around it.</p>
+    <ul>
+        <li><strong>Reset</strong> clears every point offset.</li>
+        <li><strong>Cancel</strong> restores the original pixels.</li>
+        <li><strong>Done</strong> keeps the warped result.</li>
+    </ul>
+    <p>Mesh Warp is good for small corrections, such as straightening a smile or reshaping a logo. Large moves stretch the pixels, so use them with care.</p>
+
+    <figure>
+        <img src="screenshots/meshwarp.png" alt="The Mesh Warp grid with nine draggable points on the canvas">
+        <figcaption>Mesh Warp. Drag the nine points to bend the image, then press Done.</figcaption>
+    </figure>
+
+    <h3>Content-Aware Fill</h3>
+    <p>Select something you want to remove, then choose <strong>Edit &gt; Content-Aware Fill</strong>. The program fills the selected area with reconstructed texture and colour from around it. It works best on small objects against fairly even backgrounds, such as a bird in the sky or a sign on a wall.</p>
+    <div class="tip">
+        <strong>Make the selection a little larger</strong>
+        Include a small ring of background around the object so the fill has good material to sample.
+    </div>
+
+    <h2 id="red-eye">Red-eye removal</h2>
+    <p>The dedicated Red-Eye tool lives inside <strong>Colour Tools</strong>. Select the pupil with the elliptical selection, set the strength, and apply. The tool looks for red pixels inside the selection and neutralises them. If the result is too strong, undo and try a lower strength.</p>
+
+    <h2 id="image">Invert, Desaturate, and Flip</h2>
+    <ul>
+        <li><strong>Image &gt; Invert</strong> or <kbd>Ctrl</kbd>+<kbd>I</kbd> flips every colour channel. This makes a negative.</li>
+        <li><strong>Image &gt; Desaturate</strong> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> removes colour while keeping brightness. It is different from lowering saturation because it produces a true grey.</li>
+        <li><strong>Image &gt; Flip Horizontal</strong> and <strong>Flip Vertical</strong> mirror the active layer or selection bounds.</li>
+    </ul>
+
+    <h2 id="size">Image Size and Canvas Size</h2>
+    <h3>Image Size</h3>
+    <p><strong>Image &gt; Image Size...</strong> scales the artwork itself. All layers, masks, guides, shape layers, and text layers are scaled to the new size. Smart objects and vector layers are rasterised during this operation so the result matches the preview exactly.</p>
+    <ul>
+        <li>Enter a new width and height in pixels.</li>
+        <li>The resize is one undoable step.</li>
+        <li>Scaling up cannot invent detail. Work at the final size when you can.</li>
+    </ul>
+
+    <h3>Canvas Size</h3>
+    <p><strong>Image &gt; Canvas Size...</strong> changes the document bounds without stretching the artwork. Extra space is transparent. Use the anchor buttons to decide which side keeps the existing content in place. This is how you add room for a border or move the composition inside a larger frame.</p>
+
+    <figure>
+        <img src="screenshots/resize.png" alt="The Image Size dialog with width, height, and anchor controls">
+        <figcaption>Image Size. Enter a new pixel size and press Resize. Canvas Size uses the same style of dialog.</figcaption>
+    </figure>
+
+    <h2 id="flatten">Flattening</h2>
+    <p><strong>Image &gt; Flatten Image</strong> combines every visible layer into one. Use it only when you are finished with the layer stack, because hidden layers are discarded and the result is much harder to edit. Save a project copy first if there is any chance you will want the layers back.</p>
+
+    <h2 id="history">History</h2>
+    <p>The <strong>History</strong> tab shows the undo timeline for the current document. Each committed action is a step. Click an older step to jump back to that point. Click a newer step to move forward again.</p>
+    <ul>
+        <li>The list keeps the most recent steps. When it is full, the oldest step falls off.</li>
+        <li>Live previews, such as a slider drag, are not added as separate steps until you commit them.</li>
+        <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes one step. <kbd>Ctrl</kbd>+<kbd>Y</kbd> redoes.</li>
+    </ul>
+    <div class="note">
+        <strong>History is per document</strong>
+        Each open tab has its own undo history. Switching tabs does not mix them.
+    </div>
+
+    <div class="pager">
+        <a href="layers.html">&lt; Previous: Layers, shapes and text</a>
+        <a href="files.html">Next: Files and export &gt;</a>
+    </div>
+</main>
+
+<footer>PixelDotNet User Guide. Use the navigation above to move between chapters.</footer>
+</body>
+</html>

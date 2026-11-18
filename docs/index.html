@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PixelDotNet User Guide</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="index.html">
+            <span class="brand-mark"><span></span><span></span><span></span><span></span></span>
+            PixelDotNet Guide
+        </a>
+        <nav class="mainnav">
+            <a class="active" href="index.html">Home</a>
+            <a href="tools.html">Tools</a>
+            <a href="selections.html">Selections</a>
+            <a href="layers.html">Layers</a>
+            <a href="adjustments.html">Adjustments</a>
+            <a href="files.html">Files</a>
+            <a href="shortcuts.html">Shortcuts</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <div>
+            <h1>PixelDotNet User Guide</h1>
+            <p class="lead">A friendly, step by step guide to the PixelDotNet raster editor. Learn the screen, paint your first image, make selections, work with layers, and save or export your work.</p>
+            <p>This guide is written in plain language. You do not need to know anything about pixels, layers, or file formats before you start. Every feature is explained simply, and the main tools and windows are shown in screenshots.</p>
+        </div>
+        <figure>
+            <img src="screenshots/main.png" alt="The PixelDotNet main window with the Moonlight sample image open">
+            <figcaption>The main window. The canvas is in the middle, tools are on the left, and the layers panel is on the right.</figcaption>
+        </figure>
+    </section>
+
+    <div class="toc">
+        <strong>What this guide covers</strong>
+        <ol>
+            <li><a href="#what-is">What PixelDotNet is</a></li>
+            <li><a href="#promise">Free and private</a></li>
+            <li><a href="#start">Starting the app</a></li>
+            <li><a href="#tour">A tour of the screen</a></li>
+            <li><a href="#first-paint">Your first painting</a></li>
+            <li><a href="#first-save">Saving your first image</a></li>
+            <li><a href="#tooltips">Tooltips and the Help menu</a></li>
+            <li><a href="#feature-map">Where to find each feature</a></li>
+            <li><a href="#glossary">Words you will see</a></li>
+            <li><a href="#how-to-read">How to read this guide</a></li>
+        </ol>
+    </div>
+
+    <h2 id="what-is">What PixelDotNet is</h2>
+    <p>PixelDotNet is a painting and photo editing program. It works with raster images, which simply means pictures made of tiny coloured squares called pixels. You can paint with a brush, erase, draw shapes, add text, cut things out, adjust colours, apply effects, and save the result as an image or as a layered project.</p>
+    <p>The program is built around a few simple ideas:</p>
+    <div class="grid3">
+        <div class="card">
+            <h3>Layers are sheets of glass</h3>
+            <p>Each layer holds part of the picture. Layers stack on top of each other. You can hide one, fade it, move it, or paint on just that sheet without touching the rest.</p>
+        </div>
+        <div class="card">
+            <h3>Selections are stencils</h3>
+            <p>A selection limits where your next edit can happen. If you select a circle, painting and effects only change pixels inside that circle.</p>
+        </div>
+        <div class="card">
+            <h3>Tools do one job</h3>
+            <p>The left rail holds every tool. Pick one, look at the options bar across the top, and use the canvas. The options change to match the tool.</p>
+        </div>
+    </div>
+
+    <section class="promise" id="promise">
+        <h2>Free forever. Private by design.</h2>
+        <p>PixelDotNet is free to use, and it will stay free. There is no paid version, no subscription, no account to create, no ads, and no telemetry. The program does not collect information about you or send usage data anywhere.</p>
+        <div class="grid3">
+            <div class="card">
+                <h3>Free forever</h3>
+                <p>Every feature in this guide is included. There is nothing to unlock and nothing to buy later.</p>
+            </div>
+            <div class="card">
+                <h3>No telemetry or tracking</h3>
+                <p>PixelDotNet does not record what you do, does not phone home, and does not include analytics or tracking code.</p>
+            </div>
+            <div class="card">
+                <h3>Your files stay yours</h3>
+                <p>Your images are opened, edited, and saved on your own computer. Nothing is uploaded to a cloud service.</p>
+            </div>
+        </div>
+        <p class="promise-note">The only time PixelDotNet goes online is when you choose to add a font from cdnfonts. That is optional and only happens when you press Add.</p>
+    </section>
+
+    <h2 id="start">Starting the app</h2>
+    <p>If you are running PixelDotNet from the project folder, open a terminal in that folder and run:</p>
+    <p><code>dotnet run</code></p>
+    <p>If you already have a built copy, start <code>PixelDotNet.exe</code> instead. The app opens with the Moonlight sample image so you have something to explore immediately.</p>
+    <div class="tip">
+        <strong>No file open?</strong>
+        Choose <strong>File &gt; Open Sample</strong> to reload the sample at any time. <strong>File &gt; New Document</strong> starts a blank canvas.
+    </div>
+
+    <h2 id="tour">A tour of the screen</h2>
+    <p>The window has six main areas. Once you know these, everything else is just choosing a tool and changing its options.</p>
+
+    <h3>1. The menu bar</h3>
+    <p>Across the top you will find <strong>File</strong>, <strong>Edit</strong>, <strong>Image</strong>, <strong>Layer</strong>, <strong>Select</strong>, <strong>View</strong>, and <strong>Help</strong>. These menus hold commands that are not tied to a single tool, such as opening files, resizing the image, adding layers, or turning on tooltips.</p>
+
+    <h3>2. The options bar</h3>
+    <p>The row under the menu bar belongs to the active tool. With the brush selected you will see size, hardness, and opacity. With the text tool selected you will see the font, size, alignment, and colour controls. Always glance here after picking a tool.</p>
+
+    <h3>3. The tool rail</h3>
+    <p>The narrow strip on the left holds all the tools. Hover over an icon to see its name. Most tools also have a single letter shortcut, such as <kbd>B</kbd> for the brush or <kbd>E</kbd> for the eraser.</p>
+
+    <h3>4. The canvas</h3>
+    <p>The canvas is your picture. The checkerboard pattern behind it means transparency. A transparent area has no pixels at all, not white pixels. You can zoom with <kbd>Ctrl</kbd> and the mouse wheel, and pan by holding the space bar or the middle mouse button while dragging.</p>
+
+    <h3>5. The side panel</h3>
+    <p>The right side has five tabs: <strong>Layers</strong>, <strong>Colour</strong>, <strong>Adjust</strong>, <strong>History</strong>, and <strong>Effects</strong>. The Layers tab is the one you will use most. The other tabs are for colour picking, tone changes, undo history, and filters.</p>
+
+    <h3>6. The status bar</h3>
+    <p>The bottom edge shows the current zoom level, document size, colour under the pointer, the active tool, and a short message telling you what just happened. If an action does not seem to work, read the message here first.</p>
+
+    <figure>
+        <img src="screenshots/tools.png" alt="The PixelDotNet window with the Brush tool selected and its options visible">
+        <figcaption>The options bar changes with the active tool. Here the Brush is selected and its size, hardness, and opacity controls are showing.</figcaption>
+    </figure>
+
+    <h2 id="first-paint">Your first painting</h2>
+    <p>Let us make a simple drawing on top of the sample. This uses a new layer so the original picture stays safe.</p>
+    <ol class="steps">
+        <li><strong>Add a layer.</strong> Choose <strong>Layer &gt; New Layer</strong> or press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>. A new empty layer appears at the top of the Layers panel.</li>
+        <li><strong>Pick the brush.</strong> Press <kbd>B</kbd> or click the brush icon in the tool rail.</li>
+        <li><strong>Choose a colour.</strong> Click the foreground colour swatch near the top right, or open the <strong>Colour</strong> tab on the right and pick a colour from the spectrum.</li>
+        <li><strong>Set the brush size.</strong> Drag the <strong>Size</strong> slider in the options bar, or press <kbd>[</kbd> and <kbd>]</kbd> to change it while painting.</li>
+        <li><strong>Paint.</strong> Drag on the canvas. The stroke appears on the new layer. If you make a mistake, press <kbd>Ctrl</kbd>+<kbd>Z</kbd> to undo.</li>
+        <li><strong>Soften the edge.</strong> Lower <strong>Hardness</strong> for a soft airbrush look. Lower <strong>Opacity</strong> to build colour slowly instead of covering everything at once.</li>
+    </ol>
+    <div class="tip">
+        <strong>A good habit</strong>
+        Keep different kinds of work on separate layers. Put line art on one layer, colour on another, and text on a third. It makes every later change easier.
+    </div>
+
+    <h3>Using the brush like a pro</h3>
+    <ul>
+        <li><kbd>[</kbd> makes the brush smaller and <kbd>]</kbd> makes it larger.</li>
+        <li>Hold <kbd>Alt</kbd> and scroll over the canvas to change the brush size without leaving the picture.</li>
+        <li>Hold <kbd>Ctrl</kbd> and scroll to zoom in and out.</li>
+        <li>A soft brush at low opacity is excellent for shading. A hard brush at full opacity is better for clean edges and pixel art.</li>
+        <li>The brush ring on screen shows the exact size of the brush before you paint.</li>
+    </ul>
+
+    <h2 id="first-save">Saving your first image</h2>
+    <p>There are two different ways to save, and they are both useful.</p>
+    <h3>Save a normal image</h3>
+    <p>Choose <strong>File &gt; Save...</strong> or press <kbd>Ctrl</kbd>+<kbd>S</kbd>. The in-app file browser opens. Pick a folder, type a name, choose PNG, JPEG, BMP, or TGA, and press the save button. PNG is the best default because it keeps transparency and crisp pixel edges.</p>
+    <h3>Save a layered project</h3>
+    <p>Choose <strong>File &gt; Save Project...</strong>. This writes a <code>.pxd</code> file. A project keeps every layer, mask, group, guide, layer style, smart object, shape, and text layer so you can reopen it later and keep editing. A PNG or JPEG flattens everything into one picture.</p>
+    <div class="warning">
+        <strong>Important</strong>
+        If you close the app after saving only a PNG, your layers are gone. Save a project as well if you might want to edit the picture again.
+    </div>
+
+    <figure>
+        <img src="screenshots/save.png" alt="The in-app Save Image file browser">
+        <figcaption>The in-app file browser. Pick a folder on the left, type a file name, choose a format, and save.</figcaption>
+    </figure>
+
+    <h2 id="tooltips">Tooltips and the Help menu</h2>
+    <p>Tooltips start disabled so the interface stays quiet while you work. Choose <strong>Help &gt; Enable Tooltips</strong> to turn them on. When they are on, hovering a tool or button shows its name, and some controls show a small chevron. Click the chevron to open a help card with more detail.</p>
+    <p>Even with tooltips disabled, the tool rail still shows the name of each tool when you hover it. That way you can always identify an icon without turning on the full help system. Choose <strong>Help &gt; Disable Tooltips</strong> when you know your way around.</p>
+    <div class="tip">
+        <strong>Learning a new tool</strong>
+        Turn tooltips on, hover the tool, and read the help card before you use it. Turn them off again once the tool feels familiar.
+    </div>
+
+    <h2 id="feature-map">Where to find each feature</h2>
+    <table>
+        <tr><th>I want to...</th><th>Go to</th><th>Read more</th></tr>
+        <tr><td>Paint, erase, clone, or heal</td><td>Tool rail and options bar</td><td><a href="tools.html">Tools</a></td></tr>
+        <tr><td>Cut out a subject or protect part of the image</td><td>Selection tools, Select menu</td><td><a href="selections.html">Selections</a></td></tr>
+        <tr><td>Move, hide, group, mask, or style a layer</td><td>Layers panel, Layer menu</td><td><a href="layers.html">Layers</a></td></tr>
+        <tr><td>Draw an editable shape, path, or text</td><td>Shape tools, Pen tool, Text tool, Layers panel</td><td><a href="layers.html#vector">Shapes, paths and text</a></td></tr>
+        <tr><td>Change brightness, colours, or apply a filter</td><td>Adjust and Effects tabs, Image menu</td><td><a href="adjustments.html">Adjustments</a></td></tr>
+        <tr><td>Open, save, batch convert, or use SVG</td><td>File menu</td><td><a href="files.html">Files</a></td></tr>
+        <tr><td>Learn a keyboard shortcut</td><td>Anywhere</td><td><a href="shortcuts.html">Shortcuts</a></td></tr>
+    </table>
+
+    <h2 id="glossary">Words you will see</h2>
+    <table>
+        <tr><th>Word</th><th>Plain meaning</th></tr>
+        <tr><td>Pixel</td><td>One tiny coloured square in a picture. A 768 by 576 image has 442,368 pixels.</td></tr>
+        <tr><td>Raster</td><td>A picture made of a fixed grid of pixels. Painting and photo editing usually work on raster images.</td></tr>
+        <tr><td>Vector</td><td>Artwork described by shapes and lines rather than a fixed grid. It stays sharp when scaled.</td></tr>
+        <tr><td>Layer</td><td>One sheet in the stack that makes up the picture. Each layer can be edited on its own.</td></tr>
+        <tr><td>Selection</td><td>A stencil that limits where the next edit can happen.</td></tr>
+        <tr><td>Mask</td><td>A black and white image attached to a layer that hides or reveals parts of it.</td></tr>
+        <tr><td>Opacity</td><td>How see-through something is. 100 percent is solid. 0 percent is invisible.</td></tr>
+        <tr><td>Blend mode</td><td>A rule for how a layer mixes with the layers below, such as Multiply or Screen.</td></tr>
+        <tr><td>Anchor</td><td>A point on a path. Dragging an anchor changes the path's shape.</td></tr>
+        <tr><td>Handle</td><td>A control point that bends the curve between two path anchors.</td></tr>
+        <tr><td>Anti-aliasing</td><td>Softening the edge of a shape so it does not look jagged. The brush does this automatically.</td></tr>
+        <tr><td>Alpha</td><td>The transparency channel. A pixel with low alpha is mostly see-through.</td></tr>
+        <tr><td>PXD</td><td>The PixelDotNet project file. It keeps layers and editable content.</td></tr>
+        <tr><td>SVG</td><td>A vector file format that can be opened in browsers and design programs.</td></tr>
+    </table>
+
+    <h2 id="how-to-read">How to read this guide</h2>
+    <p>Commands look like this: <strong>Layer &gt; New Layer</strong>. That means open the <strong>Layer</strong> menu and choose <strong>New Layer</strong>. Keys look like this: <kbd>Ctrl</kbd>+<kbd>Z</kbd>. That means hold <kbd>Ctrl</kbd> and press <kbd>Z</kbd>.</p>
+    <p>Some sections use these boxes:</p>
+    <div class="note"><strong>Note</strong>Extra detail that is useful but not strictly required.</div>
+    <div class="tip"><strong>Tip</strong>A faster or friendlier way to do something.</div>
+    <div class="warning"><strong>Warning</strong>Something that can lose work or produce an unexpected result.</div>
+    <p>Ready to begin? Start with <a href="tools.html">Tools</a>, or jump straight to the area you need.</p>
+
+    <div class="pager">
+        <span></span>
+        <a href="tools.html">Next: Tools &gt;</a>
+    </div>
+</main>
+
+<footer>PixelDotNet User Guide. Use the navigation above to move between chapters.</footer>
+</body>
+</html>

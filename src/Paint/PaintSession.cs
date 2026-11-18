@@ -5993,6 +5993,16 @@ public sealed class PaintSession
         shape.Y = MathF.Min(_shapeStartY, y);
         shape.Width = MathF.Abs(x - _shapeStartX);
         shape.Height = MathF.Abs(y - _shapeStartY);
+
+        if (InputState.Shift && shape.Kind is ShapeKind.Rectangle or ShapeKind.Ellipse)
+        {
+            float size = MathF.Max(shape.Width, shape.Height);
+            shape.Width = size;
+            shape.Height = size;
+            shape.X = x < _shapeStartX ? _shapeStartX - size : _shapeStartX;
+            shape.Y = y < _shapeStartY ? _shapeStartY - size : _shapeStartY;
+        }
+
         _shapeLayer.RefreshShape();
         Document.MarkDirty();
         Status = $"{shape.Kind} {MathF.Round(shape.Width)} x {MathF.Round(shape.Height)}";
@@ -8638,6 +8648,16 @@ public sealed class PaintSession
 
         float targetX = Math.Clamp(currentX, 0f, Document.Width);
         float targetY = Math.Clamp(currentY, 0f, Document.Height);
+
+        if (InputState.Shift && Tool is PaintTool.Rectangle or PaintTool.Ellipse)
+        {
+            float dx = currentX - _startX;
+            float dy = currentY - _startY;
+            float size = MathF.Max(MathF.Abs(dx), MathF.Abs(dy));
+            targetX = Math.Clamp(_startX + MathF.CopySign(size, dx), 0f, Document.Width);
+            targetY = Math.Clamp(_startY + MathF.CopySign(size, dy), 0f, Document.Height);
+        }
+
         int alpha = Alpha;
 
         switch (Tool)

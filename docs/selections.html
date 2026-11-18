@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Selections and masks - PixelDotNet User Guide</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="index.html">
+            <span class="brand-mark"><span></span><span></span><span></span><span></span></span>
+            PixelDotNet Guide
+        </a>
+        <nav class="mainnav">
+            <a href="index.html">Home</a>
+            <a href="tools.html">Tools</a>
+            <a class="active" href="selections.html">Selections</a>
+            <a href="layers.html">Layers</a>
+            <a href="adjustments.html">Adjustments</a>
+            <a href="files.html">Files</a>
+            <a href="shortcuts.html">Shortcuts</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <div class="pagehead">
+        <h1>Selections and masks</h1>
+        <p>A selection is a stencil. It protects everything outside the stencil and lets your edits reach only the area inside it. This chapter covers every way to make and change a selection, plus masks, guides, and snapping.</p>
+    </div>
+
+    <div class="toc">
+        <strong>On this page</strong>
+        <ol>
+            <li><a href="#what">What a selection does</a></li>
+            <li><a href="#make">Making a selection</a></li>
+            <li><a href="#combine">Adding and subtracting</a></li>
+            <li><a href="#move">Moving and resizing a selection</a></li>
+            <li><a href="#use">Using a selection</a></li>
+            <li><a href="#masks">Layer masks</a></li>
+            <li><a href="#clip">Clipping a layer to the one below</a></li>
+            <li><a href="#guides">Rulers, guides, and snapping</a></li>
+        </ol>
+    </div>
+
+    <h2 id="what">What a selection does</h2>
+    <p>When a selection exists, the following actions stay inside it:</p>
+    <ul>
+        <li>Brush, eraser, line, gradient, and paint bucket strokes</li>
+        <li>Clone and healing strokes</li>
+        <li>Shapes drawn with the shape tools</li>
+        <li>Image adjustments such as brightness, levels, and colour tools</li>
+        <li>Effects such as blur, sharpen, and pixelate</li>
+        <li>Fills from the Select menu</li>
+    </ul>
+    <p>Selections belong to the whole document, not to one layer. You can make a selection once and then paint on several different layers inside the same area.</p>
+    <p>A selection is shown as a moving dotted outline, often called marching ants. The moving line itself is never saved in the image.</p>
+
+    <h2 id="make">Making a selection</h2>
+    <p>There are five selection tools. Each one creates the stencil a little differently.</p>
+
+    <table>
+        <tr><th>Tool</th><th>Shortcut</th><th>Best for</th><th>How to use it</th></tr>
+        <tr><td>Marquee</td><td><kbd>M</kbd></td><td>Rectangular areas, boxes, panels</td><td>Drag a rectangle.</td></tr>
+        <tr><td>Elliptical Select</td><td><kbd>Q</kbd></td><td>Circles and ovals</td><td>Drag a bounding box; the ellipse fills it.</td></tr>
+        <tr><td>Lasso</td><td><kbd>F</kbd></td><td>Rough organic outlines</td><td>Draw around the subject and release.</td></tr>
+        <tr><td>Magic Wand</td><td><kbd>W</kbd></td><td>Flat colours and clean edges</td><td>Click a colour. Raise or lower tolerance as needed.</td></tr>
+        <tr><td>Quick Selection</td><td><kbd>A</kbd></td><td>Cutting out a subject quickly</td><td>Paint over the subject. Add or subtract as needed.</td></tr>
+    </table>
+
+    <h3>Magic Wand options</h3>
+    <ul>
+        <li><strong>Tolerance</strong> decides how different a pixel can be and still match the clicked colour. Low values select only nearly identical colours. High values select a wider range.</li>
+        <li><strong>Contiguous</strong> keeps the selection to the connected area you clicked. Turn it off to select matching colours everywhere on the layer.</li>
+        <li>The wand reads the active layer. If the colour you want is on a different layer, select that layer first, or use Quick Selection, which reads the visible composite.</li>
+    </ul>
+
+    <h3>Quick Selection options</h3>
+    <ul>
+        <li><strong>Size</strong> controls the sampling brush. The selection often grows far beyond each dab.</li>
+        <li><strong>Tolerance</strong> controls how eager the region is to grow. Lower it if the selection leaks into the background.</li>
+        <li><strong>Subtract</strong>, or holding <kbd>Alt</kbd>, removes an area from the selection.</li>
+    </ul>
+
+    <figure>
+        <img src="screenshots/selection.png" alt="A rectangular selection shown as a dotted outline on the canvas">
+        <figcaption>A selection is shown as a moving dotted outline. Everything outside it is protected from the next edit.</figcaption>
+    </figure>
+
+    <h2 id="combine">Adding and subtracting</h2>
+    <p>You are not limited to one selection at a time. The modifier keys let you combine shapes:</p>
+    <table>
+        <tr><th>Modifier</th><th>Result</th></tr>
+        <tr><td><kbd>Shift</kbd></td><td>Add the new area to the current selection.</td></tr>
+        <tr><td><kbd>Ctrl</kbd></td><td>Add the new area to the current selection.</td></tr>
+        <tr><td><kbd>Alt</kbd></td><td>Subtract the new area from the current selection.</td></tr>
+        <tr><td>No modifier</td><td>Replace the current selection with the new one.</td></tr>
+    </table>
+    <div class="note">
+        <strong>When is the modifier read?</strong>
+        For the marquee, ellipse, and lasso, hold the key before you start dragging. For the Magic Wand and Quick Selection, the key is checked when you click or start painting.
+    </div>
+    <p>The options bar also has selection mode buttons for New, Add, Subtract, and Intersect, so you do not have to remember the keys.</p>
+
+    <h2 id="move">Moving and resizing a selection</h2>
+    <p>Switch to the Move tool with <kbd>V</kbd>, then drag inside the selection to move the selected pixels and the selection together. A transparent hole is left behind where the pixels used to be.</p>
+    <ul>
+        <li>Rectangular and elliptical selections have resize handles. Drag a handle to stretch or shrink the selected pixels.</li>
+        <li>Freehand lasso selections can be moved but do not have resize handles.</li>
+        <li>Snapping can align the moved selection to guides or canvas edges. Turn it on from <strong>View &gt; Toggle Snapping</strong>.</li>
+    </ul>
+    <div class="warning">
+        <strong>Moving pixels is destructive</strong>
+        Moving a selection punches a hole in the active layer. If you only want to move the stencil without moving pixels, use the selection tool instead of the Move tool.
+    </div>
+
+    <h2 id="use">Using a selection</h2>
+    <p>Once a selection exists, these commands become useful:</p>
+    <table>
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td><strong>Select &gt; Select All</strong></td><td>Selects the whole document.</td></tr>
+        <tr><td><strong>Select &gt; Deselect</strong> or <kbd>Esc</kbd></td><td>Clears the selection so edits can reach the whole layer again.</td></tr>
+        <tr><td><strong>Select &gt; Fill with Foreground</strong></td><td>Fills the selected area with the foreground colour.</td></tr>
+        <tr><td><strong>Edit &gt; Clear</strong> or <kbd>Del</kbd></td><td>Erases the selected pixels on the active layer.</td></tr>
+        <tr><td><strong>Edit &gt; Copy</strong> / <strong>Paste</strong></td><td>Copies the selected pixels and pastes them as a new layer.</td></tr>
+        <tr><td><strong>Edit &gt; Copy Merged</strong></td><td>Copies the visible result of all layers inside the selection.</td></tr>
+        <tr><td><strong>Edit &gt; Content-Aware Fill</strong></td><td>Removes the selected content and reconstructs the area from its surroundings.</td></tr>
+    </table>
+
+    <h3>A simple cut-out recipe</h3>
+    <ol class="steps">
+        <li>Select the subject with Quick Selection or the Magic Wand.</li>
+        <li>Add and subtract until the dotted outline hugs the subject.</li>
+        <li>Press <kbd>Ctrl</kbd>+<kbd>C</kbd> to copy the selected pixels, then <kbd>Ctrl</kbd>+<kbd>V</kbd> to paste them as a new layer.</li>
+        <li>Hide the original layer to check the cut-out against transparency.</li>
+        <li>Use a layer mask later if you want to soften or refine the edge.</li>
+    </ol>
+
+    <h2 id="masks">Layer masks</h2>
+    <p>A layer mask is a reusable stencil attached to one layer. It is often better than a selection because it is non-destructive and can be adjusted at any time.</p>
+    <p>Think of the mask as a black and white painting:</p>
+    <ul>
+        <li><strong>White</strong> reveals the layer.</li>
+        <li><strong>Black</strong> hides the layer.</li>
+        <li><strong>Grey</strong> reveals the layer partially, like a frosted window.</li>
+    </ul>
+
+    <h3>Adding a mask</h3>
+    <ol>
+        <li>Make a selection if you want to start with a shaped mask.</li>
+        <li>Click the mask button in the Layers panel, or right-click the layer and choose the mask action.</li>
+        <li>Click the mask thumbnail so it has a white border. You are now painting on the mask, not on the layer.</li>
+        <li>Paint black with the brush to hide areas, or white to reveal them. Use grey for soft transitions.</li>
+    </ol>
+    <p>Click the layer thumbnail to return to painting on the layer itself. Right-click the mask thumbnail to remove the mask.</p>
+    <div class="tip">
+        <strong>Soft edges</strong>
+        Use a soft brush on the mask for hair, clouds, and gentle fades. The layer pixels are never destroyed, so you can always paint the area back in.
+    </div>
+
+    <h2 id="clip">Clipping a layer to the one below</h2>
+    <p>Clipping is another kind of stencil. When a layer is clipped to the layer below, it only shows where the lower layer has visible pixels. This is perfect for colouring line art or adding shading to a shape without painting outside its edges.</p>
+    <ol>
+        <li>Put the artwork you want to use as the boundary on one layer.</li>
+        <li>Add a new layer above it and paint freely. It can cover the whole canvas.</li>
+        <li>Turn on <strong>Clip</strong> for the upper layer, or right-click it and choose the clip action.</li>
+        <li>The upper layer is now trimmed to the visible content of the layer below.</li>
+    </ol>
+    <p>Clipped layers are marked in the Layers panel and are saved in project files.</p>
+
+    <h2 id="guides">Rulers, guides, and snapping</h2>
+    <p>Guides are thin lines you place to line things up. They do not appear in the saved image.</p>
+    <ul>
+        <li><strong>View &gt; Toggle Rulers</strong> shows the rulers around the canvas.</li>
+        <li>Drag from the top ruler to create a horizontal guide. Drag from the left ruler to create a vertical guide.</li>
+        <li><strong>View &gt; Add Horizontal Guide</strong> and <strong>Add Vertical Guide</strong> place guides at the centre.</li>
+        <li><strong>View &gt; Toggle Guides</strong> hides or shows all guides.</li>
+        <li><strong>View &gt; Toggle Snapping</strong> makes moved selections and layers snap to guides and canvas edges.</li>
+        <li><strong>View &gt; Clear Guides</strong> removes all guides at once.</li>
+    </ul>
+    <p>The grid is a separate aid. <strong>View &gt; Toggle Grid</strong> draws an eight pixel grid over the canvas. Like guides, it is only a visual aid and is not saved.</p>
+
+    <div class="pager">
+        <a href="tools.html">&lt; Previous: Tools</a>
+        <a href="layers.html">Next: Layers &gt;</a>
+    </div>
+</main>
+
+<footer>PixelDotNet User Guide. Use the navigation above to move between chapters.</footer>
+</body>
+</html>

@@ -45,9 +45,6 @@
   <!-- Add Android or browser targets with:
        donkeh enable-target android
        donkeh enable-target web -->
-
-  <ItemGroup>
-  </ItemGroup>
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
