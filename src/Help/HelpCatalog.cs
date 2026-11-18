@@ -122,7 +122,7 @@ public static class HelpCatalog
                 "Strokes rebuild from a snapshot, so overlapping stamps never darken twice. Painting is clipped to the selection.",
             ],
             [
-                "Press [ and ], or Ctrl+scroll over the canvas, to resize the brush.",
+                "Press [ and ], or Alt+scroll over the canvas, to resize the brush.",
                 "Use low opacity to build smooth colour gradually.",
             ]);
 
@@ -260,7 +260,7 @@ public static class HelpCatalog
                 "Zooming changes only the view, never the document pixels.",
             ],
             [
-                "Ctrl+0 returns to 100%.",
+                "Ctrl+scroll zooms; Alt+scroll changes the brush size.",
                 "Ctrl++ and Ctrl+- step through the zoom stops.",
             ]);
 
@@ -379,14 +379,16 @@ public static class HelpCatalog
             ]);
 
         Add("menu.view", Icons.Zoom, "View", "",
-            "Zoom, grid and document navigation.",
+            "Zoom, rulers, guides, snapping and document navigation.",
             [
                 "Zoom In, Zoom Out and Actual Pixels change only the view.",
-                "Toggle Grid shows an eight-pixel guide grid; Next and Previous Document move between tabs.",
+                "Toggle Grid shows an eight-pixel guide grid; Toggle Rulers and Toggle Guides show layout aids.",
+                "Toggle Snapping makes moved selections and layers snap to guides and canvas edges; Clear Guides removes all guides.",
             ],
             [
-                "Ctrl+0 returns to 100%.",
-                "The grid makes pixel alignment much easier.",
+                "Drag from a ruler to place a guide.",
+                "Ctrl+scroll zooms; Alt+scroll changes the brush size.",
+                "Snapping uses a small on-screen threshold and scales with zoom.",
             ]);
 
         Add("menu.help", Icons.Info, "Help", "",

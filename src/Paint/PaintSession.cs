@@ -37,6 +37,8 @@ public sealed class PaintSession
     private readonly int[] _histogram = new int[64];
     private int _activeTab;
     private int _untitledCount;
+    private int _guideDragIndex = -1;
+    private bool _guideDragHorizontal;
     private ClipboardImage? _clipboard;
     private PaintLayer? _effectLayer;
     private uint[]? _effectBase;
@@ -208,6 +210,15 @@ public sealed class PaintSession
 
     /// <summary>Gets or sets whether the eight-pixel guide grid is drawn.</summary>
     public bool ShowGrid { get; set; }
+
+    /// <summary>Gets or sets whether rulers are shown around the canvas.</summary>
+    public bool ShowRulers { get; set; } = true;
+
+    /// <summary>Gets or sets whether guides are drawn.</summary>
+    public bool ShowGuides { get; set; } = true;
+
+    /// <summary>Gets or sets whether guides and canvas edges attract drags.</summary>
+    public bool SnapToGuides { get; set; } = true;
 
     /// <summary>Gets or sets whether hovering controls shows help tooltips.</summary>
     public bool ShowTooltips { get; set; }
@@ -606,6 +617,187 @@ public sealed class PaintSession
         Changed();
     }
 
+    /// <summary>Shows or hides the rulers.</summary>
+    public void ToggleRulers()
+    {
+        ShowRulers = !ShowRulers;
+        Status = ShowRulers ? "Rulers on" : "Rulers off";
+        Changed();
+    }
+
+    /// <summary>Shows or hides document guides.</summary>
+    public void ToggleGuides()
+    {
+        ShowGuides = !ShowGuides;
+        Status = ShowGuides ? "Guides on" : "Guides off";
+        Changed();
+    }
+
+    /// <summary>Enables or disables guide and edge snapping.</summary>
+    public void ToggleSnapping()
+    {
+        SnapToGuides = !SnapToGuides;
+        Status = SnapToGuides ? "Snapping on" : "Snapping off";
+        Changed();
+    }
+
+    /// <summary>Removes every guide from the current document.</summary>
+    public void ClearGuides()
+    {
+        if (Document.Guides.Count == 0)
+        {
+            return;
+        }
+
+        Document.Guides.Clear();
+        _guideDragIndex = -1;
+        Status = "Guides cleared";
+        Changed();
+    }
+
+    /// <summary>Places a guide at a document position from a ruler click.</summary>
+    public void PlaceGuide(bool horizontal, float position)
+    {
+        int limit = horizontal ? Document.Height : Document.Width;
+        int value = Math.Clamp((int)MathF.Round(position), 0, limit);
+        value = SnapGuidePosition(value, horizontal);
+        Document.Guides.Add(new Guide(horizontal, value));
+        ShowGuides = true;
+        Status = $"Guide {value}";
+        Changed();
+    }
+
+    /// <summary>Starts dragging a new guide from a ruler.</summary>
+    public void BeginGuideDrag(bool horizontal)
+    {
+        _guideDragHorizontal = horizontal;
+        Document.Guides.Add(new Guide(horizontal, 0));
+        _guideDragIndex = Document.Guides.Count - 1;
+        ShowGuides = true;
+        Status = "Drag to place the guide";
+        Changed();
+    }
+
+    /// <summary>Moves the guide being dragged to a document position.</summary>
+    public void UpdateGuideDrag(float position)
+    {
+        if (_guideDragIndex < 0 || _guideDragIndex >= Document.Guides.Count)
+        {
+            return;
+        }
+
+        int limit = _guideDragHorizontal ? Document.Height : Document.Width;
+        int value = Math.Clamp((int)MathF.Round(position), 0, limit);
+        value = SnapGuidePosition(value, _guideDragHorizontal);
+        Document.Guides[_guideDragIndex] = new Guide(_guideDragHorizontal, value);
+        Status = $"Guide {value}";
+        Changed();
+    }
+
+    /// <summary>Finishes a guide drag.</summary>
+    public void EndGuideDrag()
+    {
+        if (_guideDragIndex < 0)
+        {
+            return;
+        }
+
+        _guideDragIndex = -1;
+        Status = "Guide placed";
+        Changed();
+    }
+
+    /// <summary>Snaps a guide position to the canvas edges, centre or another guide.</summary>
+    private int SnapGuidePosition(int value, bool horizontal)
+    {
+        if (!SnapToGuides)
+        {
+            return value;
+        }
+
+        float threshold = 6f / MathF.Max(Zoom, 0.05f);
+        int size = horizontal ? Document.Height : Document.Width;
+        int best = value;
+        float bestDistance = threshold + 0.01f;
+
+        Check(0);
+        Check(size / 2);
+        Check(size);
+
+        foreach (Guide guide in Document.Guides)
+        {
+            if (guide.Horizontal == horizontal)
+            {
+                Check(guide.Position);
+            }
+        }
+
+        return best;
+
+        void Check(int candidate)
+        {
+            float distance = MathF.Abs(candidate - value);
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                best = candidate;
+            }
+        }
+    }
+
+    /// <summary>Snaps a moving rectangle's offset to guides and canvas edges.</summary>
+    public (int X, int Y) SnapMove(int startX, int startY, int width, int height, int dx, int dy)
+    {
+        if (!SnapToGuides)
+        {
+            return (dx, dy);
+        }
+
+        float threshold = 6f / MathF.Max(Zoom, 0.05f);
+        dx = SnapAxis(startX, width, dx, vertical: true, threshold);
+        dy = SnapAxis(startY, height, dy, vertical: false, threshold);
+        return (dx, dy);
+    }
+
+    /// <summary>Snaps one axis of a moving rectangle.</summary>
+    private int SnapAxis(int start, int size, int delta, bool vertical, float threshold)
+    {
+        int extent = vertical ? Document.Width : Document.Height;
+        int best = delta;
+        float bestDistance = threshold + 0.01f;
+
+        Check(0);
+        Check(extent / 2);
+        Check(extent);
+
+        foreach (Guide guide in Document.Guides)
+        {
+            if (guide.Horizontal == !vertical)
+            {
+                Check(guide.Position);
+            }
+        }
+
+        return best;
+
+        void Check(int candidate)
+        {
+            CheckEdge(start + delta, candidate);
+            CheckEdge(start + delta + (size / 2), candidate);
+            CheckEdge(start + delta + size, candidate);
+        }
+
+        void CheckEdge(int edge, int candidate)
+        {
+            float distance = MathF.Abs(candidate - edge);
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                best = delta + (candidate - edge);
+            }
+        }
+    }
+
     /// <summary>Turns hover tooltips on or off.</summary>
     public void ToggleTooltips()
     {
@@ -860,6 +1052,11 @@ public sealed class PaintSession
         {
             int dx = (int)MathF.Round(documentX - _startX);
             int dy = (int)MathF.Round(documentY - _startY);
+            if (_moveStart is { } start)
+            {
+                (dx, dy) = SnapMove(start.X, start.Y, start.Width, start.Height, dx, dy);
+            }
+
             MoveSelectionBy(dx, dy);
             return;
         }
@@ -868,6 +1065,7 @@ public sealed class PaintSession
         {
             int dx = (int)MathF.Round(documentX - _startX);
             int dy = (int)MathF.Round(documentY - _startY);
+            (dx, dy) = SnapMove(0, 0, _strokeLayer.Width, _strokeLayer.Height, dx, dy);
             _moveChanged |= dx != 0 || dy != 0;
             PaintOps.Translate(_strokeLayer, _strokeBase, dx, dy);
             Document.MarkDirty();
@@ -1312,6 +1510,19 @@ public sealed class PaintSession
         BrushSize = Math.Clamp(BrushSize + (wheel * 3f), 1f, 120f);
         Status = $"Brush {MathF.Round(BrushSize)} px";
         Changed();
+    }
+
+    /// <summary>Steps the canvas zoom from a wheel delta.</summary>
+    public void ZoomByWheel(float wheel)
+    {
+        if (wheel > 0f)
+        {
+            ZoomIn();
+        }
+        else if (wheel < 0f)
+        {
+            ZoomOut();
+        }
     }
 
     /// <summary>Starts a freehand selection and records its first point.</summary>

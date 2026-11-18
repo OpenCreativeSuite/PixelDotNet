@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Donkeh.LayoutLab;
@@ -23,6 +23,9 @@ namespace PixelDotNet.Components;
 /// </remarks>
 public sealed class CanvasSurface : Component
 {
+    /// <summary>Thickness of both ruler bands, shared with the scroll layout.</summary>
+    internal const float RulerSize = 30f;
+
     /// <inheritdoc/>
     public override Node Render()
     {
@@ -33,7 +36,48 @@ public sealed class CanvasSurface : Component
         int pixelWidth = Math.Max(16, (int)MathF.Round(document.Width * zoom));
         int pixelHeight = Math.Max(16, (int)MathF.Round(document.Height * zoom));
 
-        return Canvas(new CanvasProps
+        Ref<ElementNode> paintRef = UseRef<ElementNode>();
+        Node paint = PaintCanvas(editor, pixelWidth, pixelHeight, paintRef);
+
+        if (!editor.ShowRulers)
+        {
+            return paint;
+        }
+
+        return Div(new() { ClassName = "canvas-frame" },
+            Div(new() { ClassName = "ruler-strip" },
+                Canvas(new CanvasProps
+                {
+                    ClassName = "ruler-corner",
+                    Attributes = Ui.Size((int)RulerSize, (int)RulerSize),
+                    OnDraw = context => context.Clear(0xFF1B1E23),
+                }),
+                Canvas(new CanvasProps
+                {
+                    ClassName = "ruler ruler-top",
+                    Attributes = Ui.Size(pixelWidth, (int)RulerSize),
+                    OnDraw = context => DrawRuler(context, editor, horizontal: true, pixelWidth),
+                    OnPointerDown = (x, y) => editor.PlaceGuide(horizontal: false, x / zoom),
+                })),
+            Div(new() { ClassName = "ruler-strip" },
+                Canvas(new CanvasProps
+                {
+                    ClassName = "ruler ruler-left",
+                    Attributes = Ui.Size((int)RulerSize, pixelHeight),
+                    OnDraw = context => DrawRuler(context, editor, horizontal: false, pixelHeight),
+                    OnPointerDown = (x, y) => editor.PlaceGuide(horizontal: true, y / zoom),
+                }),
+                paint));
+    }
+
+    /// <summary>Builds the interactive artwork canvas.</summary>
+    private static Node PaintCanvas(
+        PaintSession editor,
+        int pixelWidth,
+        int pixelHeight,
+        Ref<ElementNode> paintRef)
+    {
+        Node canvas = Canvas(new CanvasProps
         {
             ClassName = "paint-canvas " + CursorClass(editor.Tool),
             // Focusable so clicking the artwork keeps the stage's key handler
@@ -44,7 +88,7 @@ public sealed class CanvasSurface : Component
                 ["width"] = pixelWidth.ToString(CultureInfo.InvariantCulture),
                 ["height"] = pixelHeight.ToString(CultureInfo.InvariantCulture),
             },
-            OnDraw = context => Draw(context, editor),
+            OnDraw = context => Draw(context, editor, paintRef.Value),
             OnPointerDown = (x, y) =>
             {
                 if (InputState.Control && editor.Tool is PaintTool.CloneStamp or PaintTool.HealingBrush)
@@ -56,18 +100,36 @@ public sealed class CanvasSurface : Component
                     editor.PointerDown(x, y);
                 }
             },
-            OnPointerMove = (x, y) => editor.PointerMove(x, y),
+            OnPointerMove = (x, y) =>
+            {
+                if (ViewportPan.Handle())
+                {
+                    return;
+                }
+
+                editor.PointerMove(x, y);
+            },
             OnPointerUp = (x, y) => editor.PointerUp(x, y),
             OnScroll = (horizontal, vertical) =>
             {
                 if (InputState.Control)
                 {
+                    editor.ZoomByWheel(vertical);
+                }
+                else if (InputState.Alt)
+                {
                     editor.NudgeBrushSize(vertical);
-                    editor.Refresh?.Invoke();
                 }
             },
             OnContextMenu = menu => editor.SecondaryAction(menu.X, menu.Y),
         });
+
+        if (canvas is ElementNode element)
+        {
+            element.BindRef(paintRef);
+        }
+
+        return canvas;
     }
 
     /// <summary>Maps the active tool onto the canvas cursor class.</summary>
@@ -80,7 +142,7 @@ public sealed class CanvasSurface : Component
     };
 
     /// <summary>Draws the artwork, then the marquee and the brush outline.</summary>
-    private static void Draw(CanvasContext context, PaintSession editor)
+    private static void Draw(CanvasContext context, PaintSession editor, ElementNode? canvasNode)
     {
         PaintDocument document = editor.Document;
         float zoom = MathF.Max(editor.Zoom, 0.05f);
@@ -109,12 +171,13 @@ public sealed class CanvasSurface : Component
             DrawGrid(context, document, zoom);
         }
 
+        DrawGuides(context, editor, zoom);
         DrawSelectionOverlay(context, editor, zoom);
         DrawMarquee(context, editor, zoom);
         DrawLassoPreview(context, editor, zoom);
         DrawCloneSource(context, editor, zoom);
         DrawTextTransform(context, editor, zoom);
-        DrawBrushOutline(context, editor, zoom);
+        DrawBrushOutline(context, editor, zoom, canvasNode);
     }
 
     /// <summary>Draws the live text box, its corner handles and the rotate handle.</summary>
@@ -232,10 +295,114 @@ public sealed class CanvasSurface : Component
         }
     }
 
-    /// <summary>
-    /// Washes a soft blue tint over the selected pixels so the region is readable
-    /// without hiding the artwork underneath.
-    /// </summary>
+    /// <summary>Draws the document guide lines over the artwork.</summary>
+    private static void DrawGuides(CanvasContext context, PaintSession editor, float zoom)
+    {
+        if (!editor.ShowGuides)
+        {
+            return;
+        }
+
+        float width = editor.Document.Width * zoom;
+        float height = editor.Document.Height * zoom;
+
+        foreach (Guide guide in editor.Document.Guides)
+        {
+            if (guide.Horizontal)
+            {
+                float y = guide.Position * zoom;
+                context.FillRect(0f, y, width, 1.5f, 0xCC37C6FF);
+            }
+            else
+            {
+                float x = guide.Position * zoom;
+                context.FillRect(x, 0f, 1.5f, height, 0xCC37C6FF);
+            }
+        }
+    }
+
+    /// <summary>Draws one ruler with ticks and document-space labels.</summary>
+    private static void DrawRuler(
+        CanvasContext context,
+        PaintSession editor,
+        bool horizontal,
+        float length)
+    {
+        context.Clear(0xFF1B1E23);
+        float zoom = MathF.Max(editor.Zoom, 0.05f);
+
+        // Pick a step whose on-screen spacing leaves room for a label.
+        int[] steps = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
+        int step = steps[^1];
+        foreach (int candidate in steps)
+        {
+            if (candidate * zoom >= 46f)
+            {
+                step = candidate;
+                break;
+            }
+        }
+
+        int documentLength = horizontal ? editor.Document.Width : editor.Document.Height;
+        var labelStyle = new TextStyle(
+            "Segoe UI",
+            9.5f,
+            400,
+            false,
+            0xFF9AA3AD,
+            0f,
+            1.1f,
+            Donkeh.LayoutLab.TextAlign.Left,
+            TextDecoration.None,
+            WhiteSpace.NoWrap,
+            Direction.LeftToRight);
+
+        // A little breathing room inside the bar keeps labels off the edges now
+        // that the ruler is thicker.
+        const float LabelInset = 4f;
+        const float TickLength = 7f;
+
+        for (int position = 0; position <= documentLength; position += step)
+        {
+            float offset = position * zoom;
+            if (offset > length)
+            {
+                break;
+            }
+
+            if (horizontal)
+            {
+                context.FillRect(offset, RulerSize - TickLength, 1f, TickLength, 0xFF7F8792);
+                context.DrawText(
+                    new Rect(
+                        offset + LabelInset,
+                        RulerSize - TickLength - 12f,
+                        46f,
+                        12f),
+                    position.ToString(CultureInfo.InvariantCulture),
+                    labelStyle);
+            }
+            else
+            {
+                context.FillRect(RulerSize - TickLength, offset, TickLength, 1f, 0xFF7F8792);
+                context.DrawText(
+                    new Rect(LabelInset, offset + 3f, RulerSize - LabelInset - 2f, 12f),
+                    position.ToString(CultureInfo.InvariantCulture),
+                    labelStyle);
+            }
+        }
+
+        if (horizontal)
+        {
+            context.FillRect(0f, RulerSize - 1f, length, 1f, 0xFF101215);
+        }
+        else
+        {
+            context.FillRect(RulerSize - 1f, 0f, 1f, length, 0xFF101215);
+        }
+    }
+
+    /// <summary>Draws the soft blue selection tint.</summary>
     private static void DrawSelectionOverlay(CanvasContext context, PaintSession editor, float zoom)
     {
         if (editor.Selection is not { } selection || selection.IsEmpty)
@@ -532,8 +699,37 @@ public sealed class CanvasSurface : Component
         context.FillRect(x - 1.5f, y - 1.5f, 3f, 3f, 0xFF2F8DF0);
     }
 
-    /// <summary>Draws a dotted ring around the pointer at the current brush size.</summary>
-    private static void DrawBrushOutline(CanvasContext context, PaintSession editor, float zoom)
+    /// <summary>Projects the window pointer into a canvas's local coordinates.</summary>
+    /// <param name="canvas">The paint canvas.</param>
+    /// <param name="localX">Receives the pointer X relative to the canvas border box.</param>
+    /// <param name="localY">Receives the pointer Y relative to the canvas border box.</param>
+    /// <returns>Whether the pointer is inside the canvas.</returns>
+    /// <remarks>Node bounds are painted coordinates, so they can be compared
+    /// against the window pointer directly, even after scrolling.</remarks>
+    private static bool TryGetPointerOnCanvas(
+        ElementNode canvas,
+        out float localX,
+        out float localY)
+    {
+        localX = InputState.PointerX - canvas.PositionX;
+        localY = InputState.PointerY - canvas.PositionY;
+
+        return localX >= 0f && localY >= 0f
+            && localX < canvas.Width && localY < canvas.Height;
+    }
+
+    /// <summary>Draws a dotted ring under the pointer at the current brush size.</summary>
+    /// <remarks>
+    /// The ring is positioned from the window pointer and the canvas box, not
+    /// from the last press. Hover does not dispatch pointer moves to the
+    /// component, so that is the only position available when no stroke is
+    /// active. It also hides naturally as soon as the pointer leaves the canvas.
+    /// </remarks>
+    private static void DrawBrushOutline(
+        CanvasContext context,
+        PaintSession editor,
+        float zoom,
+        ElementNode? canvasNode)
     {
         if (editor.Tool is not (
             PaintTool.Brush
@@ -546,14 +742,30 @@ public sealed class CanvasSurface : Component
             return;
         }
 
-        if (editor.CursorX < 0 || editor.CursorY < 0)
+        // A pan owns the pointer; a brush ring would just be visual noise.
+        if (InputState.Middle)
         {
             return;
         }
 
-        int x = editor.CursorX;
-        int y = editor.CursorY;
-        if (x >= editor.Document.Width || y >= editor.Document.Height)
+        // Fallback for the frame before the canvas ref is bound.
+        float localX = (editor.CursorX + 0.5f) * zoom;
+        float localY = (editor.CursorY + 0.5f) * zoom;
+
+        if (canvasNode is { Width: > 0f, Height: > 0f }
+            && TryGetPointerOnCanvas(canvasNode, out float pointerX, out float pointerY))
+        {
+            localX = pointerX;
+            localY = pointerY;
+        }
+        else if (canvasNode is not null)
+        {
+            return;
+        }
+
+        int x = (int)MathF.Floor(localX / zoom);
+        int y = (int)MathF.Floor(localY / zoom);
+        if (x < 0 || y < 0 || x >= editor.Document.Width || y >= editor.Document.Height)
         {
             return;
         }

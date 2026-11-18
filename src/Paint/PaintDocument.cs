@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace PixelDotNet.Paint;
 
+/// <summary>A document-space guide line.</summary>
+/// <param name="Horizontal">True for a horizontal guide, false for vertical.</param>
+/// <param name="Position">Position in document pixels.</param>
+public readonly record struct Guide(bool Horizontal, int Position);
+
 /// <summary>
 /// A layered raster document with a cached composite and a cached run list.
 /// </summary>
@@ -56,6 +61,9 @@ public sealed class PaintDocument
 
     /// <summary>Gets the layer stack, bottom first.</summary>
     public List<PaintLayer> Layers { get; }
+
+    /// <summary>Gets the document-space guide lines.</summary>
+    public List<Guide> Guides { get; } = [];
 
     /// <summary>Gets or sets the index of the layer paint operations target.</summary>
     public int ActiveIndex { get; set; }

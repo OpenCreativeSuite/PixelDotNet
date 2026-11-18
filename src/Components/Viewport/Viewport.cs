@@ -12,10 +12,41 @@ namespace PixelDotNet.Components;
 /// </summary>
 public sealed class Viewport : Component
 {
+    /// <summary>
+    /// Pasteboard kept around the artwork and rulers so overlay scrollbars never
+    /// cover the document edges and border pixels stay reachable.
+    /// </summary>
+    internal const float CanvasPadding = 250f;
+
     /// <inheritdoc/>
     public override Node Render()
     {
         PaintSession editor = UseContext(EditorContext.Value);
+        Ref<ElementNode> viewportRef = UseRef<ElementNode>();
+        ViewportPan.Attach(viewportRef);
+
+        float zoom = MathF.Max(editor.Zoom, 0.05f);
+        float ruler = editor.ShowRulers ? CanvasSurface.RulerSize : 0f;
+        int pixelWidth = Math.Max(16, (int)MathF.Round(editor.Document.Width * zoom));
+        int pixelHeight = Math.Max(16, (int)MathF.Round(editor.Document.Height * zoom));
+        float contentWidth = pixelWidth + ruler + (CanvasPadding * 2f);
+        float contentHeight = pixelHeight + ruler + (CanvasPadding * 2f);
+
+        ElementNode viewport = (ElementNode)Div(new()
+        {
+            ClassName = "viewport",
+            OnPointerMove = (x, y) => ViewportPan.Handle(),
+        },
+            Div(new()
+            {
+                ClassName = "canvas-slot",
+                Attributes = new()
+                {
+                    ["style"] = $"width:{Ui.Number(contentWidth)}px;height:{Ui.Number(contentHeight)}px;",
+                },
+            },
+                C<CanvasSurface>()));
+        viewport.BindRef(viewportRef);
 
         return Div(new()
         {
@@ -24,9 +55,7 @@ public sealed class Viewport : Component
         },
         Div(new() { ClassName = "doctabs" },
             Each(editor.Documents, info => (Node)DocumentTab(editor, info))),
-        Div(new() { ClassName = "viewport" },
-            Div(new() { ClassName = "canvas-slot" },
-                C<CanvasSurface>())));
+        viewport);
     }
 
     /// <summary>Builds one document tab: a pick target, the name and a close button.</summary>
