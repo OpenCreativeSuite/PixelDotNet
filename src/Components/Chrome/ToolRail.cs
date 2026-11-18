@@ -34,13 +34,17 @@ public sealed class ToolRail : Component
             foreach (PaintTool tool in group)
             {
                 bool active = editor.Tool == tool;
-                tools.Add(Button(new()
+                tools.Add(Ui.Tip(editor, Button(new()
                 {
                     ClassName = active ? "tool is-active" : "tool",
                     Title = $"{PaintSession.NameOf(tool)} ({PaintSession.ShortcutOf(tool)})",
                     OnClick = () => editor.SelectTool(tool),
                 },
-                Ui.Icon(Icons.ForTool(tool), "tool-glyph", Icons.IsRegular(tool))));
+                Ui.Icon(Icons.ForTool(tool), "tool-glyph", Icons.IsRegular(tool))),
+                Icons.ForTool(tool),
+                PaintSession.NameOf(tool),
+                "tool." + tool,
+                PaintSession.ShortcutOf(tool)));
             }
 
             if (index > 0)

@@ -15,6 +15,24 @@ public sealed class SidePanel : Component
 {
     private static readonly string[] Tabs = ["Layers", "Colour", "Adjust", "History", "Effects"];
 
+    private static readonly string[] TabIcons =
+    [
+        Icons.Flatten,
+        Icons.Palette,
+        Icons.Sliders,
+        Icons.History,
+        Icons.Sparkles,
+    ];
+
+    private static readonly string[] TabHelp =
+    [
+        "tab.layers",
+        "tab.colour",
+        "tab.adjust",
+        "tab.history",
+        "tab.effects",
+    ];
+
     /// <inheritdoc/>
     public override Node Render()
     {
@@ -25,11 +43,11 @@ public sealed class SidePanel : Component
         for (int index = 0; index < Tabs.Length; index++)
         {
             int target = index;
-            tabs.Add(Button(new()
+            tabs.Add(Ui.Tip(editor, Button(new()
             {
                 ClassName = target == tab ? "panel-tab is-active" : "panel-tab",
                 OnClick = () => editor.OpenSideTab(target),
-            }, Text(Tabs[target])));
+            }, Text(Tabs[target])), TabIcons[index], Tabs[index], TabHelp[index]));
         }
 
         return Div(new() { ClassName = "side" },

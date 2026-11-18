@@ -51,8 +51,16 @@ public sealed class OptionsBar : Component
     };
 
     /// <summary>Builds one text alignment toggle.</summary>
-    private static Node AlignButton(PaintSession editor, TextAlign align, string icon, string title) =>
-        Button(new()
+    private static Node AlignButton(PaintSession editor, TextAlign align, string icon, string title)
+    {
+        string helpId = align switch
+        {
+            TextAlign.Left => "options.alignLeft",
+            TextAlign.Center => "options.alignCenter",
+            _ => "options.alignRight",
+        };
+
+        return Ui.Tip(editor, Button(new()
         {
             ClassName = editor.TextAlignment == align ? "btn is-on" : "btn",
             Title = title,
@@ -61,7 +69,8 @@ public sealed class OptionsBar : Component
                 editor.SetTextAlign(align);
                 editor.Refresh?.Invoke();
             },
-        }, Ui.Icon(icon, "align-glyph"));
+        }, Ui.Icon(icon, "align-glyph")), icon, title, helpId);
+    }
 
     /// <summary>Downloads a cdnfonts family on a worker thread and adds it on the frame thread.</summary>
     private static void StartFontImport(PaintSession editor)
@@ -133,21 +142,21 @@ public sealed class OptionsBar : Component
             editor.Refresh?.Invoke();
         }),
         Div(new() { ClassName = "segmented" },
-            Ui.Toggle("B", "Bold text", editor.TextBold, () =>
+            Ui.Tip(editor, Ui.Toggle("B", "Bold text", editor.TextBold, () =>
             {
                 editor.ToggleTextBold();
                 editor.Refresh?.Invoke();
-            }),
-            Ui.Toggle("I", "Italic text", editor.TextItalic, () =>
+            }), Icons.Text, "Bold", "options.bold"),
+            Ui.Tip(editor, Ui.Toggle("I", "Italic text", editor.TextItalic, () =>
             {
                 editor.ToggleTextItalic();
                 editor.Refresh?.Invoke();
-            })),
+            }), Icons.Text, "Italic", "options.italic")),
         Div(new() { ClassName = "segmented" },
             AlignButton(editor, TextAlign.Left, Icons.AlignLeft, "Align left"),
             AlignButton(editor, TextAlign.Center, Icons.AlignCenter, "Centre"),
             AlignButton(editor, TextAlign.Right, Icons.AlignRight, "Align right")),
-        Button(new()
+        Ui.Tip(editor, Button(new()
         {
             ClassName = editor.IsTextFxOpen ? "btn is-on" : "btn",
             Title = "Outline, shadow and glow effects",
@@ -156,18 +165,19 @@ public sealed class OptionsBar : Component
                 editor.ToggleTextFx();
                 editor.Refresh?.Invoke();
             },
-        }, Ui.Icon(Icons.Sparkles, "btn-icon"), Text("FX")),
-        Ui.Swatch("text-color-chip", editor.Foreground, "Text colour — click to open the colour panel", editor.OpenColourTab, 22, 22),
-        Ui.Button("Place", "Commit the text (Enter)", () =>
+        }, Ui.Icon(Icons.Sparkles, "btn-icon"), Text("FX")), Icons.Sparkles, "Text Effects", "options.fx"),
+        Ui.Tip(editor, Ui.Swatch("text-color-chip", editor.Foreground, "Text colour — click to open the colour panel", editor.OpenColourTab, 22, 22),
+            Icons.Palette, "Text Colour", "tab.colour"),
+        Ui.Tip(editor, Ui.Button("Place", "Commit the text (Enter)", () =>
         {
             editor.ApplyText();
             editor.Refresh?.Invoke();
-        }),
-        Ui.Button("Cancel", "Discard the text", () =>
+        }), Icons.Text, "Place Text", "options.place", "Enter"),
+        Ui.Tip(editor, Ui.Button("Cancel", "Discard the text", () =>
         {
             editor.CancelText();
             editor.Refresh?.Invoke();
-        }));
+        }), Icons.Close, "Cancel Text", "options.cancel"));
 
     /// <summary>Builds the compact font-import row shown in place of the text options.</summary>
     private static Node ImportOptions(PaintSession editor) => F(
@@ -273,8 +283,10 @@ public sealed class OptionsBar : Component
 
         PaintTool.Marquee or PaintTool.EllipseSelect or PaintTool.Lasso => F(
             Span(new() { ClassName = "options-note" }, Text(SelectionNote(editor.Tool))),
-            Ui.Button("Select all", "Select the whole document", editor.SelectAll),
-            Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null)),
+            Ui.Tip(editor, Ui.Button("Select all", "Select the whole document", editor.SelectAll),
+                Icons.Marquee, "Select All", "options.selectAll"),
+            Ui.Tip(editor, Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null),
+                Icons.Close, "Deselect", "options.deselect", "Esc")),
 
         PaintTool.MagicWand => F(
             Ui.Field("Tolerance", editor.MagicTolerance, 0f, 128f, 1f, string.Empty, value =>
@@ -288,8 +300,10 @@ public sealed class OptionsBar : Component
                 editor.Refresh?.Invoke();
             }),
             Span(new() { ClassName = "options-note" }, Text("Selects colours on the active layer")),
-            Ui.Button("Select all", "Select the whole document", editor.SelectAll),
-            Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null)),
+            Ui.Tip(editor, Ui.Button("Select all", "Select the whole document", editor.SelectAll),
+                Icons.Marquee, "Select All", "options.selectAll"),
+            Ui.Tip(editor, Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null),
+                Icons.Close, "Deselect", "options.deselect", "Esc")),
 
         PaintTool.Move => F(
             Span(new() { ClassName = "options-note" }, Text("Drag to move the selection, or a handle to resize it. With no selection, drag moves the layer.")),

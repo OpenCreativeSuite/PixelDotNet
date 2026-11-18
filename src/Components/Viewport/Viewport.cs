@@ -68,6 +68,18 @@ public sealed class Viewport : Component
             return;
         }
 
+        if (editor.OpenHelp is not null && key == "Escape")
+        {
+            editor.CloseHelp();
+            return;
+        }
+
+        if (editor.Tip is not null && key == "Escape")
+        {
+            editor.HideTip();
+            return;
+        }
+
         if (editor.IsTextFxOpen && key == "Escape")
         {
             editor.CloseTextFx();

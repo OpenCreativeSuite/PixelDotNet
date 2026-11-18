@@ -39,45 +39,65 @@ public sealed class App : Component
         var tick = StateWithUpdate(0);
         editor.Refresh = () => tick.Update(value => value + 1);
 
-        return Provider(EditorContext.Value, editor,
-            Div(new()
+        Ref<ElementNode> rootRef = UseRef<ElementNode>();
+        ElementNode root = (ElementNode)Div(new()
+        {
+            ClassName = "app",
+            // Shortcuts live on the root so any focused control (a tool, a
+            // tab, a slider) forwards them; the canvas itself never takes
+            // focus, so a stage-level handler would go quiet while painting.
+            OnKeyDown = key => Viewport.HandleShortcut(editor, key),
+        },
+            C<OptionsBar>(),
+            C<ToolRail>(),
+            C<Viewport>(),
+            C<SidePanel>(),
+            C<StatusBar>(),
+            // Late in the tree so its drop-downs are hit-tested before the
+            // stage they overlap.
+            C<MenuBar>(),
+            // Floating UI paints above the canvas because the display list
+            // honours z-index, so this is a real popup with its own input
+            // and scrolling rather than a canvas-drawn approximation.
+            Show(editor.IsFontMenuOpen, Div(new()
             {
-                ClassName = "app",
-                // Shortcuts live on the root so any focused control (a tool, a
-                // tab, a slider) forwards them; the canvas itself never takes
-                // focus, so a stage-level handler would go quiet while painting.
-                OnKeyDown = key => Viewport.HandleShortcut(editor, key),
-            },
-                C<OptionsBar>(),
-                C<ToolRail>(),
-                C<Viewport>(),
-                C<SidePanel>(),
-                C<StatusBar>(),
-                // Late in the tree so its drop-downs are hit-tested before the
-                // stage they overlap.
-                C<MenuBar>(),
-                // Floating UI paints above the canvas because the display list
-                // honours z-index, so this is a real popup with its own input
-                // and scrolling rather than a canvas-drawn approximation.
-                Show(editor.IsFontMenuOpen, Div(new()
+                ClassName = "font-backdrop",
+                OnClick = () =>
                 {
-                    ClassName = "font-backdrop",
-                    OnClick = () =>
-                    {
-                        editor.CloseFontMenu();
-                        editor.Refresh?.Invoke();
-                    },
-                })),
-                Show(editor.IsFontMenuOpen, C<FontPicker>()),
-                Show(editor.IsTextFxOpen, Div(new()
+                    editor.CloseFontMenu();
+                    editor.Refresh?.Invoke();
+                },
+            })),
+            Show(editor.IsFontMenuOpen, C<FontPicker>()),
+            Show(editor.IsTextFxOpen, Div(new()
+            {
+                ClassName = "font-backdrop",
+                OnClick = () =>
                 {
-                    ClassName = "font-backdrop",
-                    OnClick = () =>
-                    {
-                        editor.CloseTextFx();
-                        editor.Refresh?.Invoke();
-                    },
-                })),
-                Show(editor.IsTextFxOpen, C<TextFxPanel>())));
+                    editor.CloseTextFx();
+                    editor.Refresh?.Invoke();
+                },
+            })),
+            Show(editor.IsTextFxOpen, C<TextFxPanel>()),
+            Show(editor.Tip is not null, C<TooltipOverlay>()),
+            Show(editor.OpenHelp is not null, Div(new()
+            {
+                ClassName = "help-backdrop",
+                OnClick = () =>
+                {
+                    editor.CloseHelp();
+                    editor.Refresh?.Invoke();
+                },
+            })),
+            Show(editor.OpenHelp is not null, C<HelpModal>()));
+
+        root.BindRef(rootRef);
+        if (rootRef.Value is { Width: > 0, Height: > 0 } bounds)
+        {
+            editor.ViewportWidth = bounds.Width;
+            editor.ViewportHeight = bounds.Height;
+        }
+
+        return Provider(EditorContext.Value, editor, root);
     }
 }

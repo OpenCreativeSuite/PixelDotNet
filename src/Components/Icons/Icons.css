@@ -225,3 +225,7 @@
 .fa-chevron-down::before {
     content: "\f078";
 }
+
+.fa-circle-info::before {
+    content: "\f05a";
+}

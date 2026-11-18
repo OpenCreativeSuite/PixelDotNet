@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using PixelDotNet.Help;
 
 namespace PixelDotNet.Paint;
 
@@ -207,6 +208,58 @@ public sealed class PaintSession
     /// <summary>Gets or sets the name of the open menu, or null when all are closed.</summary>
     public string? OpenMenu { get; set; }
 
+    /// <summary>Gets the tooltip currently shown, or null when the pointer is not over a control.</summary>
+    public TipState? Tip { get; private set; }
+
+    /// <summary>Gets the help article shown in the modal, or null when it is closed.</summary>
+    public HelpTopic? OpenHelp { get; private set; }
+
+    /// <summary>Gets or sets the viewport width used to place the tooltip.</summary>
+    public float ViewportWidth { get; set; } = 1440f;
+
+    /// <summary>Gets or sets the viewport height used to place the tooltip.</summary>
+    public float ViewportHeight { get; set; } = 900f;
+
+    /// <summary>Shows a tooltip anchored to a control's last bounding box.</summary>
+    public void ShowTip(TipState tip)
+    {
+        Tip = tip;
+        Changed();
+    }
+
+    /// <summary>Hides the current tooltip.</summary>
+    public void HideTip()
+    {
+        if (Tip is null)
+        {
+            return;
+        }
+
+        Tip = null;
+        Changed();
+    }
+
+    /// <summary>Opens a help article in the modal.</summary>
+    public void ShowHelp(HelpTopic topic)
+    {
+        OpenHelp = topic;
+        Tip = null;
+        Status = "Help: " + topic.Title;
+        Changed();
+    }
+
+    /// <summary>Closes the help modal.</summary>
+    public void CloseHelp()
+    {
+        if (OpenHelp is null)
+        {
+            return;
+        }
+
+        OpenHelp = null;
+        Changed();
+    }
+
     /// <summary>Gets or sets the callback that re-renders the components.</summary>
     public Action? Refresh { get; set; }
 
@@ -318,6 +371,7 @@ public sealed class PaintSession
         ColorTarget = TextColorTarget.Fill;
         _lassoing = false;
         _lassoPoints.Clear();
+        Tip = null;
         Status = NameOf(tool) + " tool";
         Changed();
     }
@@ -396,6 +450,7 @@ public sealed class PaintSession
     /// <summary>Opens an inspector tab: 0 layers, 1 colour, 2 adjust, 3 history, 4 effects.</summary>
     public void OpenSideTab(int tab)
     {
+        Tip = null;
         SideTab = Math.Clamp(tab, 0, 4);
         Changed();
     }
@@ -473,6 +528,7 @@ public sealed class PaintSession
     /// <summary>Toggles a top-level menu open or closed.</summary>
     public void ToggleMenu(string name)
     {
+        Tip = null;
         OpenMenu = OpenMenu == name ? null : name;
         Changed();
     }
@@ -494,6 +550,7 @@ public sealed class PaintSession
     /// <summary>Starts a pointer interaction at a canvas-local position.</summary>
     public void PointerDown(float localX, float localY)
     {
+        Tip = null;
         // Painting on top of a live effect preview must lock in the preview first,
         // otherwise the next slider move would erase the stroke.
         (float documentX, float documentY) = ToDocument(localX, localY);
@@ -2151,6 +2208,7 @@ public sealed class PaintSession
     /// <summary>Opens or closes the font picker menu.</summary>
     public void ToggleFontMenu()
     {
+        Tip = null;
         IsFontMenuOpen = !IsFontMenuOpen;
         IsFontSearchFocused = false;
         if (IsFontMenuOpen)
@@ -2454,6 +2512,7 @@ public sealed class PaintSession
     /// <summary>Opens or closes the text effects popup.</summary>
     public void ToggleTextFx()
     {
+        Tip = null;
         IsTextFxOpen = !IsTextFxOpen;
         if (IsTextFxOpen)
         {

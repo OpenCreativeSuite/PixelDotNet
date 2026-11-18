@@ -94,27 +94,34 @@ public sealed class MenuBar : Component
             Each(Menus, menu => (Node)Menu(editor, menu)),
             Div(new() { ClassName = "menu-spacer" }),
             Div(new() { ClassName = "quick" },
-                Ui.IconButton(Icons.Undo, "Undo the last step (Z)", editor.Undo, editor.CanUndo, className: "quick-btn"),
-                Ui.IconButton(Icons.Redo, "Redo the last undone step (Y)", editor.Redo, editor.CanRedo, className: "quick-btn"),
+                Ui.Tip(editor,
+                    Ui.IconButton(Icons.Undo, "Undo the last step (Z)", editor.Undo, editor.CanUndo, className: "quick-btn"),
+                    Icons.Undo, "Undo", "quick.undo", "Z"),
+                Ui.Tip(editor,
+                    Ui.IconButton(Icons.Redo, "Redo the last undone step (Y)", editor.Redo, editor.CanRedo, className: "quick-btn"),
+                    Icons.Redo, "Redo", "quick.redo", "Y"),
                 Div(new() { ClassName = "quick-sep" }),
-                Ui.IconButton(Icons.Save, "Write a PNG to your Pictures folder", editor.SavePng, className: "quick-btn is-primary")));
+                Ui.Tip(editor,
+                    Ui.IconButton(Icons.Save, "Write a PNG to your Pictures folder", editor.SavePng, className: "quick-btn is-primary"),
+                    Icons.Save, "Save PNG", "quick.save", "Ctrl+S")));
     }
 
     /// <summary>Builds one menu title plus its drop-down.</summary>
     private static Node Menu(PaintSession editor, MenuDefinition definition)
     {
         bool open = editor.OpenMenu == definition.Title;
+        Node title = Button(new()
+        {
+            ClassName = open ? "menu-title is-open" : "menu-title",
+            OnClick = () =>
+            {
+                editor.CloseFontMenu();
+                editor.ToggleMenu(definition.Title);
+            },
+        }, Text(definition.Title));
 
         return Div(new() { ClassName = "menu" },
-            Button(new()
-            {
-                ClassName = open ? "menu-title is-open" : "menu-title",
-                OnClick = () =>
-                {
-                    editor.CloseFontMenu();
-                    editor.ToggleMenu(definition.Title);
-                },
-            }, Text(definition.Title)),
+            Ui.Tip(editor, title, MenuIcon(definition.Title), definition.Title, "menu." + definition.Title.ToLowerInvariant()),
             Show(open, Div(new() { ClassName = "menu-list" },
                 Each(definition.Items, item => (Node)Button(new()
                 {
@@ -129,4 +136,15 @@ public sealed class MenuBar : Component
                 Span(new() { ClassName = "menu-item-label" }, Text(item.Label)),
                 Span(new() { ClassName = "menu-item-key" }, Text(item.Shortcut)))))));
     }
+
+    /// <summary>Picks the tooltip icon for a top-level menu.</summary>
+    private static string MenuIcon(string title) => title switch
+    {
+        "File" => Icons.Save,
+        "Edit" => Icons.Sliders,
+        "Image" => Icons.Document,
+        "Layer" => Icons.Flatten,
+        "Select" => Icons.Marquee,
+        _ => Icons.Zoom,
+    };
 }

@@ -62,11 +62,15 @@ public sealed class LayersPanel : Component
                         Span(new() { ClassName = "prop-value" }, Text(Ui.Format(active.Opacity * 100f) + "%"))))),
             Div(new() { ClassName = "layer-list" }, [.. rows]),
             Div(new() { ClassName = "layer-actions" },
-                Ui.IconButton(Icons.Plus, "New layer", editor.AddLayer),
-                Ui.IconButton(Icons.Duplicate, "Duplicate the active layer", editor.DuplicateLayer, regular: true),
-                Ui.IconButton(Icons.MergeDown, "Merge the active layer down", editor.MergeDown, document.ActiveIndex > 0),
+                Ui.Tip(editor, Ui.IconButton(Icons.Plus, "New layer", editor.AddLayer),
+                    Icons.Plus, "New Layer", "layer.new", "Ctrl+Shift+N"),
+                Ui.Tip(editor, Ui.IconButton(Icons.Duplicate, "Duplicate the active layer", editor.DuplicateLayer, regular: true),
+                    Icons.Duplicate, "Duplicate Layer", "layer.duplicate", "Ctrl+J"),
+                Ui.Tip(editor, Ui.IconButton(Icons.MergeDown, "Merge the active layer down", editor.MergeDown, document.ActiveIndex > 0),
+                    Icons.MergeDown, "Merge Down", "layer.merge", "Ctrl+E"),
                 Div(new() { ClassName = "actions-spacer" }),
-                Ui.IconButton(Icons.Delete, "Delete the active layer", editor.DeleteActiveLayer, document.Layers.Count > 1, regular: true)));
+                Ui.Tip(editor, Ui.IconButton(Icons.Delete, "Delete the active layer", editor.DeleteActiveLayer, document.Layers.Count > 1, regular: true),
+                    Icons.Delete, "Delete Layer", "layer.delete")));
     }
 
     /// <summary>Steps the active layer's blend mode through the list.</summary>
@@ -110,18 +114,24 @@ public sealed class LayersPanel : Component
             Span(new() { ClassName = "layer-name" }, Text(layer.Name)),
             Span(new() { ClassName = "layer-meta" },
                 Text($"{LabelOf(layer.Blend)} · {Ui.Format(layer.Opacity * 100f)}%"))),
-        Button(new()
+        Ui.Tip(editor, Button(new()
         {
             ClassName = layer.Locked ? "layer-btn is-on" : "layer-btn is-dim",
             Title = layer.Locked ? "Unlock the layer" : "Lock the layer",
             OnClick = () => editor.ToggleLock(index),
         }, Ui.Icon(layer.Locked ? Icons.Lock : Icons.Unlock)),
-        Button(new()
+        layer.Locked ? Icons.Lock : Icons.Unlock,
+        layer.Locked ? "Unlock Layer" : "Lock Layer",
+        "layer.lock"),
+        Ui.Tip(editor, Button(new()
         {
             ClassName = layer.Visible ? "layer-btn" : "layer-btn is-dim",
             Title = layer.Visible ? "Hide the layer" : "Show the layer",
             OnClick = () => editor.ToggleLayer(index),
-        }, Ui.Icon(layer.Visible ? Icons.Eye : Icons.EyeOff, regular: true)));
+        }, Ui.Icon(layer.Visible ? Icons.Eye : Icons.EyeOff, regular: true)),
+        layer.Visible ? Icons.Eye : Icons.EyeOff,
+        layer.Visible ? "Hide Layer" : "Show Layer",
+        "layer.visible"));
     }
 
     /// <summary>

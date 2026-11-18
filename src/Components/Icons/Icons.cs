@@ -134,6 +134,15 @@ public static class Icons
     /// <summary>Sparkles, used by the text effects button.</summary>
     public const string Sparkles = "fa-wand-magic-sparkles";
 
+    /// <summary>Colour palette, used by the Colour tab.</summary>
+    public const string Palette = "fa-palette";
+
+    /// <summary>Adjustment sliders, used by the Adjust tab.</summary>
+    public const string Sliders = "fa-sliders";
+
+    /// <summary>Information circle, used by generic help topics.</summary>
+    public const string Info = "fa-circle-info";
+
     /// <summary>Gets the glyph for a tool.</summary>
     public static string ForTool(PaintTool tool) => tool switch
     {

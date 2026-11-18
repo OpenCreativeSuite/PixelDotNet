@@ -18,14 +18,17 @@ public sealed class StatusBar : Component
 
         return Div(new() { ClassName = "statusbar" },
             Div(new() { ClassName = "status-zoom" },
-                Ui.IconButton(Icons.Minus, "Zoom out", editor.ZoomOut, className: "status-btn"),
-                Button(new()
+                Ui.Tip(editor, Ui.IconButton(Icons.Minus, "Zoom out", editor.ZoomOut, className: "status-btn"),
+                    Icons.Minus, "Zoom Out", "status.zoomOut", "Ctrl+-"),
+                Ui.Tip(editor, Button(new()
                 {
                     ClassName = "status-item is-strong status-zoom-reset",
                     Title = "Reset to actual pixels (100%)",
                     OnClick = editor.ActualPixels,
                 }, Text(Ui.Format(editor.Zoom * 100f) + "%")),
-                Ui.IconButton(Icons.Plus, "Zoom in", editor.ZoomIn, className: "status-btn")),
+                Icons.Zoom, "Actual Pixels", "status.zoomReset", "Ctrl+0"),
+                Ui.Tip(editor, Ui.IconButton(Icons.Plus, "Zoom in", editor.ZoomIn, className: "status-btn"),
+                    Icons.Plus, "Zoom In", "status.zoomIn", "Ctrl++")),
             Span(new() { ClassName = "status-sep" }),
             Span(new() { ClassName = "status-item" }, Text($"{document.Width} × {document.Height} px")),
             Span(new() { ClassName = "status-sep" }),

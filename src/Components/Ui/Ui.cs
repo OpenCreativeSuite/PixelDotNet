@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
+using Donkeh.Hosting;
 using Donkeh.UILab;
 using Donkeh.Windowing;
+using PixelDotNet.Help;
+using PixelDotNet.Paint;
 using static Donkeh.UILab.HtmlHelper;
 using static Donkeh.UILab._;
 
@@ -203,4 +207,45 @@ internal static class Ui
 
     /// <summary>Makes a colour opaque.</summary>
     public static uint RgbaOpaque(uint color) => 0xFF000000u | (color & 0x00FFFFFFu);
+
+    /// <summary>
+    /// Attaches a hover tooltip to a control. The control's own layout is left
+    /// untouched; the floating bubble is rendered at the application root from the
+    /// control's last bounding box.
+    /// </summary>
+    public static Node Tip(
+        PaintSession editor,
+        Node content,
+        string icon,
+        string title,
+        string helpId,
+        string hint = "")
+    {
+        if (content is not ElementNode element)
+        {
+            return content;
+        }
+
+        // The event is copied from the freshly rendered element onto the live
+        // one, so capture a ref instead of the render-time node: the layout
+        // engine writes bounds to the live node only.
+        Ref<ElementNode> reference = new();
+        element.BindRef(reference);
+
+        element.On("mouseover", (Action)(() =>
+        {
+            ElementNode target = reference.Value ?? element;
+            editor.ShowTip(new TipState(
+                icon,
+                title,
+                hint,
+                helpId,
+                target.PositionX,
+                target.PositionY,
+                target.Width,
+                target.Height));
+        }));
+
+        return content;
+    }
 }
