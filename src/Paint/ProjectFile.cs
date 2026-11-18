@@ -20,7 +20,7 @@ public static class ProjectFile
     public const string Extension = ".pxd";
 
     private const string Signature = "PXDP";
-    private const int Version = 4;
+    private const int Version = 5;
 
     /// <summary>Gets whether a file name has the project extension.</summary>
     public static bool IsProject(string path) =>
@@ -135,6 +135,16 @@ public static class ProjectFile
                 writer.Write(shape.StrokeWidth);
                 writer.Write(shape.FillColor);
                 writer.Write(shape.StrokeColor);
+
+                if (shape.Kind == ShapeKind.Path && shape.Points is { } points)
+                {
+                    writer.Write(points.Count);
+                    foreach ((float x, float y) in points)
+                    {
+                        writer.Write(x);
+                        writer.Write(y);
+                    }
+                }
             }
 
             byte[] pixels = new byte[layer.Pixels.Length * sizeof(uint)];
@@ -321,7 +331,7 @@ public static class ProjectFile
 
             if (version >= 4 && reader.ReadBoolean())
             {
-                layer.AdoptShape(new ShapeData
+                ShapeData shape = new()
                 {
                     Kind = (ShapeKind)reader.ReadInt32(),
                     X = reader.ReadSingle(),
@@ -332,7 +342,26 @@ public static class ProjectFile
                     StrokeWidth = reader.ReadSingle(),
                     FillColor = reader.ReadUInt32(),
                     StrokeColor = reader.ReadUInt32(),
-                });
+                };
+
+                if (version >= 5 && shape.Kind == ShapeKind.Path)
+                {
+                    int count = reader.ReadInt32();
+                    if (count < 2 || count > 100000)
+                    {
+                        throw new InvalidDataException("A path has an invalid point count.");
+                    }
+
+                    List<(float X, float Y)> points = new(count);
+                    for (int point = 0; point < count; point++)
+                    {
+                        points.Add((reader.ReadSingle(), reader.ReadSingle()));
+                    }
+
+                    shape.Points = points;
+                }
+
+                layer.AdoptShape(shape);
             }
 
             int pixelBytes = reader.ReadInt32();

@@ -247,6 +247,21 @@ public sealed class Viewport : Component
             return;
         }
 
+        if (editor.Tool == PaintTool.Pen && editor.IsPenActive)
+        {
+            if (key == "Escape")
+            {
+                editor.CancelPenPath();
+                return;
+            }
+
+            if (key is "Return" or "Enter")
+            {
+                editor.FinishPenPath();
+                return;
+            }
+        }
+
         switch (key)
         {
             case "V":
@@ -290,6 +305,9 @@ public sealed class Viewport : Component
                 break;
             case "O":
                 editor.SelectTool(PaintTool.Ellipse);
+                break;
+            case "P":
+                editor.SelectTool(PaintTool.Pen);
                 break;
             case "G":
                 editor.SelectTool(PaintTool.Gradient);

@@ -150,6 +150,9 @@ public sealed class PaintSession
     private float _shapeStartY;
     private int _shapePreviousIndex;
     private ShapeData? _shapeEditBackup;
+    private readonly List<(float X, float Y)> _penPoints = [];
+    private float _penPreviewX;
+    private float _penPreviewY;
     private bool _quickSelecting;
     private bool _quickSubtractGesture;
     private byte[]? _quickMask;
@@ -300,6 +303,18 @@ public sealed class PaintSession
 
     /// <summary>Gets the editable shape data for the dialog.</summary>
     public ShapeData? ShapeEditTarget => ShapeEditLayer?.Shape;
+
+    /// <summary>Gets whether a pen path is in progress.</summary>
+    public bool IsPenActive => _penPoints.Count > 0;
+
+    /// <summary>Gets the points placed so far by the pen tool.</summary>
+    public IReadOnlyList<(float X, float Y)> PenPoints => _penPoints;
+
+    /// <summary>Gets the pen preview X.</summary>
+    public float PenPreviewX => _penPreviewX;
+
+    /// <summary>Gets the pen preview Y.</summary>
+    public float PenPreviewY => _penPreviewY;
 
     /// <summary>Gets whether brush and eraser strokes currently edit the active layer's mask.</summary>
     public bool MaskEditing { get; private set; }
@@ -522,6 +537,7 @@ public sealed class PaintSession
         PaintTool.Line => "Line",
         PaintTool.Rectangle => "Rectangle",
         PaintTool.Ellipse => "Ellipse",
+        PaintTool.Pen => "Pen",
         PaintTool.Gradient => "Gradient",
         PaintTool.Bucket => "Paint Bucket",
         PaintTool.Eyedropper => "Eyedropper",
@@ -546,6 +562,7 @@ public sealed class PaintSession
         PaintTool.Line => "L",
         PaintTool.Rectangle => "R",
         PaintTool.Ellipse => "O",
+        PaintTool.Pen => "P",
         PaintTool.Gradient => "G",
         PaintTool.Bucket => "K",
         PaintTool.Eyedropper => "I",
@@ -565,6 +582,11 @@ public sealed class PaintSession
         if (_shapeLayer is not null)
         {
             FinishShapeLayer();
+        }
+
+        if (tool != PaintTool.Pen && _penPoints.Count > 0)
+        {
+            CancelPenPath();
         }
 
         Tool = tool;
@@ -1087,6 +1109,12 @@ public sealed class PaintSession
             return;
         }
 
+        if (Tool == PaintTool.Pen)
+        {
+            PenPointerDown(documentX, documentY);
+            return;
+        }
+
         if (Document.Active.IsSmartObject || Document.Active.IsShapeLayer)
         {
             Status = "Rasterize the layer to paint";
@@ -1169,6 +1197,18 @@ public sealed class PaintSession
         if (_shapeLayer is not null)
         {
             UpdateShapeLayer(documentX, documentY);
+            return;
+        }
+
+        if (Tool == PaintTool.Pen)
+        {
+            _penPreviewX = documentX;
+            _penPreviewY = documentY;
+            if (_penPoints.Count > 0)
+            {
+                Changed();
+            }
+
             return;
         }
 
@@ -1281,6 +1321,11 @@ public sealed class PaintSession
         if (_shapeLayer is not null)
         {
             FinishShapeLayer();
+            return;
+        }
+
+        if (Tool == PaintTool.Pen)
+        {
             return;
         }
 
@@ -5659,6 +5704,106 @@ public sealed class PaintSession
     }
 
     // ---- shape layers ------------------------------------------------------
+
+    /// <summary>Adds a pen point, closing the path when the first point is hit.</summary>
+    private void PenPointerDown(float x, float y)
+    {
+        if (_penPoints.Count >= 3)
+        {
+            (float firstX, float firstY) = _penPoints[0];
+            float threshold = 8f / MathF.Max(Zoom, 0.05f);
+            float dx = x - firstX;
+            float dy = y - firstY;
+            if ((dx * dx) + (dy * dy) <= threshold * threshold)
+            {
+                FinishPenPath();
+                return;
+            }
+        }
+
+        if (_penPoints.Count > 0)
+        {
+            (float lastX, float lastY) = _penPoints[^1];
+            float dx = x - lastX;
+            float dy = y - lastY;
+            if ((dx * dx) + (dy * dy) < 1f)
+            {
+                return;
+            }
+        }
+
+        _penPoints.Add((x, y));
+        _penPreviewX = x;
+        _penPreviewY = y;
+        Status = $"Pen: {_penPoints.Count} point{(_penPoints.Count == 1 ? string.Empty : "s")}; click the first point to close";
+        Changed();
+    }
+
+    /// <summary>Closes the pen path and creates a path shape layer.</summary>
+    public void FinishPenPath()
+    {
+        if (_penPoints.Count < 3)
+        {
+            CancelPenPath();
+            return;
+        }
+
+        PushUndo("Pen Path");
+
+        float left = float.MaxValue;
+        float top = float.MaxValue;
+        float right = float.MinValue;
+        float bottom = float.MinValue;
+        foreach ((float x, float y) in _penPoints)
+        {
+            left = MathF.Min(left, x);
+            top = MathF.Min(top, y);
+            right = MathF.Max(right, x);
+            bottom = MathF.Max(bottom, y);
+        }
+
+        List<(float X, float Y)> points = [.. _penPoints];
+        LayerGroup? group = Document.Active.Group;
+        PaintLayer layer = new(FreeLayerName("Path"), Document.Width, Document.Height)
+        {
+            Group = group,
+        };
+
+        layer.AdoptShape(new ShapeData
+        {
+            Kind = ShapeKind.Path,
+            X = left,
+            Y = top,
+            Width = right - left,
+            Height = bottom - top,
+            Fill = FillShapes,
+            StrokeWidth = MathF.Max(1f, StrokeWidth),
+            FillColor = Foreground,
+            StrokeColor = Foreground,
+            Points = points,
+        });
+
+        int insertAt = Math.Clamp(Document.ActiveIndex + 1, 0, Document.Layers.Count);
+        Document.Layers.Insert(insertAt, layer);
+        Document.ActiveIndex = insertAt;
+        _penPoints.Clear();
+        Document.MarkDirty();
+        Status = "Path created";
+        Changed();
+    }
+
+    /// <summary>Drops an in-progress pen path.</summary>
+    public void CancelPenPath()
+    {
+        if (_penPoints.Count == 0)
+        {
+            return;
+        }
+
+        _penPoints.Clear();
+        Status = "Pen cancelled";
+        Changed();
+    }
 
     /// <summary>Starts a shape layer from a drag on a shape tool.</summary>
     private void BeginShapeLayer(float x, float y)

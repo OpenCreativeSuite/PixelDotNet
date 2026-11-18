@@ -225,6 +225,18 @@ public static class HelpCatalog
                 "Pair it with the elliptical selection for matching shapes.",
             ]);
 
+        Add("tool.pen", Icons.PenNib, "Pen", "P",
+            "Build a closed polygon path point by point.",
+            [
+                "Click to add an anchor; click the first point again or press Enter to close the path.",
+                "The finished path becomes an editable shape layer, filled or stroked with the current colour.",
+                "Esc cancels a path in progress.",
+            ],
+            [
+                "Use Fill for solid silhouettes and Stroke for outlined artwork.",
+                "The path stays editable from Layer > Edit Shape until you rasterize it.",
+            ]);
+
         Add("tool.gradient", Icons.Gradient, "Gradient", "G",
             "Drags a linear gradient from the foreground to the background colour.",
             [

@@ -45,6 +45,9 @@ public enum PaintTool
     /// <summary>Drags an ellipse, filled or outlined.</summary>
     Ellipse,
 
+    /// <summary>Click points to build a closed polygon path.</summary>
+    Pen,
+
     /// <summary>Drags a two-colour linear gradient.</summary>
     Gradient,
 

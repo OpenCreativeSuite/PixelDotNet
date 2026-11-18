@@ -206,6 +206,52 @@ public sealed class CanvasSurface : Component
         DrawTextTransform(context, editor, zoom);
         DrawBrushOutline(context, editor, zoom, canvasNode);
         DrawMeshWarp(context, editor, zoom);
+        DrawPenPath(context, editor, zoom);
+    }
+
+    /// <summary>Draws the in-progress pen path and its anchor points.</summary>
+    private static void DrawPenPath(CanvasContext context, PaintSession editor, float zoom)
+    {
+        if (!editor.IsPenActive || editor.Tool != PaintTool.Pen)
+        {
+            return;
+        }
+
+        IReadOnlyList<(float X, float Y)> points = editor.PenPoints;
+        const uint Line = 0xCCFFC24D;
+
+        for (int i = 0; i + 1 < points.Count; i++)
+        {
+            DrawLine(
+                context,
+                points[i].X * zoom,
+                points[i].Y * zoom,
+                points[i + 1].X * zoom,
+                points[i + 1].Y * zoom,
+                Line);
+        }
+
+        (float lastX, float lastY) = points[^1];
+        DrawLine(
+            context,
+            lastX * zoom,
+            lastY * zoom,
+            editor.PenPreviewX * zoom,
+            editor.PenPreviewY * zoom,
+            0x992F8DF0);
+
+        for (int i = 0; i < points.Count; i++)
+        {
+            float x = points[i].X * zoom;
+            float y = points[i].Y * zoom;
+            bool first = i == 0 && points.Count >= 3;
+            context.FillEllipse(
+                new Rect(x - 4.5f, y - 4.5f, 9f, 9f),
+                first ? 0xFFFFC24D : 0xFFFFFFFF);
+            context.FillEllipse(
+                new Rect(x - 2.5f, y - 2.5f, 5f, 5f),
+                0xFF101215);
+        }
     }
 
     /// <summary>Draws the mesh warp grid and its draggable control points.</summary>

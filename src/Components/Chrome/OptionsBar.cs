@@ -400,6 +400,26 @@ public sealed class OptionsBar : Component
 
         PaintTool.Text => editor.IsFontAddOpen ? ImportOptions(editor) : TextOptions(editor),
 
+        PaintTool.Pen => F(
+            Div(new() { ClassName = "segmented" },
+                Ui.Toggle("Fill", "Fill the path", editor.FillShapes, () =>
+                {
+                    editor.FillShapes = true;
+                    editor.Refresh?.Invoke();
+                }),
+                Ui.Toggle("Stroke", "Outline the path", !editor.FillShapes, () =>
+                {
+                    editor.FillShapes = false;
+                    editor.Refresh?.Invoke();
+                })),
+            Ui.Field("Width", editor.StrokeWidth, 1f, 40f, 1f, " px", value =>
+            {
+                editor.StrokeWidth = Ui.Parse(value, 1f, 40f);
+                editor.Refresh?.Invoke();
+            }),
+            Span(new() { ClassName = "options-note" }, Text("Click to add points; click the first point or press Enter to close")),
+            Ui.Button("Finish", "Close the path", editor.FinishPenPath, editor.IsPenActive)),
+
         PaintTool.Eyedropper => Span(new() { ClassName = "options-note" }, Text("Click anywhere to sample the composited colour")),
 
         _ => Span(new() { ClassName = "options-note" }, Text("Click to zoom in, right-click to zoom out")),

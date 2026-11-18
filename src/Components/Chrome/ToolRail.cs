@@ -16,7 +16,7 @@ public sealed class ToolRail : Component
         [PaintTool.Marquee, PaintTool.EllipseSelect, PaintTool.Lasso, PaintTool.MagicWand, PaintTool.QuickSelect],
         [PaintTool.Brush, PaintTool.Eraser],
         [PaintTool.CloneStamp, PaintTool.HealingBrush, PaintTool.DodgeBurn],
-        [PaintTool.Line, PaintTool.Rectangle, PaintTool.Ellipse],
+        [PaintTool.Line, PaintTool.Rectangle, PaintTool.Ellipse, PaintTool.Pen],
         [PaintTool.Gradient, PaintTool.Bucket, PaintTool.Eyedropper],
         [PaintTool.Text],
         [PaintTool.Zoom],

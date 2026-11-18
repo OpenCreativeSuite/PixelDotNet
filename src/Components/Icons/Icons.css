@@ -210,6 +210,10 @@
     content: "\f1b2";
 }
 
+.fa-pen-nib::before {
+    content: "\f5a9";
+}
+
 .fa-crop-simple::before {
     content: "\f565";
 }

@@ -143,6 +143,9 @@ public static class Icons
     /// <summary>A smart object.</summary>
     public const string SmartObject = "fa-cube";
 
+    /// <summary>The pen tool.</summary>
+    public const string PenNib = "fa-pen-nib";
+
     /// <summary>The text tool.</summary>
     public const string Text = "fa-font";
 
@@ -202,6 +205,7 @@ public static class Icons
         PaintTool.Line => Line,
         PaintTool.Rectangle => Rectangle,
         PaintTool.Ellipse => Ellipse,
+        PaintTool.Pen => PenNib,
         PaintTool.Gradient => Gradient,
         PaintTool.Bucket => Bucket,
         PaintTool.Eyedropper => Eyedropper,

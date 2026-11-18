@@ -36,22 +36,26 @@ public sealed class ShapeEditDialog : Component
                         Icons.Close, "Cancel", "")),
                 Div(new() { ClassName = "style-body" },
                     Div(new() { ClassName = "style-rows" },
-                        Slider("X", shape.X, -4000f, 4000f, 1f, " px", editor, value =>
-                        {
-                            shape.X = value;
-                        }),
-                        Slider("Y", shape.Y, -4000f, 4000f, 1f, " px", editor, value =>
-                        {
-                            shape.Y = value;
-                        }),
-                        Slider("Width", shape.Width, 0f, 8000f, 1f, " px", editor, value =>
-                        {
-                            shape.Width = value;
-                        }),
-                        Slider("Height", shape.Height, 0f, 8000f, 1f, " px", editor, value =>
-                        {
-                            shape.Height = value;
-                        }),
+                        Show(shape.Kind != ShapeKind.Path,
+                            Slider("X", shape.X, -4000f, 4000f, 1f, " px", editor, value =>
+                            {
+                                shape.X = value;
+                            })),
+                        Show(shape.Kind != ShapeKind.Path,
+                            Slider("Y", shape.Y, -4000f, 4000f, 1f, " px", editor, value =>
+                            {
+                                shape.Y = value;
+                            })),
+                        Show(shape.Kind != ShapeKind.Path,
+                            Slider("Width", shape.Width, 0f, 8000f, 1f, " px", editor, value =>
+                            {
+                                shape.Width = value;
+                            })),
+                        Show(shape.Kind != ShapeKind.Path,
+                            Slider("Height", shape.Height, 0f, 8000f, 1f, " px", editor, value =>
+                            {
+                                shape.Height = value;
+                            })),
                         Slider("Stroke", shape.StrokeWidth, 1f, 40f, 1f, " px", editor, value =>
                         {
                             shape.StrokeWidth = value;
