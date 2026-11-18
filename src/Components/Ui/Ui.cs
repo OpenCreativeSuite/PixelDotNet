@@ -219,9 +219,11 @@ internal static class Ui
         string icon,
         string title,
         string helpId,
-        string hint = "")
+        string hint = "",
+        TipPlacement placement = TipPlacement.Auto,
+        bool keepNameWhenDisabled = false)
     {
-        if (content is not ElementNode element)
+        if ((!editor.ShowTooltips && !keepNameWhenDisabled) || content is not ElementNode element)
         {
             return content;
         }
@@ -240,10 +242,24 @@ internal static class Ui
                 title,
                 hint,
                 helpId,
+                placement,
+                editor.ShowTooltips,
                 target.PositionX,
                 target.PositionY,
                 target.Width,
                 target.Height));
+        }));
+
+        element.On("mouseout", (Action)(() =>
+        {
+            int generation = editor.TipGeneration;
+            Task.Delay(160).ContinueWith(_ => Host.Post(() =>
+            {
+                if (editor.TipGeneration == generation && !editor.TipHovered)
+                {
+                    editor.HideTip();
+                }
+            }));
         }));
 
         return content;

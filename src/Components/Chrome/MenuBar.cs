@@ -1,5 +1,6 @@
 using System;
 using Donkeh.UILab;
+using PixelDotNet.Help;
 using PixelDotNet.Paint;
 using static Donkeh.UILab.HtmlHelper;
 using static Donkeh.UILab._;
@@ -76,6 +77,11 @@ public sealed class MenuBar : Component
             new("Next Document", "Ctrl+Tab", session => session.DocumentCount > 1, session => session.NextDocument()),
             new("Previous Document", "Ctrl+Shift+Tab", session => session.DocumentCount > 1, session => session.PreviousDocument()),
         ]),
+        new("Help",
+        [
+            new("Enable Tooltips", "", session => !session.ShowTooltips, session => session.ToggleTooltips()),
+            new("Disable Tooltips", "", session => session.ShowTooltips, session => session.ToggleTooltips()),
+        ]),
     ];
 
     /// <inheritdoc/>
@@ -121,7 +127,7 @@ public sealed class MenuBar : Component
         }, Text(definition.Title));
 
         return Div(new() { ClassName = "menu" },
-            Ui.Tip(editor, title, MenuIcon(definition.Title), definition.Title, "menu." + definition.Title.ToLowerInvariant()),
+            Ui.Tip(editor, title, MenuIcon(definition.Title), definition.Title, "menu." + definition.Title.ToLowerInvariant(), "", TipPlacement.Below),
             Show(open, Div(new() { ClassName = "menu-list" },
                 Each(definition.Items, item => (Node)Button(new()
                 {
@@ -145,6 +151,7 @@ public sealed class MenuBar : Component
         "Image" => Icons.Document,
         "Layer" => Icons.Flatten,
         "Select" => Icons.Marquee,
+        "Help" => Icons.Info,
         _ => Icons.Zoom,
     };
 }

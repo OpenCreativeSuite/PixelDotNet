@@ -4,11 +4,29 @@ using PixelDotNet.Components;
 
 namespace PixelDotNet.Help;
 
+/// <summary>Preferred anchor for a tooltip bubble.</summary>
+public enum TipPlacement
+{
+    /// <summary>Let the overlay choose the side with room.</summary>
+    Auto,
+
+    /// <summary>Put the bubble to the right of the control.</summary>
+    Right,
+
+    /// <summary>Put the bubble below the control.</summary>
+    Below,
+
+    /// <summary>Put the bubble to the left of the control.</summary>
+    Left,
+}
+
 /// <summary>The tooltip currently shown over the canvas chrome.</summary>
 /// <param name="Icon">Font Awesome class for the icon.</param>
 /// <param name="Title">Name of the control.</param>
 /// <param name="Hint">Keyboard shortcut, or an empty string.</param>
 /// <param name="HelpId">Help article opened by the chevron.</param>
+/// <param name="Placement">Preferred side for the bubble.</param>
+/// <param name="ShowChevron">Whether the bubble opens the detailed help modal.</param>
 /// <param name="X">Left edge of the hovered control in viewport pixels.</param>
 /// <param name="Y">Top edge of the hovered control in viewport pixels.</param>
 /// <param name="Width">Width of the hovered control in viewport pixels.</param>
@@ -18,6 +36,8 @@ public sealed record TipState(
     string Title,
     string Hint,
     string HelpId,
+    TipPlacement Placement,
+    bool ShowChevron,
     float X,
     float Y,
     float Width,
@@ -324,6 +344,18 @@ public static class HelpCatalog
             [
                 "Ctrl+0 returns to 100%.",
                 "The grid makes pixel alignment much easier.",
+            ]);
+
+        Add("menu.help", Icons.Info, "Help", "",
+            "Help options, including the hover tooltips.",
+            [
+                "Enable Tooltips turns the full hover name-and-chevron bubbles on.",
+                "Disable Tooltips hides the chevrons and detailed help, but tool names still appear when hovering the tool rail.",
+                "Tooltips start disabled so the chrome stays quiet until you ask for them.",
+            ],
+            [
+                "Enable tooltips when learning a tool, then disable them for uninterrupted painting.",
+                "The Help menu itself has no tooltip until tooltips are enabled.",
             ]);
 
         Add("quick.undo", Icons.Undo, "Undo", "Z",

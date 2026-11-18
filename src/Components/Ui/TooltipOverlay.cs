@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+using Donkeh.Hosting;
 using Donkeh.UILab;
 using PixelDotNet.Help;
 using PixelDotNet.Paint;
@@ -30,49 +32,62 @@ public sealed class TooltipOverlay : Component
 
         float viewportWidth = MathF.Max(320f, editor.ViewportWidth);
         float viewportHeight = MathF.Max(240f, editor.ViewportHeight);
+        float width = tip.ShowChevron ? Width : 140f;
 
-        // Prefer the right of narrow controls near the left edge (tool rail,
-        // menus, status bar) when there is room; otherwise sit below and flip
-        // above when the control is near the bottom edge.
-        bool placeRight = tip.X < viewportWidth * 0.35f
-            && tip.X + tip.Width + Gap + Width <= viewportWidth - Margin;
+        // Menu headers and most option controls read better under the text.
+        // The tool rail explicitly asks for the right side.
+        bool placeRight = tip.Placement switch
+        {
+            TipPlacement.Right => true,
+            TipPlacement.Below => false,
+            TipPlacement.Left => false,
+            _ => tip.X < viewportWidth * 0.35f
+                && tip.X + tip.Width + Gap + width <= viewportWidth - Margin,
+        };
 
         float left;
         float top;
 
-        if (placeRight)
+        if (placeRight && tip.X + tip.Width + Gap + width <= viewportWidth - Margin)
         {
             left = tip.X + tip.Width + Gap;
             top = tip.Y + ((tip.Height - Height) * 0.5f);
         }
+        else if (tip.Placement == TipPlacement.Left)
+        {
+            left = tip.X - width - Gap;
+            top = tip.Y + ((tip.Height - Height) * 0.5f);
+        }
         else
         {
-            left = Math.Clamp(tip.X, Margin, MathF.Max(Margin, viewportWidth - Width - Margin));
+            left = tip.X + ((tip.Width - width) * 0.5f);
             bool below = tip.Y + tip.Height + Gap + Height <= viewportHeight - Margin;
             top = below
                 ? tip.Y + tip.Height + Gap
                 : tip.Y - Height - Gap;
         }
 
-        left = Math.Clamp(left, Margin, MathF.Max(Margin, viewportWidth - Width - Margin));
+        left = Math.Clamp(left, Margin, MathF.Max(Margin, viewportWidth - width - Margin));
         top = Math.Clamp(top, Margin, MathF.Max(Margin, viewportHeight - Height - Margin));
 
         string style =
             "position:absolute;"
             + "left:" + Ui.Number(left) + "px;"
             + "top:" + Ui.Number(top) + "px;"
-            + "width:" + Ui.Number(Width) + "px;"
+            + "width:" + Ui.Number(width) + "px;"
             + "height:" + Ui.Number(Height) + "px;";
 
         return Div(new()
         {
             ClassName = "tip-float",
             Attributes = new() { ["style"] = style },
+            OnMouseOver = () => editor.TipHovered = true,
+            OnMouseOut = () => ScheduleHide(editor),
         },
         Span(new() { ClassName = "tip-icon" }, Ui.Icon(tip.Icon)),
         Span(new() { ClassName = "tip-title" }, Text(tip.Title)),
-        Show(tip.Hint.Length > 0, Span(new() { ClassName = "tip-key" }, Text(tip.Hint))),
-        Button(new()
+        Show(tip.ShowChevron && tip.Hint.Length > 0, Span(new() { ClassName = "tip-key" }, Text(tip.Hint))),
+        Show(tip.ShowChevron, Button(new()
         {
             ClassName = "tip-more",
             Title = "More about " + tip.Title,
@@ -81,6 +96,20 @@ public sealed class TooltipOverlay : Component
                 editor.ShowHelp(HelpCatalog.Find(tip.HelpId));
                 editor.Refresh?.Invoke();
             },
-        }, Ui.Icon(Icons.Next, "tip-chevron")));
+        }, Ui.Icon(Icons.Next, "tip-chevron"))));
+    }
+
+    /// <summary>Hides the bubble after a short grace period.</summary>
+    private static void ScheduleHide(PaintSession editor)
+    {
+        editor.TipHovered = false;
+        int generation = editor.TipGeneration;
+        Task.Delay(160).ContinueWith(_ => Host.Post(() =>
+        {
+            if (editor.TipGeneration == generation && !editor.TipHovered)
+            {
+                editor.HideTip();
+            }
+        }));
     }
 }

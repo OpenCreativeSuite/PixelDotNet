@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Donkeh.UILab;
 using Donkeh.Windowing;
+using PixelDotNet.Help;
 using PixelDotNet.Paint;
 using static Donkeh.UILab.HtmlHelper;
 using static Donkeh.UILab._;
@@ -63,14 +64,14 @@ public sealed class LayersPanel : Component
             Div(new() { ClassName = "layer-list" }, [.. rows]),
             Div(new() { ClassName = "layer-actions" },
                 Ui.Tip(editor, Ui.IconButton(Icons.Plus, "New layer", editor.AddLayer),
-                    Icons.Plus, "New Layer", "layer.new", "Ctrl+Shift+N"),
+                    Icons.Plus, "New Layer", "layer.new", "Ctrl+Shift+N", TipPlacement.Left),
                 Ui.Tip(editor, Ui.IconButton(Icons.Duplicate, "Duplicate the active layer", editor.DuplicateLayer, regular: true),
-                    Icons.Duplicate, "Duplicate Layer", "layer.duplicate", "Ctrl+J"),
+                    Icons.Duplicate, "Duplicate Layer", "layer.duplicate", "Ctrl+J", TipPlacement.Left),
                 Ui.Tip(editor, Ui.IconButton(Icons.MergeDown, "Merge the active layer down", editor.MergeDown, document.ActiveIndex > 0),
-                    Icons.MergeDown, "Merge Down", "layer.merge", "Ctrl+E"),
+                    Icons.MergeDown, "Merge Down", "layer.merge", "Ctrl+E", TipPlacement.Left),
                 Div(new() { ClassName = "actions-spacer" }),
                 Ui.Tip(editor, Ui.IconButton(Icons.Delete, "Delete the active layer", editor.DeleteActiveLayer, document.Layers.Count > 1, regular: true),
-                    Icons.Delete, "Delete Layer", "layer.delete")));
+                    Icons.Delete, "Delete Layer", "layer.delete", "", TipPlacement.Left)));
     }
 
     /// <summary>Steps the active layer's blend mode through the list.</summary>

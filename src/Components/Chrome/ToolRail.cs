@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Donkeh.UILab;
+using PixelDotNet.Help;
 using PixelDotNet.Paint;
 using static Donkeh.UILab.HtmlHelper;
 using static Donkeh.UILab._;
@@ -44,7 +45,9 @@ public sealed class ToolRail : Component
                 Icons.ForTool(tool),
                 PaintSession.NameOf(tool),
                 "tool." + tool,
-                PaintSession.ShortcutOf(tool)));
+                PaintSession.ShortcutOf(tool),
+                TipPlacement.Right,
+                keepNameWhenDisabled: true));
             }
 
             if (index > 0)

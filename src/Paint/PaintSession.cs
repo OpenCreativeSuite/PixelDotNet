@@ -184,6 +184,9 @@ public sealed class PaintSession
     /// <summary>Gets or sets whether the eight-pixel guide grid is drawn.</summary>
     public bool ShowGrid { get; set; }
 
+    /// <summary>Gets or sets whether hovering controls shows help tooltips.</summary>
+    public bool ShowTooltips { get; set; }
+
     /// <summary>Gets the active selection, or null when nothing is selected.</summary>
     public Selection? Selection { get; private set; }
 
@@ -211,6 +214,12 @@ public sealed class PaintSession
     /// <summary>Gets the tooltip currently shown, or null when the pointer is not over a control.</summary>
     public TipState? Tip { get; private set; }
 
+    /// <summary>Gets or sets whether the pointer is over the floating tooltip itself.</summary>
+    public bool TipHovered { get; set; }
+
+    /// <summary>Gets a counter bumped whenever a new tooltip is shown.</summary>
+    public int TipGeneration { get; private set; }
+
     /// <summary>Gets the help article shown in the modal, or null when it is closed.</summary>
     public HelpTopic? OpenHelp { get; private set; }
 
@@ -223,7 +232,14 @@ public sealed class PaintSession
     /// <summary>Shows a tooltip anchored to a control's last bounding box.</summary>
     public void ShowTip(TipState tip)
     {
+        if (!ShowTooltips && tip.ShowChevron)
+        {
+            return;
+        }
+
         Tip = tip;
+        TipGeneration++;
+        TipHovered = false;
         Changed();
     }
 
@@ -236,6 +252,7 @@ public sealed class PaintSession
         }
 
         Tip = null;
+        TipHovered = false;
         Changed();
     }
 
@@ -522,6 +539,15 @@ public sealed class PaintSession
     public void ToggleGrid()
     {
         ShowGrid = !ShowGrid;
+        Changed();
+    }
+
+    /// <summary>Turns hover tooltips on or off.</summary>
+    public void ToggleTooltips()
+    {
+        ShowTooltips = !ShowTooltips;
+        Tip = null;
+        Status = ShowTooltips ? "Tooltips on" : "Tooltips off";
         Changed();
     }
 
