@@ -226,6 +226,55 @@ public sealed class OptionsBar : Component
                 editor.Refresh?.Invoke();
             })),
 
+        PaintTool.CloneStamp or PaintTool.HealingBrush => F(
+            Ui.Field("Size", editor.BrushSize, 1f, 120f, 1f, " px", value =>
+            {
+                editor.BrushSize = Ui.Parse(value, 1f, 120f);
+                editor.Refresh?.Invoke();
+            }),
+            Ui.Field("Hardness", editor.Hardness * 100f, 0f, 100f, 1f, " %", value =>
+            {
+                editor.Hardness = Ui.Parse(value, 0f, 100f) / 100f;
+                editor.Refresh?.Invoke();
+            }),
+            Ui.Field("Opacity", editor.Opacity * 100f, 5f, 100f, 1f, " %", value =>
+            {
+                editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
+                editor.Refresh?.Invoke();
+            }),
+            Span(new() { ClassName = "options-note" },
+                Text(editor.HasCloneSource
+                    ? $"Source {editor.CloneSourceX}, {editor.CloneSourceY} — Ctrl-click to move it"
+                    : "Ctrl-click to set the sample source"))),
+
+        PaintTool.DodgeBurn => F(
+            Div(new() { ClassName = "segmented" },
+                Ui.Toggle("Dodge", "Lighten with brush strokes", editor.DodgeMode, () =>
+                {
+                    editor.DodgeMode = true;
+                    editor.Refresh?.Invoke();
+                }),
+                Ui.Toggle("Burn", "Darken with brush strokes", !editor.DodgeMode, () =>
+                {
+                    editor.DodgeMode = false;
+                    editor.Refresh?.Invoke();
+                })),
+            Ui.Field("Size", editor.BrushSize, 1f, 120f, 1f, " px", value =>
+            {
+                editor.BrushSize = Ui.Parse(value, 1f, 120f);
+                editor.Refresh?.Invoke();
+            }),
+            Ui.Field("Hardness", editor.Hardness * 100f, 0f, 100f, 1f, " %", value =>
+            {
+                editor.Hardness = Ui.Parse(value, 0f, 100f) / 100f;
+                editor.Refresh?.Invoke();
+            }),
+            Ui.Field("Strength", editor.Opacity * 100f, 5f, 100f, 1f, " %", value =>
+            {
+                editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
+                editor.Refresh?.Invoke();
+            })),
+
         PaintTool.Line => F(
             Ui.Field("Weight", editor.BrushSize, 1f, 120f, 1f, " px", value =>
             {

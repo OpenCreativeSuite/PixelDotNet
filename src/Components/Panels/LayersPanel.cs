@@ -45,6 +45,10 @@ public sealed class LayersPanel : Component
                         () => Cycle(editor, -1),
                         () => Cycle(editor, 1))),
                 Div(new() { ClassName = "prop-row" },
+                    Span(new() { ClassName = "prop-label" }, Text("Clip")),
+                    Ui.Toggle("Below", "Clip this layer to the visible content below it", active.ClipToBelow,
+                        editor.ToggleClipToBelow)),
+                Div(new() { ClassName = "prop-row" },
                     Span(new() { ClassName = "prop-label" }, Text("Opacity")),
                     Div(new() { ClassName = "prop-slider" },
                         Input(new()
@@ -69,6 +73,25 @@ public sealed class LayersPanel : Component
                     Icons.Duplicate, "Duplicate Layer", "layer.duplicate", "Ctrl+J", TipPlacement.Left),
                 Ui.Tip(editor, Ui.IconButton(Icons.MergeDown, "Merge the active layer down", editor.MergeDown, document.ActiveIndex > 0),
                     Icons.MergeDown, "Merge Down", "layer.merge", "Ctrl+E", TipPlacement.Left),
+                Ui.Tip(editor, Ui.IconButton(
+                        Icons.Mask,
+                        active.HasMask ? "Edit or remove the layer mask" : "Add a layer mask",
+                        () =>
+                        {
+                            if (active.HasMask)
+                            {
+                                editor.ToggleMaskEditing(document.ActiveIndex);
+                            }
+                            else
+                            {
+                                editor.ToggleLayerMask();
+                            }
+                        }),
+                    Icons.Mask,
+                    active.HasMask ? "Layer Mask" : "Add Layer Mask",
+                    "layer.mask",
+                    "",
+                    TipPlacement.Left),
                 Div(new() { ClassName = "actions-spacer" }),
                 Ui.Tip(editor, Ui.IconButton(Icons.Delete, "Delete the active layer", editor.DeleteActiveLayer, document.Layers.Count > 1, regular: true),
                     Icons.Delete, "Delete Layer", "layer.delete", "", TipPlacement.Left)));
@@ -105,16 +128,29 @@ public sealed class LayersPanel : Component
             Key = index.ToString(CultureInfo.InvariantCulture),
             OnClick = () => editor.SelectLayer(index),
         },
-        Canvas(new CanvasProps
+        layer.IsAdjustment
+            ? Div(new() { ClassName = "layer-adjust-thumb" }, Ui.Icon(Icons.Sliders))
+            : Canvas(new CanvasProps
+            {
+                ClassName = "layer-thumb",
+                Attributes = Ui.Size(46, 34),
+                OnDraw = context => DrawThumbnail(context, layer),
+            }),
+        Show(layer.HasMask, Canvas(new CanvasProps
         {
-            ClassName = "layer-thumb",
-            Attributes = Ui.Size(46, 34),
-            OnDraw = context => DrawThumbnail(context, layer),
-        }),
+            ClassName = active && editor.MaskEditing ? "layer-mask-thumb is-active" : "layer-mask-thumb",
+            Title = "Click to edit the mask, right-click to remove it",
+            Attributes = Ui.Size(30, 34),
+            OnClick = () => editor.ToggleMaskEditing(index),
+            OnContextMenu = _ => editor.ToggleLayerMask(),
+            OnDraw = context => DrawMaskThumbnail(context, layer),
+        })),
         Div(new() { ClassName = "layer-main" },
             Span(new() { ClassName = "layer-name" }, Text(layer.Name)),
             Span(new() { ClassName = "layer-meta" },
-                Text($"{LabelOf(layer.Blend)} · {Ui.Format(layer.Opacity * 100f)}%"))),
+                Text(layer.IsAdjustment
+                    ? $"{layer.Adjustment} adjustment · {Ui.Format(layer.Opacity * 100f)}%"
+                    : $"{LabelOf(layer.Blend)} · {Ui.Format(layer.Opacity * 100f)}%" + (layer.ClipToBelow ? " · clipped" : string.Empty)))),
         Ui.Tip(editor, Button(new()
         {
             ClassName = layer.Locked ? "layer-btn is-on" : "layer-btn is-dim",
@@ -186,7 +222,55 @@ public sealed class LayersPanel : Component
         uint source = layer.Pixels[sourceRow + sourceX];
         int alpha = Rgba.A(source) * opacity / 255;
 
+        if (layer.Mask is { } mask)
+        {
+            alpha = alpha * mask[sourceRow + sourceX] / 255;
+        }
+
         return alpha <= 0 ? checker : Rgba.Over(checker, source, alpha);
+    }
+
+    /// <summary>Draws a small greyscale preview of a layer mask.</summary>
+    private static void DrawMaskThumbnail(CanvasContext context, PaintLayer layer)
+    {
+        const int ThumbWidth = 30;
+        const int ThumbHeight = 34;
+        if (layer.Mask is not { } mask)
+        {
+            return;
+        }
+
+        float stepX = (float)layer.Width / ThumbWidth;
+        for (int row = 0; row < ThumbHeight; row++)
+        {
+            int sourceY = Math.Min(layer.Height - 1, (int)(row * layer.Height / (float)ThumbHeight));
+            int sourceRow = sourceY * layer.Width;
+            int runStart = 0;
+            uint runColor = MaskSample(mask, layer.Width, sourceRow, 0, stepX);
+
+            for (int column = 1; column < ThumbWidth; column++)
+            {
+                uint next = MaskSample(mask, layer.Width, sourceRow, column, stepX);
+                if (next == runColor)
+                {
+                    continue;
+                }
+
+                context.FillRect(runStart, row, column - runStart, 1f, runColor);
+                runStart = column;
+                runColor = next;
+            }
+
+            context.FillRect(runStart, row, ThumbWidth - runStart, 1f, runColor);
+        }
+    }
+
+    /// <summary>Reads one greyscale sample for the mask thumbnail.</summary>
+    private static uint MaskSample(byte[] mask, int layerWidth, int sourceRow, int column, float stepX)
+    {
+        int sourceX = Math.Min(layerWidth - 1, (int)(column * stepX));
+        int value = mask[sourceRow + sourceX];
+        return Rgba.FromRgb(value, value, value);
     }
 
     /// <summary>Maps a blend mode onto its display name.</summary>

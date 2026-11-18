@@ -145,6 +145,17 @@ public sealed class PaintDocument
                 continue;
             }
 
+            if (layer.IsAdjustment)
+            {
+                if (layer.Opacity <= 0f)
+                {
+                    continue;
+                }
+
+                AdjustmentOps.Apply(_composite, layer);
+                continue;
+            }
+
             int layerAlpha = (int)MathF.Round(Math.Clamp(layer.Opacity, 0f, 1f) * 255f);
             if (layerAlpha <= 0)
             {
@@ -152,6 +163,8 @@ public sealed class PaintDocument
             }
 
             uint[] pixels = layer.Pixels;
+            byte[]? mask = layer.Mask;
+            bool clipped = layer.ClipToBelow;
             BlendMode mode = layer.Blend;
 
             for (int i = 0; i < pixels.Length; i++)
@@ -166,10 +179,21 @@ public sealed class PaintDocument
                 if (layerAlpha < 255)
                 {
                     alpha = alpha * layerAlpha / 255;
-                    if (alpha == 0)
-                    {
-                        continue;
-                    }
+                }
+
+                if (mask is not null)
+                {
+                    alpha = alpha * mask[i] / 255;
+                }
+
+                if (clipped)
+                {
+                    alpha = alpha * Rgba.A(_composite[i]) / 255;
+                }
+
+                if (alpha == 0)
+                {
+                    continue;
                 }
 
                 _composite[i] = mode == BlendMode.Normal || Rgba.A(_composite[i]) == 0

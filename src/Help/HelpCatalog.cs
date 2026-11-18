@@ -122,7 +122,7 @@ public static class HelpCatalog
                 "Strokes rebuild from a snapshot, so overlapping stamps never darken twice. Painting is clipped to the selection.",
             ],
             [
-                "Press [ and ] to resize the brush.",
+                "Press [ and ], or Ctrl+scroll over the canvas, to resize the brush.",
                 "Use low opacity to build smooth colour gradually.",
             ]);
 
@@ -135,6 +135,45 @@ public static class HelpCatalog
             [
                 "Erase on a separate layer to keep the artwork below intact.",
                 "Use a soft eraser for fades and a hard one for cut-outs.",
+            ]);
+
+        Add("tool.CloneStamp", Icons.CloneStamp, "Clone Stamp", "C",
+            "Copies pixels from a sampled source point to wherever you paint.",
+            [
+                "Ctrl-click to set the sample point, then paint. The offset from the first stroke point is preserved.",
+                "The sample is taken from the active layer snapshot at the start of each stroke, so one clone stroke never feeds back into itself.",
+                "Size, hardness and opacity control the stamp.",
+            ],
+            [
+                "Use a soft brush for seamless blending.",
+                "Move the crosshair often to avoid repeating the same texture.",
+                "Clone on a new layer when you want to keep the original edit reversible.",
+            ]);
+
+        Add("tool.HealingBrush", Icons.HealingBrush, "Healing Brush", "H",
+            "Paints sampled texture while matching the destination tone.",
+            [
+                "Ctrl-click to set the sample source, then paint over the blemish.",
+                "The sampled colour is shifted so its luminance matches the destination, which softens tonal seams.",
+                "Uses the same size, hardness and opacity as the brush.",
+            ],
+            [
+                "Best for skin, skies and other smooth areas.",
+                "Use a small brush and short strokes for control.",
+                "For exact texture copying, use the Clone Stamp instead.",
+            ]);
+
+        Add("tool.DodgeBurn", Icons.DodgeBurn, "Dodge / Burn", "J",
+            "Lightens or darkens pixels with brush strokes.",
+            [
+                "Choose Dodge to lighten or Burn to darken, then paint.",
+                "Size and hardness shape the stroke; Strength controls how quickly the tone changes.",
+                "Dodging and burning never changes hue or saturation.",
+            ],
+            [
+                "Use low strength and build the effect in several passes.",
+                "Dodge highlights and burn shadows for more depth.",
+                "Works well inside a selection for controlled local contrast.",
             ]);
 
         Add("tool.line", Icons.Line, "Line", "L",
@@ -226,14 +265,15 @@ public static class HelpCatalog
             ]);
 
         Add("tab.layers", Icons.Flatten, "Layers", "",
-            "The layer stack, blend mode, opacity and layer actions.",
+            "The layer stack, masks, blending, opacity and layer actions.",
             [
                 "Layers are listed top to bottom. Click one to make it active; painting and effects target only that layer.",
                 "Blend mode and opacity control how the layer mixes with the layers below.",
+                "Masks hide parts of a layer non-destructively, and Clip below restricts a layer to the visible content beneath it.",
             ],
             [
                 "Keep text, ink and background art on separate layers.",
-                "Lower opacity to blend without changing pixels.",
+                "Click a mask thumbnail to paint on the mask with the brush or eraser.",
             ]);
 
         Add("tab.colour", Icons.Palette, "Colour", "",
@@ -248,13 +288,16 @@ public static class HelpCatalog
             ]);
 
         Add("tab.adjust", Icons.Sliders, "Adjust", "",
-            "Live brightness, contrast, hue, saturation and lightness controls.",
+            "Live brightness, contrast, hue, saturation, lightness, levels and curves.",
             [
-                "Every slider previews on the active layer or inside the selection and rebuilds from the starting pixels, so changes never stack.",
+                "Every control previews on the active layer or inside the selection and rebuilds from the starting pixels, so changes never stack.",
+                "Levels set a black point, white point and midtone gamma. Curves map input tone to output tone with draggable points.",
+                "The Adjustment Layer buttons add non-destructive Levels or Curves layers above the active layer; they affect everything below them.",
                 "Apply keeps one undo step; Reset restores the original pixels.",
             ],
             [
                 "Small saturation changes often help more than large ones.",
+                "Use a curve point in the shadows and one in the highlights for controlled contrast.",
                 "Use a selection to adjust only one region.",
             ]);
 
@@ -402,6 +445,18 @@ public static class HelpCatalog
             "Shows or hides a layer in the composite.",
             ["Hidden layers do not contribute to the canvas or to Copy Merged."],
             ["Hide layers to inspect what sits underneath."]);
+
+        Add("layer.mask", Icons.Mask, "Layer Mask", "",
+            "A greyscale mask controls how much of a layer is visible.",
+            [
+                "White reveals the layer, black hides it and grey partially reveals it.",
+                "Press the mask button to add a mask, then click the mask thumbnail to paint on it with the brush or eraser.",
+                "Right-click the mask thumbnail to remove the mask.",
+            ],
+            [
+                "Paint soft edges with a feathered brush instead of erasing pixels.",
+                "Masks are undoable and never destroy the layer pixels.",
+            ]);
 
         Add("status.zoomOut", Icons.Minus, "Zoom Out", "Ctrl+-",
             "Steps the canvas zoom down one stop.",

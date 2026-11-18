@@ -64,6 +64,7 @@ public sealed class PaintSession
 
     private PaintLayer? _strokeLayer;
     private uint[]? _strokeBase;
+    private byte[]? _maskBase;
     private byte[]? _strokeMask;
     private int _maskX0;
     private int _maskY0;
@@ -73,6 +74,8 @@ public sealed class PaintSession
     private float _startY;
     private float _lastX;
     private float _lastY;
+    private int _cloneOffsetX;
+    private int _cloneOffsetY;
     private bool _stroking;
     private bool _previewing;
     private bool _lassoing;
@@ -89,6 +92,7 @@ public sealed class PaintSession
 
     private PaintLayer? _adjustLayer;
     private uint[]? _adjustBase;
+    private PaintLayer? _adjustEditLayer;
 
     /// <summary>Wraps an existing document.</summary>
     public PaintSession(PaintDocument document, string documentName = "Untitled-1")
@@ -155,6 +159,24 @@ public sealed class PaintSession
     /// <summary>Gets or sets the brush diameter in document pixels.</summary>
     public float BrushSize { get; set; } = 18f;
 
+    /// <summary>Gets the clone/healing sample X, or -1 when no source is set.</summary>
+    public int CloneSourceX { get; private set; } = -1;
+
+    /// <summary>Gets the clone/healing sample Y, or -1 when no source is set.</summary>
+    public int CloneSourceY { get; private set; } = -1;
+
+    /// <summary>Gets whether a clone/healing source has been sampled.</summary>
+    public bool HasCloneSource => CloneSourceX >= 0 && CloneSourceY >= 0;
+
+    /// <summary>Gets the source point currently drawn while painting.</summary>
+    public int CloneMarkerX { get; private set; } = -1;
+
+    /// <summary>Gets the source point currently drawn while painting.</summary>
+    public int CloneMarkerY { get; private set; } = -1;
+
+    /// <summary>Gets or sets whether the Dodge/Burn tool lightens (true) or darkens.</summary>
+    public bool DodgeMode { get; set; } = true;
+
     /// <summary>Gets or sets the brush edge hardness in the 0-1 range.</summary>
     public float Hardness { get; set; } = 0.8f;
 
@@ -172,6 +194,9 @@ public sealed class PaintSession
 
     /// <summary>Gets or sets whether the shape tools fill instead of outline.</summary>
     public bool FillShapes { get; set; } = true;
+
+    /// <summary>Gets whether brush and eraser strokes currently edit the active layer's mask.</summary>
+    public bool MaskEditing { get; private set; }
 
     /// <summary>Gets or sets the outline width used when shapes are not filled.</summary>
     public float StrokeWidth { get; set; } = 4f;
@@ -297,9 +322,42 @@ public sealed class PaintSession
     /// <summary>Gets or sets the live lightness offset, -100 to 100.</summary>
     public float AdjustLightness { get; set; }
 
+    /// <summary>Gets or sets the levels black point, 0-254.</summary>
+    public float LevelsBlack { get; set; }
+
+    /// <summary>Gets or sets the levels white point, 1-255.</summary>
+    public float LevelsWhite { get; set; } = 255f;
+
+    /// <summary>Gets or sets the levels midtone gamma, 0.1-5.</summary>
+    public float LevelsGamma { get; set; } = 1f;
+
+    /// <summary>Gets the control points of the tone curve, normalised 0-1.</summary>
+    public List<(float X, float Y)> CurvePoints { get; } = [(0f, 0f), (1f, 1f)];
+
+    /// <summary>Gets whether the levels controls are away from neutral.</summary>
+    public bool HasLevels => LevelsBlack > 0.01f || LevelsWhite < 254.99f || MathF.Abs(LevelsGamma - 1f) > 0.001f;
+
+    /// <summary>Gets whether the curve is away from the identity line.</summary>
+    public bool HasCurve
+    {
+        get
+        {
+            foreach ((float x, float y) in CurvePoints)
+            {
+                if (MathF.Abs(x - y) > 0.002f)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     /// <summary>Gets whether any live adjustment is away from neutral.</summary>
     public bool HasAdjustments =>
-        AdjustBrightness != 0f || AdjustContrast != 0f || AdjustHue != 0f || AdjustSaturation != 0f || AdjustLightness != 0f;
+        AdjustBrightness != 0f || AdjustContrast != 0f || AdjustHue != 0f || AdjustSaturation != 0f || AdjustLightness != 0f
+        || HasLevels || HasCurve;
 
     // ---- history ----------------------------------------------------------
 
@@ -342,6 +400,9 @@ public sealed class PaintSession
         PaintTool.MagicWand => "Magic Wand",
         PaintTool.Brush => "Brush",
         PaintTool.Eraser => "Eraser",
+        PaintTool.CloneStamp => "Clone Stamp",
+        PaintTool.HealingBrush => "Healing Brush",
+        PaintTool.DodgeBurn => "Dodge / Burn",
         PaintTool.Line => "Line",
         PaintTool.Rectangle => "Rectangle",
         PaintTool.Ellipse => "Ellipse",
@@ -362,6 +423,9 @@ public sealed class PaintSession
         PaintTool.MagicWand => "W",
         PaintTool.Brush => "B",
         PaintTool.Eraser => "E",
+        PaintTool.CloneStamp => "C",
+        PaintTool.HealingBrush => "H",
+        PaintTool.DodgeBurn => "J",
         PaintTool.Line => "L",
         PaintTool.Rectangle => "R",
         PaintTool.Ellipse => "O",
@@ -589,6 +653,41 @@ public sealed class PaintSession
         _lastX = documentX;
         _lastY = documentY;
 
+        if (MaskEditing && Tool is not (
+            PaintTool.Brush
+            or PaintTool.Eraser
+            or PaintTool.Marquee
+            or PaintTool.EllipseSelect
+            or PaintTool.Lasso
+            or PaintTool.MagicWand
+            or PaintTool.Zoom
+            or PaintTool.Eyedropper))
+        {
+            Status = "Editing layer mask - use the brush or eraser";
+            Changed();
+            return;
+        }
+
+        if (Document.Active.IsAdjustment && Tool is not (
+            PaintTool.Marquee
+            or PaintTool.EllipseSelect
+            or PaintTool.Lasso
+            or PaintTool.MagicWand
+            or PaintTool.Zoom
+            or PaintTool.Eyedropper))
+        {
+            Status = "Select a raster layer to paint";
+            Changed();
+            return;
+        }
+
+        if (Tool is PaintTool.CloneStamp or PaintTool.HealingBrush && !HasCloneSource)
+        {
+            Status = "Ctrl-click to set the clone source";
+            Changed();
+            return;
+        }
+
         if (Tool == PaintTool.Text)
         {
             if (Inside(x, y))
@@ -714,6 +813,12 @@ public sealed class PaintSession
         (float documentX, float documentY) = ToDocument(localX, localY);
         CursorX = (int)MathF.Floor(documentX);
         CursorY = (int)MathF.Floor(documentY);
+
+        if (_stroking && Tool is PaintTool.CloneStamp or PaintTool.HealingBrush && HasCloneSource)
+        {
+            CloneMarkerX = CursorX + _cloneOffsetX;
+            CloneMarkerY = CursorY + _cloneOffsetY;
+        }
 
         if (Tool == PaintTool.Text)
         {
@@ -870,6 +975,7 @@ public sealed class PaintSession
         _stroking = false;
         _strokeLayer = null;
         _strokeBase = null;
+        _maskBase = null;
         _strokeMask = null;
         Changed();
     }
@@ -1149,6 +1255,21 @@ public sealed class PaintSession
         int x = (int)MathF.Floor(documentX);
         int y = (int)MathF.Floor(documentY);
 
+        if (Tool is PaintTool.CloneStamp or PaintTool.HealingBrush)
+        {
+            if (Inside(x, y))
+            {
+                CloneSourceX = x;
+                CloneSourceY = y;
+                CloneMarkerX = x;
+                CloneMarkerY = y;
+                Status = $"{NameOf(Tool)} source {x}, {y}";
+                Changed();
+            }
+
+            return;
+        }
+
         if (Tool == PaintTool.Zoom)
         {
             ZoomOut();
@@ -1165,6 +1286,33 @@ public sealed class PaintSession
     }
 
     // ---- selection --------------------------------------------------------
+
+    /// <summary>Sets the clone/healing source from a canvas-local position.</summary>
+    public void SetCloneSource(float localX, float localY)
+    {
+        (float documentX, float documentY) = ToDocument(localX, localY);
+        int x = (int)MathF.Floor(documentX);
+        int y = (int)MathF.Floor(documentY);
+        if (!Inside(x, y))
+        {
+            return;
+        }
+
+        CloneSourceX = x;
+        CloneSourceY = y;
+        CloneMarkerX = x;
+        CloneMarkerY = y;
+        Status = $"{NameOf(Tool)} source {x}, {y}";
+        Changed();
+    }
+
+    /// <summary>Changes the brush diameter from a wheel delta.</summary>
+    public void NudgeBrushSize(float wheel)
+    {
+        BrushSize = Math.Clamp(BrushSize + (wheel * 3f), 1f, 120f);
+        Status = $"Brush {MathF.Round(BrushSize)} px";
+        Changed();
+    }
 
     /// <summary>Starts a freehand selection and records its first point.</summary>
     private void BeginLasso(float x, float y)
@@ -1247,7 +1395,33 @@ public sealed class PaintSession
             return;
         }
 
+        if (layer.IsAdjustment)
+        {
+            Status = "Adjustment layers cannot be filled";
+            Changed();
+            return;
+        }
+
         PushUndo("Fill Selection");
+
+        if (MaskEditing && layer.Mask is { } mask)
+        {
+            int value = ((Rgba.R(Foreground) * 77) + (Rgba.G(Foreground) * 150) + (Rgba.B(Foreground) * 29)) >> 8;
+            for (int y = 0; y < layer.Height; y++)
+            {
+                for (int x = 0; x < layer.Width; x++)
+                {
+                    if (Selection is null || Selection.Contains(x, y))
+                    {
+                        mask[(y * layer.Width) + x] = (byte)value;
+                    }
+                }
+            }
+
+            Changed();
+            return;
+        }
+
         int x0 = Selection?.X ?? 0;
         int y0 = Selection?.Y ?? 0;
         int x1 = Selection?.Right ?? Document.Width;
@@ -1274,7 +1448,32 @@ public sealed class PaintSession
             return;
         }
 
+        if (layer.IsAdjustment)
+        {
+            Status = "Adjustment layers cannot be cleared";
+            Changed();
+            return;
+        }
+
         PushUndo("Clear");
+
+        if (MaskEditing && layer.Mask is { } mask)
+        {
+            for (int y = 0; y < layer.Height; y++)
+            {
+                for (int x = 0; x < layer.Width; x++)
+                {
+                    if (Selection is null || Selection.Contains(x, y))
+                    {
+                        mask[(y * layer.Width) + x] = 0;
+                    }
+                }
+            }
+
+            Changed();
+            return;
+        }
+
         ClearRegion(layer);
         Changed();
     }
@@ -1401,6 +1600,7 @@ public sealed class PaintSession
         }
 
         uint[] source = merged ? Document.Composite : Document.Active.Pixels;
+        byte[]? layerMask = merged ? null : Document.Active.Mask;
         uint[] pixels = new uint[width * height];
         bool empty = true;
         Selection? selection = Selection;
@@ -1409,6 +1609,18 @@ public sealed class PaintSession
         for (int row = 0; row < height; row++)
         {
             Array.Copy(source, ((originY + row) * Document.Width) + originX, pixels, row * width, width);
+
+            if (layerMask is not null)
+            {
+                int maskRow = (originY + row) * Document.Width;
+                for (int column = 0; column < width; column++)
+                {
+                    int index = (row * width) + column;
+                    uint pixel = pixels[index];
+                    int alpha = Rgba.A(pixel) * layerMask[maskRow + originX + column] / 255;
+                    pixels[index] = Rgba.WithAlpha(alpha, pixel);
+                }
+            }
 
             if (masked)
             {
@@ -1510,12 +1722,20 @@ public sealed class PaintSession
         CommitPreviews();
         PushUndo("Duplicate Layer");
         PaintLayer source = Document.Active;
-        PaintLayer copy = new(source.Name + " copy", Document.Width, Document.Height)
+        PaintLayer copy = new(
+            source.Name + " copy",
+            Document.Width,
+            Document.Height,
+            kind: source.Kind,
+            adjustment: source.Adjustment)
         {
             Opacity = source.Opacity,
             Blend = source.Blend,
+            ClipToBelow = source.ClipToBelow,
         };
         copy.Adopt(source.CapturePixels());
+        copy.AdoptMask(source.CaptureMask());
+        copy.CopyAdjustmentFrom(source);
 
         int insertAt = Math.Clamp(Document.ActiveIndex + 1, 0, Document.Layers.Count);
         Document.Layers.Insert(insertAt, copy);
@@ -1539,12 +1759,39 @@ public sealed class PaintSession
         PushUndo("Merge Down");
         PaintLayer top = Document.Layers[index];
         PaintLayer bottom = Document.Layers[index - 1];
+
+        if (top.IsAdjustment)
+        {
+            AdjustmentOps.ApplyToPixels(bottom.Pixels, top);
+            bottom.Opacity = 1f;
+            Document.Layers.RemoveAt(index);
+            Document.ActiveIndex = index - 1;
+            Status = "Merged adjustment down";
+            Changed();
+            return;
+        }
+
         int alpha = (int)MathF.Round(Math.Clamp(top.Opacity, 0f, 1f) * 255f);
 
         for (int i = 0; i < bottom.Pixels.Length; i++)
         {
             uint source = top.Pixels[i];
             int sourceAlpha = (int)(source >> 24);
+            if (sourceAlpha == 0)
+            {
+                continue;
+            }
+
+            if (top.Mask is { } mask)
+            {
+                sourceAlpha = sourceAlpha * mask[i] / 255;
+            }
+
+            if (top.ClipToBelow)
+            {
+                sourceAlpha = sourceAlpha * Rgba.A(bottom.Pixels[i]) / 255;
+            }
+
             if (sourceAlpha == 0)
             {
                 continue;
@@ -1607,7 +1854,254 @@ public sealed class PaintSession
 
         CommitPreviews();
         Document.ActiveIndex = Math.Clamp(index, 0, Document.Layers.Count - 1);
+        MaskEditing = false;
         Status = Document.Active.Name;
+        Changed();
+    }
+
+    /// <summary>Adds or removes the active layer's mask.</summary>
+    public void ToggleLayerMask()
+    {
+        PaintLayer layer = Document.Active;
+        if (layer.Locked)
+        {
+            Status = "Layer is locked";
+            Changed();
+            return;
+        }
+
+        CommitPreviews();
+        if (layer.HasMask)
+        {
+            PushUndo("Remove Layer Mask");
+            layer.RemoveMask();
+            MaskEditing = false;
+            Status = "Removed layer mask";
+        }
+        else
+        {
+            PushUndo("Add Layer Mask");
+            layer.AddMask();
+            MaskEditing = true;
+            Status = "Added layer mask";
+        }
+
+        Changed();
+    }
+
+    /// <summary>Switches painting between the layer pixels and its mask.</summary>
+    public void ToggleMaskEditing(int index)
+    {
+        if (index != Document.ActiveIndex)
+        {
+            Document.ActiveIndex = Math.Clamp(index, 0, Document.Layers.Count - 1);
+        }
+
+        PaintLayer layer = Document.Active;
+        if (!layer.HasMask)
+        {
+            return;
+        }
+
+        MaskEditing = !MaskEditing;
+        Status = MaskEditing ? "Editing layer mask" : "Editing layer pixels";
+        Changed();
+    }
+
+    /// <summary>Clips or unclips the active layer to the content below it.</summary>
+    public void ToggleClipToBelow()
+    {
+        CommitPreviews();
+        PushUndo("Clip Layer");
+        Document.Active.ClipToBelow = !Document.Active.ClipToBelow;
+        Status = Document.Active.ClipToBelow ? "Clipped to layer below" : "Clipping off";
+        Changed();
+    }
+
+    /// <summary>Gets the active layer when it is an adjustment layer.</summary>
+    public PaintLayer? ActiveAdjustmentLayer => Document.Active.IsAdjustment ? Document.Active : null;
+
+    /// <summary>Adds a non-destructive adjustment layer above the active layer.</summary>
+    public void AddAdjustmentLayer(AdjustmentKind kind)
+    {
+        if (kind == AdjustmentKind.None)
+        {
+            return;
+        }
+
+        CommitPreviews();
+        PushUndo(kind + " Adjustment Layer");
+        PaintLayer layer = new(
+            kind + " Adjustment",
+            Document.Width,
+            Document.Height,
+            kind: LayerKind.Adjustment,
+            adjustment: kind);
+
+        int insertAt = Math.Clamp(Document.ActiveIndex + 1, 0, Document.Layers.Count);
+        Document.Layers.Insert(insertAt, layer);
+        Document.ActiveIndex = insertAt;
+        MaskEditing = false;
+        Status = "Added " + kind + " adjustment layer";
+        Changed();
+    }
+
+    /// <summary>Sets the levels values of the active Levels adjustment layer.</summary>
+    public void SetAdjustmentLevels(float black, float white, float gamma)
+    {
+        if (ActiveAdjustmentLayer is not { Adjustment: AdjustmentKind.Levels } layer)
+        {
+            return;
+        }
+
+        layer.AdjustmentBlack = Math.Clamp(black, 0f, 254f);
+        layer.AdjustmentWhite = Math.Clamp(white, 1f, 255f);
+        layer.AdjustmentGamma = Math.Clamp(gamma, 0.1f, 5f);
+        TouchAdjustmentLayer();
+    }
+
+    /// <summary>Resets the active Levels adjustment layer to neutral.</summary>
+    public void ResetAdjustmentLevels()
+    {
+        if (ActiveAdjustmentLayer is not { Adjustment: AdjustmentKind.Levels } layer)
+        {
+            return;
+        }
+
+        layer.AdjustmentBlack = 0f;
+        layer.AdjustmentWhite = 255f;
+        layer.AdjustmentGamma = 1f;
+        TouchAdjustmentLayer();
+    }
+
+    /// <summary>Gets the curve points edited by the Adjust panel.</summary>
+    public IReadOnlyList<(float X, float Y)> ActiveCurvePoints =>
+        ActiveAdjustmentLayer is { Adjustment: AdjustmentKind.Curves } layer
+            ? layer.AdjustmentCurve
+            : CurvePoints;
+
+    /// <summary>Adds a point to the active curve target.</summary>
+    public int AddActiveCurvePoint(float x, float y)
+    {
+        if (ActiveAdjustmentLayer is { Adjustment: AdjustmentKind.Curves } layer)
+        {
+            return InsertCurvePoint(layer.AdjustmentCurve, x, y);
+        }
+
+        return AddCurvePoint(x, y);
+    }
+
+    /// <summary>Moves a point on the active curve target.</summary>
+    public void MoveActiveCurvePoint(int index, float x, float y)
+    {
+        if (ActiveAdjustmentLayer is { Adjustment: AdjustmentKind.Curves } layer)
+        {
+            MoveCurvePointIn(layer.AdjustmentCurve, index, x, y);
+            return;
+        }
+
+        MoveCurvePoint(index, x, y);
+    }
+
+    /// <summary>Removes a point from the active curve target.</summary>
+    public void RemoveActiveCurvePoint(int index)
+    {
+        if (ActiveAdjustmentLayer is { Adjustment: AdjustmentKind.Curves } layer)
+        {
+            if (index > 0 && index < layer.AdjustmentCurve.Count - 1 && layer.AdjustmentCurve.Count > 2)
+            {
+                layer.AdjustmentCurve.RemoveAt(index);
+            }
+
+            return;
+        }
+
+        RemoveCurvePoint(index);
+    }
+
+    /// <summary>Finds the nearest point on the active curve target.</summary>
+    public int FindActiveCurvePoint(float x, float y, float radius)
+    {
+        IReadOnlyList<(float X, float Y)> points = ActiveCurvePoints;
+        int best = -1;
+        float bestDistance = radius * radius;
+
+        for (int index = 0; index < points.Count; index++)
+        {
+            float dx = points[index].X - x;
+            float dy = points[index].Y - y;
+            float distance = (dx * dx) + (dy * dy);
+            if (distance <= bestDistance)
+            {
+                best = index;
+                bestDistance = distance;
+            }
+        }
+
+        return best;
+    }
+
+    /// <summary>Resets the active curve target to the identity line.</summary>
+    public void ResetActiveCurve()
+    {
+        if (ActiveAdjustmentLayer is { Adjustment: AdjustmentKind.Curves } layer)
+        {
+            layer.AdjustmentCurve.Clear();
+            layer.AdjustmentCurve.Add((0f, 0f));
+            layer.AdjustmentCurve.Add((1f, 1f));
+            return;
+        }
+
+        ResetCurve();
+    }
+
+    /// <summary>Inserts a point into a curve list and returns its index.</summary>
+    private static int InsertCurvePoint(List<(float X, float Y)> points, float x, float y)
+    {
+        x = Math.Clamp(x, 0f, 1f);
+        y = Math.Clamp(y, 0f, 1f);
+        int index = 1;
+
+        while (index < points.Count && points[index].X < x)
+        {
+            index++;
+        }
+
+        points.Insert(index, (x, y));
+        return index;
+    }
+
+    /// <summary>Moves a point inside a curve list, keeping x ordered.</summary>
+    private static void MoveCurvePointIn(List<(float X, float Y)> points, int index, float x, float y)
+    {
+        if (index < 0 || index >= points.Count)
+        {
+            return;
+        }
+
+        float left = index == 0 ? 0f : points[index - 1].X + 0.002f;
+        float right = index == points.Count - 1 ? 1f : points[index + 1].X - 0.002f;
+        points[index] = (
+            Math.Clamp(x, Math.Min(left, right), Math.Max(left, right)),
+            Math.Clamp(y, 0f, 1f));
+    }
+
+    /// <summary>Marks the active adjustment layer dirty and records one undo step per edit run.</summary>
+    public void TouchAdjustmentLayer()
+    {
+        PaintLayer layer = Document.Active;
+        if (!layer.IsAdjustment)
+        {
+            return;
+        }
+
+        if (!ReferenceEquals(_adjustEditLayer, layer))
+        {
+            PushUndo("Adjust Layer");
+            _adjustEditLayer = layer;
+        }
+
+        Document.MarkDirty();
         Changed();
     }
 
@@ -1666,6 +2160,11 @@ public sealed class PaintSession
             return;
         }
 
+        if (layer.IsAdjustment)
+        {
+            return;
+        }
+
         CommitEffect();
         CommitText();
 
@@ -1690,6 +2189,16 @@ public sealed class PaintSession
             1f + (AdjustSaturation / 100f),
             AdjustLightness / 100f);
 
+        if (HasLevels)
+        {
+            PaintOps.Levels(layer, Selection, LevelsBlack, LevelsWhite, LevelsGamma);
+        }
+
+        if (HasCurve)
+        {
+            PaintOps.Curves(layer, Selection, CurvePoints);
+        }
+
         Document.MarkDirty();
     }
 
@@ -1708,25 +2217,121 @@ public sealed class PaintSession
         AdjustHue = 0f;
         AdjustSaturation = 0f;
         AdjustLightness = 0f;
+        LevelsBlack = 0f;
+        LevelsWhite = 255f;
+        LevelsGamma = 1f;
+        ResetCurve();
         Changed();
     }
 
     /// <summary>Ends the current adjustment session, leaving the pixels as they are.</summary>
     public void CommitAdjustments()
     {
-        if (_adjustBase is null)
+        if (_adjustBase is null && _adjustEditLayer is null)
         {
             return;
         }
 
         _adjustBase = null;
         _adjustLayer = null;
+        _adjustEditLayer = null;
         AdjustBrightness = 0f;
         AdjustContrast = 0f;
         AdjustHue = 0f;
         AdjustSaturation = 0f;
         AdjustLightness = 0f;
+        LevelsBlack = 0f;
+        LevelsWhite = 255f;
+        LevelsGamma = 1f;
+        ResetCurve();
         Document.MarkDirty();
+    }
+
+    /// <summary>Restores the Levels controls to neutral.</summary>
+    public void ResetLevels()
+    {
+        LevelsBlack = 0f;
+        LevelsWhite = 255f;
+        LevelsGamma = 1f;
+        TouchAdjustments();
+        Changed();
+    }
+
+    /// <summary>Restores the tone curve to the identity line.</summary>
+    public void ResetCurve()
+    {
+        CurvePoints.Clear();
+        CurvePoints.Add((0f, 0f));
+        CurvePoints.Add((1f, 1f));
+    }
+
+    /// <summary>
+    /// Adds a curve control point after the specified x position and returns its
+    /// index. Points stay ordered by x.
+    /// </summary>
+    public int AddCurvePoint(float x, float y)
+    {
+        x = Math.Clamp(x, 0f, 1f);
+        y = Math.Clamp(y, 0f, 1f);
+        int index = 1;
+
+        while (index < CurvePoints.Count && CurvePoints[index].X < x)
+        {
+            index++;
+        }
+
+        CurvePoints.Insert(index, (x, y));
+        return index;
+    }
+
+    /// <summary>
+    /// Moves one curve point. Its x position is constrained between the
+    /// neighbouring points so the curve remains a function.
+    /// </summary>
+    public void MoveCurvePoint(int index, float x, float y)
+    {
+        if (index < 0 || index >= CurvePoints.Count)
+        {
+            return;
+        }
+
+        float left = index == 0 ? 0f : CurvePoints[index - 1].X + 0.002f;
+        float right = index == CurvePoints.Count - 1 ? 1f : CurvePoints[index + 1].X - 0.002f;
+        CurvePoints[index] = (
+            Math.Clamp(x, Math.Min(left, right), Math.Max(left, right)),
+            Math.Clamp(y, 0f, 1f));
+    }
+
+    /// <summary>Removes a curve point while keeping the two endpoints.</summary>
+    public void RemoveCurvePoint(int index)
+    {
+        if (CurvePoints.Count <= 2 || index <= 0 || index >= CurvePoints.Count - 1)
+        {
+            return;
+        }
+
+        CurvePoints.RemoveAt(index);
+    }
+
+    /// <summary>Finds the curve point nearest to a normalised position.</summary>
+    public int FindCurvePoint(float x, float y, float radius)
+    {
+        int best = -1;
+        float bestDistance = radius * radius;
+
+        for (int index = 0; index < CurvePoints.Count; index++)
+        {
+            float dx = CurvePoints[index].X - x;
+            float dy = CurvePoints[index].Y - y;
+            float distance = (dx * dx) + (dy * dy);
+            if (distance <= bestDistance)
+            {
+                best = index;
+                bestDistance = distance;
+            }
+        }
+
+        return best;
     }
 
     /// <summary>Flips the active layer, or just the selection, left to right.</summary>
@@ -1742,6 +2347,11 @@ public sealed class PaintSession
         {
             Status = "Layer is locked";
             Changed();
+            return;
+        }
+
+        if (Document.Active.IsAdjustment)
+        {
             return;
         }
 
@@ -1839,6 +2449,11 @@ public sealed class PaintSession
         if (layer.Locked)
         {
             Status = "Layer is locked";
+            return;
+        }
+
+        if (layer.IsAdjustment)
+        {
             return;
         }
 
@@ -2979,7 +3594,7 @@ public sealed class PaintSession
     /// <summary>Inverts the active layer inside the selection.</summary>
     public void Invert()
     {
-        if (Document.Active.Locked)
+        if (Document.Active.Locked || Document.Active.IsAdjustment)
         {
             return;
         }
@@ -2994,7 +3609,7 @@ public sealed class PaintSession
     /// <summary>Removes colour from the active layer inside the selection.</summary>
     public void Desaturate()
     {
-        if (Document.Active.Locked)
+        if (Document.Active.Locked || Document.Active.IsAdjustment)
         {
             return;
         }
@@ -3098,6 +3713,7 @@ public sealed class PaintSession
         SaveActiveTab();
         _activeTab = index;
         LoadActiveTab();
+        MaskEditing = false;
         Status = DocumentName;
         Changed();
     }
@@ -3277,6 +3893,7 @@ public sealed class PaintSession
         _movePixels = null;
         _strokeLayer = null;
         _strokeBase = null;
+        _maskBase = null;
         _strokeMask = null;
         _adjustBase = null;
         _adjustLayer = null;
@@ -3294,6 +3911,10 @@ public sealed class PaintSession
 
     /// <summary>Formats a colour as an uppercase hex string.</summary>
     private static string Hex(uint color) => $"#{Rgba.R(color):X2}{Rgba.G(color):X2}{Rgba.B(color):X2}";
+
+    /// <summary>Perceptual luminance used by the healing brush.</summary>
+    private static int Luminance(uint color) =>
+        ((Rgba.R(color) * 77) + (Rgba.G(color) * 150) + (Rgba.B(color) * 29)) >> 8;
 
     /// <summary>Trims a message to something the options bar can show inline.</summary>
     private static string Shorten(string message)
@@ -3391,9 +4012,24 @@ public sealed class PaintSession
     private void BeginStroke(int x, int y)
     {
         PaintLayer layer = Document.Active;
-        PushUndo(Tool == PaintTool.Eraser ? "Erase" : "Brush");
+        PushUndo(Tool switch
+        {
+            PaintTool.Eraser => "Erase",
+            PaintTool.CloneStamp => "Clone Stamp",
+            PaintTool.HealingBrush => "Heal",
+            PaintTool.DodgeBurn => DodgeMode ? "Dodge" : "Burn",
+            _ => "Brush",
+        });
         _strokeLayer = layer;
         _strokeBase = layer.CapturePixels();
+        _maskBase = MaskEditing && layer.HasMask ? layer.CaptureMask() : null;
+        _cloneOffsetX = CloneSourceX >= 0 ? CloneSourceX - x : 0;
+        _cloneOffsetY = CloneSourceY >= 0 ? CloneSourceY - y : 0;
+        if (HasCloneSource && Tool is PaintTool.CloneStamp or PaintTool.HealingBrush)
+        {
+            CloneMarkerX = x + _cloneOffsetX;
+            CloneMarkerY = y + _cloneOffsetY;
+        }
         _strokeMask = new byte[layer.Width * layer.Height];
         _maskX0 = int.MaxValue;
         _maskY0 = int.MaxValue;
@@ -3513,9 +4149,39 @@ public sealed class PaintSession
         }
 
         bool erasing = Tool == PaintTool.Eraser;
+        bool cloning = Tool is PaintTool.CloneStamp or PaintTool.HealingBrush;
+        bool dodging = Tool == PaintTool.DodgeBurn;
         int brushAlpha = Alpha;
         if (brushAlpha <= 0)
         {
+            return;
+        }
+
+        if (MaskEditing && _maskBase is not null && _strokeLayer.Mask is { } maskTarget)
+        {
+            Array.Copy(_maskBase, maskTarget, _maskBase.Length);
+
+            for (int y = _maskY0; y <= _maskY1; y++)
+            {
+                int row = y * _strokeLayer.Width;
+                for (int x = _maskX0; x <= _maskX1; x++)
+                {
+                    int index = row + x;
+                    int coverage = _strokeMask[index];
+                    if (coverage == 0)
+                    {
+                        continue;
+                    }
+
+                    int amount = coverage * brushAlpha / 255;
+                    int value = _maskBase[index];
+                    maskTarget[index] = erasing
+                        ? (byte)(value * (255 - amount) / 255)
+                        : (byte)(value + ((255 - value) * amount / 255));
+                }
+            }
+
+            Document.MarkDirty();
             return;
         }
 
@@ -3539,6 +4205,63 @@ public sealed class PaintSession
                 }
 
                 int amount = coverage * brushAlpha / 255;
+
+                if (cloning)
+                {
+                    int sourceX = x + _cloneOffsetX;
+                    int sourceY = y + _cloneOffsetY;
+                    if (sourceX < 0 || sourceY < 0 || sourceX >= width || sourceY >= _strokeLayer.Height)
+                    {
+                        pixels[index] = basePixel;
+                        continue;
+                    }
+
+                    uint sampled = _strokeBase[(sourceY * width) + sourceX];
+                    if (Rgba.A(sampled) == 0)
+                    {
+                        pixels[index] = basePixel;
+                        continue;
+                    }
+
+                    if (Tool == PaintTool.HealingBrush)
+                    {
+                        int destination = Luminance(basePixel);
+                        int source = Luminance(sampled);
+                        int delta = (destination - source) / 2;
+                        sampled = Rgba.Pack(
+                            Rgba.A(sampled),
+                            Math.Clamp(Rgba.R(sampled) + delta, 0, 255),
+                            Math.Clamp(Rgba.G(sampled) + delta, 0, 255),
+                            Math.Clamp(Rgba.B(sampled) + delta, 0, 255));
+                    }
+
+                    int sampledAlpha = Rgba.A(sampled) * amount / 255;
+                    pixels[index] = Rgba.Over(basePixel, sampled, sampledAlpha);
+                    continue;
+                }
+
+                if (dodging)
+                {
+                    int red = Rgba.R(basePixel);
+                    int green = Rgba.G(basePixel);
+                    int blue = Rgba.B(basePixel);
+
+                    if (DodgeMode)
+                    {
+                        red += (255 - red) * amount / 255;
+                        green += (255 - green) * amount / 255;
+                        blue += (255 - blue) * amount / 255;
+                    }
+                    else
+                    {
+                        red = red * (255 - amount) / 255;
+                        green = green * (255 - amount) / 255;
+                        blue = blue * (255 - amount) / 255;
+                    }
+
+                    pixels[index] = Rgba.Pack(Rgba.A(basePixel), red, green, blue);
+                    continue;
+                }
 
                 if (erasing)
                 {
@@ -3689,7 +4412,20 @@ public sealed class PaintSession
             for (int i = 0; i < frames.Length; i++)
             {
                 PaintLayer layer = document.Layers[i];
-                frames[i] = new Frame(layer, layer.CapturePixels(), layer.Visible, layer.Opacity, layer.Blend, layer.Locked);
+                frames[i] = new Frame(
+                    layer,
+                    layer.CapturePixels(),
+                    layer.CaptureMask(),
+                    layer.Visible,
+                    layer.Opacity,
+                    layer.Blend,
+                    layer.Locked,
+                    layer.ClipToBelow,
+                    layer.Adjustment,
+                    layer.AdjustmentBlack,
+                    layer.AdjustmentWhite,
+                    layer.AdjustmentGamma,
+                    layer.IsAdjustment ? [.. layer.AdjustmentCurve] : null);
             }
 
             return new DocumentSnapshot(frames, document.ActiveIndex, selection, name);
@@ -3702,10 +4438,22 @@ public sealed class PaintSession
             foreach (Frame frame in _frames)
             {
                 frame.Layer.Adopt(frame.Pixels);
+                frame.Layer.AdoptMask(frame.Mask);
                 frame.Layer.Visible = frame.Visible;
                 frame.Layer.Opacity = frame.Opacity;
                 frame.Layer.Blend = frame.Blend;
                 frame.Layer.Locked = frame.Locked;
+                frame.Layer.ClipToBelow = frame.ClipToBelow;
+                frame.Layer.Adjustment = frame.Adjustment;
+                frame.Layer.AdjustmentBlack = frame.AdjustmentBlack;
+                frame.Layer.AdjustmentWhite = frame.AdjustmentWhite;
+                frame.Layer.AdjustmentGamma = frame.AdjustmentGamma;
+                if (frame.Curve is not null)
+                {
+                    frame.Layer.AdjustmentCurve.Clear();
+                    frame.Layer.AdjustmentCurve.AddRange(frame.Curve);
+                }
+
                 document.Layers.Add(frame.Layer);
             }
 
@@ -3717,9 +4465,16 @@ public sealed class PaintSession
         private readonly record struct Frame(
             PaintLayer Layer,
             uint[] Pixels,
+            byte[]? Mask,
             bool Visible,
             float Opacity,
             BlendMode Blend,
-            bool Locked);
+            bool Locked,
+            bool ClipToBelow,
+            AdjustmentKind Adjustment,
+            float AdjustmentBlack,
+            float AdjustmentWhite,
+            float AdjustmentGamma,
+            List<(float X, float Y)>? Curve);
     }
 }

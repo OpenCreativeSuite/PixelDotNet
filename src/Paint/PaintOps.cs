@@ -422,4 +422,91 @@ public static class PaintOps
         && Math.Abs(Rgba.G(color) - g) <= tolerance
         && Math.Abs(Rgba.B(color) - b) <= tolerance
         && Math.Abs(Rgba.A(color) - a) <= tolerance;
+
+    /// <summary>Applies black point, white point and midtone gamma through a LUT.</summary>
+    public static void Levels(PaintLayer layer, Selection? selection, float black, float white, float gamma)
+    {
+        float low = Math.Clamp(black, 0f, 254f);
+        float high = Math.Clamp(white, low + 1f, 255f);
+        float exponent = 1f / Math.Clamp(gamma, 0.05f, 10f);
+        byte[] lut = BuildLevelsLut(low, high, exponent);
+
+        for (int y = 0; y < layer.Height; y++)
+        {
+            for (int x = 0; x < layer.Width; x++)
+            {
+                if (!Inside(selection, x, y))
+                {
+                    continue;
+                }
+
+                uint color = layer.Pixels[(y * layer.Width) + x];
+                layer.Pixels[(y * layer.Width) + x] = Rgba.Pack(
+                    Rgba.A(color),
+                    lut[Rgba.R(color)],
+                    lut[Rgba.G(color)],
+                    lut[Rgba.B(color)]);
+            }
+        }
+    }
+
+    /// <summary>Builds a 256-entry lookup table for the Levels controls.</summary>
+    private static byte[] BuildLevelsLut(float black, float white, float exponent)
+    {
+        byte[] lut = new byte[256];
+        float span = white - black;
+
+        for (int value = 0; value < 256; value++)
+        {
+            float t = Math.Clamp((value - black) / span, 0f, 1f);
+            lut[value] = (byte)MathF.Round(MathF.Pow(t, exponent) * 255f);
+        }
+
+        return lut;
+    }
+
+    /// <summary>Applies a piecewise linear tone curve through the supplied points.</summary>
+    public static void Curves(PaintLayer layer, Selection? selection, IReadOnlyList<(float X, float Y)> points)
+    {
+        if (points.Count < 2)
+        {
+            return;
+        }
+
+        byte[] lut = new byte[256];
+        for (int value = 0; value < 256; value++)
+        {
+            float x = value / 255f;
+            int segment = 0;
+
+            while (segment < points.Count - 2 && points[segment + 1].X < x)
+            {
+                segment++;
+            }
+
+            (float x0, float y0) = points[segment];
+            (float x1, float y1) = points[segment + 1];
+            float span = MathF.Max(0.0001f, x1 - x0);
+            float t = Math.Clamp((x - x0) / span, 0f, 1f);
+            lut[value] = (byte)MathF.Round(Math.Clamp(y0 + ((y1 - y0) * t), 0f, 1f) * 255f);
+        }
+
+        for (int y = 0; y < layer.Height; y++)
+        {
+            for (int x = 0; x < layer.Width; x++)
+            {
+                if (!Inside(selection, x, y))
+                {
+                    continue;
+                }
+
+                uint color = layer.Pixels[(y * layer.Width) + x];
+                layer.Pixels[(y * layer.Width) + x] = Rgba.Pack(
+                    Rgba.A(color),
+                    lut[Rgba.R(color)],
+                    lut[Rgba.G(color)],
+                    lut[Rgba.B(color)]);
+            }
+        }
+    }
 }

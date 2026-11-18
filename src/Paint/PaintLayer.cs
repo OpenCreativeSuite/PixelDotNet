@@ -1,6 +1,30 @@
 using System;
+using System.Collections.Generic;
 
 namespace PixelDotNet.Paint;
+
+/// <summary>What a layer contributes to the composite.</summary>
+public enum LayerKind
+{
+    /// <summary>Ordinary raster pixels.</summary>
+    Raster,
+
+    /// <summary>A non-destructive tone adjustment applied to the layers below.</summary>
+    Adjustment,
+}
+
+/// <summary>The adjustment used by an adjustment layer.</summary>
+public enum AdjustmentKind
+{
+    /// <summary>Not an adjustment layer.</summary>
+    None,
+
+    /// <summary>Black point, white point and midtone gamma.</summary>
+    Levels,
+
+    /// <summary>A tone curve through draggable points.</summary>
+    Curves,
+}
 
 /// <summary>
 /// One raster layer: a straight-alpha <c>0xAARRGGBB</c> pixel buffer plus the
@@ -16,12 +40,22 @@ public sealed class PaintLayer
     /// True for the bottom layer, whose eraser paints white instead of punching a
     /// hole through the document.
     /// </param>
-    public PaintLayer(string name, int width, int height, bool isBackground = false)
+    /// <param name="kind">Whether this is a raster or adjustment layer.</param>
+    /// <param name="adjustment">The adjustment used when <paramref name="kind"/> is Adjustment.</param>
+    public PaintLayer(
+        string name,
+        int width,
+        int height,
+        bool isBackground = false,
+        LayerKind kind = LayerKind.Raster,
+        AdjustmentKind adjustment = AdjustmentKind.None)
     {
         Name = name;
         Width = width;
         Height = height;
         IsBackground = isBackground;
+        Kind = kind;
+        Adjustment = adjustment;
         Pixels = new uint[width * height];
     }
 
@@ -48,6 +82,83 @@ public sealed class PaintLayer
 
     /// <summary>Gets or sets whether editing this layer is blocked.</summary>
     public bool Locked { get; set; }
+
+    /// <summary>Gets or sets whether this layer is clipped to the visible content below it.</summary>
+    public bool ClipToBelow { get; set; }
+
+    /// <summary>Gets whether this layer contributes pixels or an adjustment.</summary>
+    public LayerKind Kind { get; }
+
+    /// <summary>Gets or sets the adjustment kind for an adjustment layer.</summary>
+    public AdjustmentKind Adjustment { get; set; }
+
+    /// <summary>Gets whether this is an adjustment layer.</summary>
+    public bool IsAdjustment => Kind == LayerKind.Adjustment;
+
+    /// <summary>Gets or sets the levels black point for an adjustment layer.</summary>
+    public float AdjustmentBlack { get; set; }
+
+    /// <summary>Gets or sets the levels white point for an adjustment layer.</summary>
+    public float AdjustmentWhite { get; set; } = 255f;
+
+    /// <summary>Gets or sets the levels midtone gamma for an adjustment layer.</summary>
+    public float AdjustmentGamma { get; set; } = 1f;
+
+    /// <summary>Gets the tone curve of a Curves adjustment layer.</summary>
+    public List<(float X, float Y)> AdjustmentCurve { get; } = [(0f, 0f), (1f, 1f)];
+
+    /// <summary>Copies the adjustment settings from another layer.</summary>
+    public void CopyAdjustmentFrom(PaintLayer source)
+    {
+        Adjustment = source.Adjustment;
+        AdjustmentBlack = source.AdjustmentBlack;
+        AdjustmentWhite = source.AdjustmentWhite;
+        AdjustmentGamma = source.AdjustmentGamma;
+        AdjustmentCurve.Clear();
+        AdjustmentCurve.AddRange(source.AdjustmentCurve);
+    }
+
+    /// <summary>Gets the per-pixel layer mask, or null when the layer has none.</summary>
+    public byte[]? Mask { get; private set; }
+
+    /// <summary>Gets whether the layer has a mask.</summary>
+    public bool HasMask => Mask is not null;
+
+    /// <summary>Adds a fully revealing mask.</summary>
+    public void AddMask()
+    {
+        if (Mask is not null)
+        {
+            return;
+        }
+
+        Mask = new byte[Width * Height];
+        Array.Fill(Mask, (byte)255);
+    }
+
+    /// <summary>Removes the layer mask.</summary>
+    public void RemoveMask() => Mask = null;
+
+    /// <summary>Returns a copy of the mask buffer, or null when there is none.</summary>
+    public byte[]? CaptureMask() => Mask is null ? null : (byte[])Mask.Clone();
+
+    /// <summary>Takes ownership of a mask buffer, or clears the mask for null.</summary>
+    public void AdoptMask(byte[]? mask)
+    {
+        if (mask is null)
+        {
+            Mask = null;
+            return;
+        }
+
+        if (mask.Length == Width * Height)
+        {
+            Mask = mask;
+        }
+    }
+
+    /// <summary>Reads a mask sample, treating absent masks as fully visible.</summary>
+    public byte MaskAt(int index) => Mask is null ? (byte)255 : Mask[index];
 
     /// <summary>Gets the pixel buffer, row major, top down.</summary>
     public uint[] Pixels { get; private set; }

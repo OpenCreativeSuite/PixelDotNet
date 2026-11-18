@@ -50,6 +50,18 @@
     content: "\f12d";
 }
 
+.fa-stamp::before {
+    content: "\f5bf";
+}
+
+.fa-bandage::before {
+    content: "\f462";
+}
+
+.fa-sun::before {
+    content: "\f185";
+}
+
 .fa-slash::before {
     content: "\f715";
 }
@@ -228,4 +240,8 @@
 
 .fa-circle-info::before {
     content: "\f05a";
+}
+
+.fa-mask::before {
+    content: "\f6fa";
 }

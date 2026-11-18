@@ -45,9 +45,27 @@ public sealed class CanvasSurface : Component
                 ["height"] = pixelHeight.ToString(CultureInfo.InvariantCulture),
             },
             OnDraw = context => Draw(context, editor),
-            OnPointerDown = (x, y) => editor.PointerDown(x, y),
+            OnPointerDown = (x, y) =>
+            {
+                if (InputState.Control && editor.Tool is PaintTool.CloneStamp or PaintTool.HealingBrush)
+                {
+                    editor.SetCloneSource(x, y);
+                }
+                else
+                {
+                    editor.PointerDown(x, y);
+                }
+            },
             OnPointerMove = (x, y) => editor.PointerMove(x, y),
             OnPointerUp = (x, y) => editor.PointerUp(x, y),
+            OnScroll = (horizontal, vertical) =>
+            {
+                if (InputState.Control)
+                {
+                    editor.NudgeBrushSize(vertical);
+                    editor.Refresh?.Invoke();
+                }
+            },
             OnContextMenu = menu => editor.SecondaryAction(menu.X, menu.Y),
         });
     }
@@ -94,6 +112,7 @@ public sealed class CanvasSurface : Component
         DrawSelectionOverlay(context, editor, zoom);
         DrawMarquee(context, editor, zoom);
         DrawLassoPreview(context, editor, zoom);
+        DrawCloneSource(context, editor, zoom);
         DrawTextTransform(context, editor, zoom);
         DrawBrushOutline(context, editor, zoom);
     }
@@ -493,10 +512,36 @@ public sealed class CanvasSurface : Component
         }
     }
 
+    /// <summary>Draws a small crosshair at the clone/healing sample point.</summary>
+    private static void DrawCloneSource(CanvasContext context, PaintSession editor, float zoom)
+    {
+        if (!editor.HasCloneSource || editor.Tool is not (PaintTool.CloneStamp or PaintTool.HealingBrush))
+        {
+            return;
+        }
+
+        float x = ((editor.CloneMarkerX >= 0 ? editor.CloneMarkerX : editor.CloneSourceX) + 0.5f) * zoom;
+        float y = ((editor.CloneMarkerY >= 0 ? editor.CloneMarkerY : editor.CloneSourceY) + 0.5f) * zoom;
+        const uint Dark = 0xFF0B0C0E;
+        const uint Light = 0xFFFFFFFF;
+
+        context.FillRect(x - 8f, y - 1f, 16f, 2f, Dark);
+        context.FillRect(x - 1f, y - 8f, 2f, 16f, Dark);
+        context.FillRect(x - 7f, y - 0.5f, 14f, 1f, Light);
+        context.FillRect(x - 0.5f, y - 7f, 1f, 14f, Light);
+        context.FillRect(x - 1.5f, y - 1.5f, 3f, 3f, 0xFF2F8DF0);
+    }
+
     /// <summary>Draws a dotted ring around the pointer at the current brush size.</summary>
     private static void DrawBrushOutline(CanvasContext context, PaintSession editor, float zoom)
     {
-        if (editor.Tool is not (PaintTool.Brush or PaintTool.Eraser or PaintTool.Line))
+        if (editor.Tool is not (
+            PaintTool.Brush
+            or PaintTool.Eraser
+            or PaintTool.Line
+            or PaintTool.CloneStamp
+            or PaintTool.HealingBrush
+            or PaintTool.DodgeBurn))
         {
             return;
         }

@@ -109,6 +109,15 @@ public sealed class Viewport : Component
             case "E":
                 editor.SelectTool(PaintTool.Eraser);
                 break;
+            case "C":
+                editor.SelectTool(PaintTool.CloneStamp);
+                break;
+            case "H":
+                editor.SelectTool(PaintTool.HealingBrush);
+                break;
+            case "J":
+                editor.SelectTool(PaintTool.DodgeBurn);
+                break;
             case "L":
                 editor.SelectTool(PaintTool.Line);
                 break;

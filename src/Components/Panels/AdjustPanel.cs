@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Donkeh.UILab;
 using Donkeh.Windowing;
 using PixelDotNet.Paint;
@@ -20,12 +21,26 @@ public sealed class AdjustPanel : Component
 {
     private const int HistogramWidth = 288;
     private const int HistogramHeight = 68;
+    private const int CurveWidth = 288;
+    private const int CurveHeight = 148;
+
+    private int _curveDrag = -1;
 
     /// <inheritdoc/>
     public override Node Render()
     {
         PaintSession editor = UseContext(EditorContext.Value);
-        bool locked = editor.Document.Active.Locked;
+        PaintLayer active = editor.Document.Active;
+        bool locked = active.Locked;
+
+        if (active.IsAdjustment)
+        {
+            return F(
+                HistogramSection(editor),
+                AdjustmentControls(editor, active),
+                Span(new() { ClassName = "panel-note" },
+                    Text("This adjustment layer affects the visible layers below it, optionally through its mask and selection.")));
+        }
 
         return F(
             Ui.Section("Histogram",
@@ -68,6 +83,56 @@ public sealed class AdjustPanel : Component
                 Div(new() { ClassName = "row" },
                     Ui.Button("Reset", "Return the sliders to neutral", editor.ResetAdjustments, editor.HasAdjustments))),
 
+            Ui.Section("Levels",
+                Ui.Slider("Black", editor.LevelsBlack, 0f, 254f, 1f, string.Empty, value =>
+                {
+                    editor.LevelsBlack = Ui.Parse(value, 0f, 254f);
+                    Apply(editor);
+                }),
+                Ui.Slider("White", editor.LevelsWhite, 1f, 255f, 1f, string.Empty, value =>
+                {
+                    editor.LevelsWhite = Ui.Parse(value, 1f, 255f);
+                    Apply(editor);
+                }),
+                Ui.Slider("Midtone", editor.LevelsGamma * 100f, 10f, 500f, 1f, " %", value =>
+                {
+                    editor.LevelsGamma = Ui.Parse(value, 10f, 500f) / 100f;
+                    Apply(editor);
+                }),
+                Div(new() { ClassName = "row" },
+                    Ui.Button("Reset Levels", "Return the levels controls to neutral", editor.ResetLevels, editor.HasLevels))),
+
+            Ui.Section("Curves",
+                Canvas(new CanvasProps
+                {
+                    ClassName = "curve-editor",
+                    Attributes = Ui.Size(CurveWidth, CurveHeight),
+                    OnPointerDown = (x, y) => CurveDown(editor, x, y),
+                    OnPointerMove = (x, y) => CurveMove(editor, x, y),
+                    OnPointerUp = (x, y) => CurveUp(editor),
+                    OnContextMenu = menu => CurveRemove(editor, menu.X, menu.Y),
+                    OnDraw = context => DrawCurve(context, editor),
+                }),
+                Div(new() { ClassName = "row" },
+                    Ui.Button("Reset Curve", "Return the tone curve to a straight line", () =>
+                    {
+                        editor.ResetActiveCurve();
+                        ApplyCurveChange(editor);
+                    }, editor.HasCurve))),
+
+            Ui.Section("Adjustment Layer",
+                Div(new() { ClassName = "row" },
+                    Ui.Button("Levels Layer", "Add a non-destructive Levels adjustment layer", () =>
+                    {
+                        editor.AddAdjustmentLayer(AdjustmentKind.Levels);
+                        editor.Refresh?.Invoke();
+                    }),
+                    Ui.Button("Curves Layer", "Add a non-destructive Curves adjustment layer", () =>
+                    {
+                        editor.AddAdjustmentLayer(AdjustmentKind.Curves);
+                        editor.Refresh?.Invoke();
+                    }))),
+
             Ui.Section("Colour",
                 Div(new() { ClassName = "row" },
                     Ui.ButtonIcon(Icons.Invert, "Invert", "Invert the layer or the marquee", editor.Invert, !locked),
@@ -84,6 +149,181 @@ public sealed class AdjustPanel : Component
     {
         editor.TouchAdjustments();
         editor.Refresh?.Invoke();
+    }
+
+    /// <summary>Draws the shared histogram block.</summary>
+    private static Node HistogramSection(PaintSession editor) =>
+        Ui.Section("Histogram",
+            Div(new() { ClassName = "histogram-frame" },
+                Canvas(new CanvasProps
+                {
+                    ClassName = "histogram",
+                    Attributes = Ui.Size(HistogramWidth, HistogramHeight),
+                    OnDraw = context => DrawHistogram(context, editor),
+                }),
+                Div(new() { ClassName = "histogram-ramp" })));
+
+    /// <summary>Builds the editor for the active adjustment layer.</summary>
+    private Node AdjustmentControls(PaintSession editor, PaintLayer layer)
+    {
+        if (layer.Adjustment == AdjustmentKind.Curves)
+        {
+            return Ui.Section("Curves Adjustment",
+                Canvas(new CanvasProps
+                {
+                    ClassName = "curve-editor",
+                    Attributes = Ui.Size(CurveWidth, CurveHeight),
+                    OnPointerDown = (x, y) => CurveDown(editor, x, y),
+                    OnPointerMove = (x, y) => CurveMove(editor, x, y),
+                    OnPointerUp = (x, y) => CurveUp(editor),
+                    OnContextMenu = menu => CurveRemove(editor, menu.X, menu.Y),
+                    OnDraw = context => DrawCurve(context, editor),
+                }),
+                Div(new() { ClassName = "row" },
+                    Ui.Button("Reset Curve", "Return the adjustment curve to neutral", () =>
+                    {
+                        editor.ResetActiveCurve();
+                        ApplyCurveChange(editor);
+                    })));
+        }
+
+        return Ui.Section("Levels Adjustment",
+            Ui.Slider("Black", layer.AdjustmentBlack, 0f, 254f, 1f, string.Empty, value =>
+            {
+                editor.SetAdjustmentLevels(Ui.Parse(value, 0f, 254f), layer.AdjustmentWhite, layer.AdjustmentGamma);
+                editor.Refresh?.Invoke();
+            }),
+            Ui.Slider("White", layer.AdjustmentWhite, 1f, 255f, 1f, string.Empty, value =>
+            {
+                editor.SetAdjustmentLevels(layer.AdjustmentBlack, Ui.Parse(value, 1f, 255f), layer.AdjustmentGamma);
+                editor.Refresh?.Invoke();
+            }),
+            Ui.Slider("Midtone", layer.AdjustmentGamma * 100f, 10f, 500f, 1f, " %", value =>
+            {
+                editor.SetAdjustmentLevels(layer.AdjustmentBlack, layer.AdjustmentWhite, Ui.Parse(value, 10f, 500f) / 100f);
+                editor.Refresh?.Invoke();
+            }),
+            Div(new() { ClassName = "row" },
+                Ui.Button("Reset Levels", "Return the adjustment to neutral", () =>
+                {
+                    editor.ResetAdjustmentLevels();
+                    editor.Refresh?.Invoke();
+                })));
+    }
+
+
+    /// <summary>Maps canvas coordinates into curve space, with y pointing up.</summary>
+    private static (float X, float Y) CurvePosition(float x, float y) => (
+        Math.Clamp(x / (CurveWidth - 1f), 0f, 1f),
+        Math.Clamp(1f - (y / (CurveHeight - 1f)), 0f, 1f));
+
+    /// <summary>Selects or adds a curve point and starts dragging it.</summary>
+    private void CurveDown(PaintSession editor, float x, float y)
+    {
+        (float nx, float ny) = CurvePosition(x, y);
+        int index = editor.FindActiveCurvePoint(nx, ny, 14f / CurveWidth);
+        if (index < 0)
+        {
+            index = editor.AddActiveCurvePoint(nx, ny);
+        }
+
+        _curveDrag = index;
+        editor.MoveActiveCurvePoint(index, nx, ny);
+        ApplyCurveChange(editor);
+    }
+
+    /// <summary>Drags the active curve point.</summary>
+    private void CurveMove(PaintSession editor, float x, float y)
+    {
+        if (_curveDrag < 0)
+        {
+            return;
+        }
+
+        (float nx, float ny) = CurvePosition(x, y);
+        editor.MoveActiveCurvePoint(_curveDrag, nx, ny);
+        ApplyCurveChange(editor);
+    }
+
+    /// <summary>Ends the curve drag.</summary>
+    private void CurveUp(PaintSession editor) => _curveDrag = -1;
+
+    /// <summary>Removes the curve point under a right-click.</summary>
+    private static void CurveRemove(PaintSession editor, float x, float y)
+    {
+        (float nx, float ny) = CurvePosition(x, y);
+        int index = editor.FindActiveCurvePoint(nx, ny, 14f / CurveWidth);
+        if (index < 0)
+        {
+            return;
+        }
+
+        editor.RemoveActiveCurvePoint(index);
+        ApplyCurveChange(editor);
+    }
+
+    /// <summary>Applies the curve change to the destructive or adjustment target.</summary>
+    private static void ApplyCurveChange(PaintSession editor)
+    {
+        if (editor.ActiveAdjustmentLayer is { Adjustment: AdjustmentKind.Curves })
+        {
+            editor.TouchAdjustmentLayer();
+        }
+        else
+        {
+            editor.TouchAdjustments();
+        }
+
+        editor.Refresh?.Invoke();
+    }
+
+    /// <summary>Draws the curve editor grid, identity line and control points.</summary>
+    private static void DrawCurve(CanvasContext context, PaintSession editor)
+    {
+        context.Clear(0xFF1A1C20);
+
+        for (int i = 1; i < 4; i++)
+        {
+            float x = CurveWidth / 4f * i;
+            float y = CurveHeight / 4f * i;
+            context.FillRect(x, 0f, 1f, CurveHeight, 0x18FFFFFF);
+            context.FillRect(0f, y, CurveWidth, 1f, 0x18FFFFFF);
+        }
+
+        CurveLine(context, 0f, CurveHeight, CurveWidth, 0f, 0x30FFFFFF);
+
+        IReadOnlyList<(float X, float Y)> points = editor.ActiveCurvePoints;
+        for (int index = 0; index + 1 < points.Count; index++)
+        {
+            CurveLine(
+                context,
+                points[index].X * CurveWidth,
+                (1f - points[index].Y) * CurveHeight,
+                points[index + 1].X * CurveWidth,
+                (1f - points[index + 1].Y) * CurveHeight,
+                0xFF7FB6FF);
+        }
+
+        foreach ((float x, float y) in points)
+        {
+            float px = (x * CurveWidth) - 4f;
+            float py = ((1f - y) * CurveHeight) - 4f;
+            context.FillRect(px, py, 9f, 9f, 0xFF0B0C0E);
+            context.FillRect(px + 1f, py + 1f, 7f, 7f, 0xFFFFFFFF);
+        }
+    }
+
+    /// <summary>Draws one thin curve segment as a run of rectangles.</summary>
+    private static void CurveLine(CanvasContext context, float x0, float y0, float x1, float y1, uint color)
+    {
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        int steps = Math.Max(1, (int)MathF.Ceiling(MathF.Sqrt((dx * dx) + (dy * dy))));
+        for (int step = 0; step <= steps; step++)
+        {
+            float t = step / (float)steps;
+            context.FillRect(x0 + (dx * t), y0 + (dy * t), 1.5f, 1.5f, color);
+        }
     }
 
     /// <summary>Draws the composited luminance histogram with a square-root scale.</summary>

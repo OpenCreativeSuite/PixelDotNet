@@ -23,6 +23,15 @@ public static class Icons
     /// <summary>Eraser.</summary>
     public const string Eraser = "fa-eraser";
 
+    /// <summary>Clone stamp.</summary>
+    public const string CloneStamp = "fa-stamp";
+
+    /// <summary>Healing brush.</summary>
+    public const string HealingBrush = "fa-bandage";
+
+    /// <summary>Dodge and burn.</summary>
+    public const string DodgeBurn = "fa-sun";
+
     /// <summary>Line tool.</summary>
     public const string Line = "fa-slash";
 
@@ -143,6 +152,9 @@ public static class Icons
     /// <summary>Information circle, used by generic help topics.</summary>
     public const string Info = "fa-circle-info";
 
+    /// <summary>Layer mask.</summary>
+    public const string Mask = "fa-mask";
+
     /// <summary>Gets the glyph for a tool.</summary>
     public static string ForTool(PaintTool tool) => tool switch
     {
@@ -153,6 +165,9 @@ public static class Icons
         PaintTool.MagicWand => MagicWand,
         PaintTool.Brush => Brush,
         PaintTool.Eraser => Eraser,
+        PaintTool.CloneStamp => CloneStamp,
+        PaintTool.HealingBrush => HealingBrush,
+        PaintTool.DodgeBurn => DodgeBurn,
         PaintTool.Line => Line,
         PaintTool.Rectangle => Rectangle,
         PaintTool.Ellipse => Ellipse,

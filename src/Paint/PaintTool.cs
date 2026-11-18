@@ -24,6 +24,15 @@ public enum PaintTool
     /// <summary>Erases to white on the background layer, to transparency above it.</summary>
     Eraser,
 
+    /// <summary>Clones pixels from a sampled source point.</summary>
+    CloneStamp,
+
+    /// <summary>Paints sampled texture while matching the destination tone.</summary>
+    HealingBrush,
+
+    /// <summary>Lightens or darkens pixels with brush strokes.</summary>
+    DodgeBurn,
+
     /// <summary>Drags a straight line with the current brush.</summary>
     Line,
 
