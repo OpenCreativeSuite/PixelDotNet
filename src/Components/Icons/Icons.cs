@@ -110,6 +110,15 @@ public static class Icons
     /// <summary>The text tool.</summary>
     public const string Text = "fa-font";
 
+    /// <summary>Elliptical selection.</summary>
+    public const string EllipseSelect = "fa-circle";
+
+    /// <summary>Freehand lasso selection.</summary>
+    public const string Lasso = "fa-draw-polygon";
+
+    /// <summary>Magic wand colour selection.</summary>
+    public const string MagicWand = "fa-wand-magic";
+
     /// <summary>Align text left.</summary>
     public const string AlignLeft = "fa-align-left";
 
@@ -130,6 +139,9 @@ public static class Icons
     {
         PaintTool.Move => Move,
         PaintTool.Marquee => Marquee,
+        PaintTool.EllipseSelect => EllipseSelect,
+        PaintTool.Lasso => Lasso,
+        PaintTool.MagicWand => MagicWand,
         PaintTool.Brush => Brush,
         PaintTool.Eraser => Eraser,
         PaintTool.Line => Line,
@@ -143,5 +155,6 @@ public static class Icons
     };
 
     /// <summary>Gets whether a tool reads best in the outline (regular) weight.</summary>
-    public static bool IsRegular(PaintTool tool) => tool is PaintTool.Rectangle or PaintTool.Ellipse;
+    public static bool IsRegular(PaintTool tool) =>
+        tool is PaintTool.Rectangle or PaintTool.Ellipse or PaintTool.EllipseSelect;
 }

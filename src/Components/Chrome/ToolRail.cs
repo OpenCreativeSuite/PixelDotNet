@@ -11,7 +11,8 @@ public sealed class ToolRail : Component
 {
     private static readonly PaintTool[][] Groups =
     [
-        [PaintTool.Move, PaintTool.Marquee],
+        [PaintTool.Move],
+        [PaintTool.Marquee, PaintTool.EllipseSelect, PaintTool.Lasso, PaintTool.MagicWand],
         [PaintTool.Brush, PaintTool.Eraser],
         [PaintTool.Line, PaintTool.Rectangle, PaintTool.Ellipse],
         [PaintTool.Gradient, PaintTool.Bucket, PaintTool.Eyedropper],

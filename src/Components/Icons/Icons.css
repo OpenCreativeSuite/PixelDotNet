@@ -170,6 +170,14 @@
     content: "\e2ca";
 }
 
+.fa-wand-magic::before {
+    content: "\f0d0";
+}
+
+.fa-draw-polygon::before {
+    content: "\f5ee";
+}
+
 .fa-check::before {
     content: "\f00c";
 }

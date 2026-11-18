@@ -9,6 +9,15 @@ public enum PaintTool
     /// <summary>Drags a rectangular selection.</summary>
     Marquee,
 
+    /// <summary>Drags an elliptical selection.</summary>
+    EllipseSelect,
+
+    /// <summary>Draws a freehand selection that closes on release.</summary>
+    Lasso,
+
+    /// <summary>Selects a connected colour region under the pointer.</summary>
+    MagicWand,
+
     /// <summary>Paints with the current colour.</summary>
     Brush,
 

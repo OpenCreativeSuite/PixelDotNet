@@ -74,6 +74,8 @@ public sealed class PaintSession
     private float _lastY;
     private bool _stroking;
     private bool _previewing;
+    private bool _lassoing;
+    private readonly List<(float X, float Y)> _lassoPoints = [];
     private bool _moving;
     private bool _movingSelection;
     private bool _resizingSelection;
@@ -161,6 +163,12 @@ public sealed class PaintSession
     /// <summary>Gets or sets the flood-fill colour tolerance.</summary>
     public int Tolerance { get; set; } = 32;
 
+    /// <summary>Gets or sets the magic wand's colour tolerance.</summary>
+    public int MagicTolerance { get; set; } = 32;
+
+    /// <summary>Gets or sets whether the magic wand only selects the connected region.</summary>
+    public bool MagicContiguous { get; set; } = true;
+
     /// <summary>Gets or sets whether the shape tools fill instead of outline.</summary>
     public bool FillShapes { get; set; } = true;
 
@@ -175,8 +183,11 @@ public sealed class PaintSession
     /// <summary>Gets or sets whether the eight-pixel guide grid is drawn.</summary>
     public bool ShowGrid { get; set; }
 
-    /// <summary>Gets the active rectangular selection, or null when nothing is selected.</summary>
+    /// <summary>Gets the active selection, or null when nothing is selected.</summary>
     public Selection? Selection { get; private set; }
+
+    /// <summary>Gets the freehand points of an in-progress lasso, for the canvas preview.</summary>
+    public IReadOnlyList<(float X, float Y)> LassoPoints => _lassoPoints;
 
     /// <summary>Gets or sets the last pointer column in document pixels, or -1.</summary>
     public int CursorX { get; private set; } = -1;
@@ -256,6 +267,9 @@ public sealed class PaintSession
     {
         PaintTool.Move => "Move",
         PaintTool.Marquee => "Marquee",
+        PaintTool.EllipseSelect => "Elliptical Select",
+        PaintTool.Lasso => "Lasso Select",
+        PaintTool.MagicWand => "Magic Wand",
         PaintTool.Brush => "Brush",
         PaintTool.Eraser => "Eraser",
         PaintTool.Line => "Line",
@@ -273,6 +287,9 @@ public sealed class PaintSession
     {
         PaintTool.Move => "V",
         PaintTool.Marquee => "M",
+        PaintTool.EllipseSelect => "Q",
+        PaintTool.Lasso => "F",
+        PaintTool.MagicWand => "W",
         PaintTool.Brush => "B",
         PaintTool.Eraser => "E",
         PaintTool.Line => "L",
@@ -299,6 +316,8 @@ public sealed class PaintSession
         IsFontSearchFocused = false;
         IsTextFxOpen = false;
         ColorTarget = TextColorTarget.Fill;
+        _lassoing = false;
+        _lassoPoints.Clear();
         Status = NameOf(tool) + " tool";
         Changed();
     }
@@ -530,6 +549,26 @@ public sealed class PaintSession
             return;
         }
 
+        if (Tool == PaintTool.EllipseSelect)
+        {
+            _previewing = true;
+            Selection = Selection.EllipseFromPoints(documentX, documentY, documentX, documentY, Document.Width, Document.Height);
+            Changed();
+            return;
+        }
+
+        if (Tool == PaintTool.Lasso)
+        {
+            BeginLasso(documentX, documentY);
+            return;
+        }
+
+        if (Tool == PaintTool.MagicWand)
+        {
+            SelectMagicRegion(x, y);
+            return;
+        }
+
         if (Document.Active.Locked)
         {
             Status = "Layer is locked";
@@ -599,11 +638,21 @@ public sealed class PaintSession
             return;
         }
 
+        if (_lassoing)
+        {
+            ExtendLasso(documentX, documentY);
+            return;
+        }
+
         if (_previewing)
         {
             if (Tool == PaintTool.Marquee)
             {
                 Selection = Selection.FromPoints(_startX, _startY, documentX, documentY, Document.Width, Document.Height);
+            }
+            else if (Tool == PaintTool.EllipseSelect)
+            {
+                Selection = Selection.EllipseFromPoints(_startX, _startY, documentX, documentY, Document.Width, Document.Height);
             }
             else
             {
@@ -664,7 +713,13 @@ public sealed class PaintSession
             return;
         }
 
-        if (Tool == PaintTool.Marquee && _previewing)
+        if (Tool == PaintTool.Lasso && _lassoing)
+        {
+            FinishLasso();
+            return;
+        }
+
+        if ((Tool is PaintTool.Marquee or PaintTool.EllipseSelect) && _previewing)
         {
             _previewing = false;
             if (Selection is null || Selection.IsEmpty)
@@ -786,6 +841,11 @@ public sealed class PaintSession
     /// <summary>Returns which edge handles a pointer position is grabbing.</summary>
     private ResizeEdges HitSelectionHandle(Selection selection, float x, float y)
     {
+        if (!selection.CanResize)
+        {
+            return ResizeEdges.None;
+        }
+
         float radius = 6f / MathF.Max(Zoom, 0.05f);
         float left = selection.X;
         float right = selection.Right;
@@ -850,6 +910,11 @@ public sealed class PaintSession
             return;
         }
 
+        if (!start.CanResize)
+        {
+            return;
+        }
+
         int left = start.X;
         int top = start.Y;
         int right = start.Right;
@@ -889,12 +954,20 @@ public sealed class PaintSession
         {
             for (int x = start.X; x < start.Right; x++)
             {
-                layer.Put(x, y, Rgba.Transparent);
+                if (start.Contains(x, y))
+                {
+                    layer.Put(x, y, Rgba.Transparent);
+                }
             }
         }
 
         // Nearest-neighbour scale: destination coordinates map back into the lifted
         // buffer, which keeps hard pixel edges instead of inventing smooth ones.
+        // An elliptical selection gets a fresh inscribed mask at its new size.
+        byte[]? destinationMask = start.Shape == SelectionShape.Ellipse
+            ? Selection.CreateEllipseMask(newWidth, newHeight)
+            : null;
+
         for (int row = 0; row < newHeight; row++)
         {
             int sourceRow = (row * _moveHeight / newHeight) * _moveWidth;
@@ -902,12 +975,26 @@ public sealed class PaintSession
 
             for (int column = 0; column < newWidth; column++)
             {
+                if (destinationMask is not null && destinationMask[(row * newWidth) + column] == 0)
+                {
+                    continue;
+                }
+
                 int sourceX = column * _moveWidth / newWidth;
+                int sourceY = row * _moveHeight / newHeight;
+                if (!start.Contains(start.X + sourceX, start.Y + sourceY))
+                {
+                    layer.Put(left + column, targetY, Rgba.Transparent);
+                    continue;
+                }
+
                 layer.Put(left + column, targetY, _movePixels[sourceRow + sourceX]);
             }
         }
 
-        Selection = new Selection(left, top, newWidth, newHeight);
+        Selection = start.Shape == SelectionShape.Ellipse
+            ? Selection.Ellipse(left, top, newWidth, newHeight)
+            : new Selection(left, top, newWidth, newHeight);
         Status = $"Resize {newWidth} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {newHeight}";
         Document.MarkDirty();
     }
@@ -932,21 +1019,30 @@ public sealed class PaintSession
         {
             for (int x = start.X; x < start.Right; x++)
             {
-                layer.Put(x, y, Rgba.Transparent);
+                if (start.Contains(x, y))
+                {
+                    layer.Put(x, y, Rgba.Transparent);
+                }
             }
         }
 
         for (int row = 0; row < _moveHeight; row++)
         {
             int targetY = start.Y + dy + row;
+            int sourceRow = row * _moveWidth;
 
             for (int column = 0; column < _moveWidth; column++)
             {
-                layer.Put(start.X + dx + column, targetY, _movePixels[(row * _moveWidth) + column]);
+                if (!start.Contains(start.X + column, start.Y + row))
+                {
+                    continue;
+                }
+
+                layer.Put(start.X + dx + column, targetY, _movePixels[sourceRow + column]);
             }
         }
 
-        Selection = new Selection(start.X + dx, start.Y + dy, _moveWidth, _moveHeight);
+        Selection = start.Shifted(dx, dy);
         Status = dx == 0 && dy == 0 ? "Move selection" : $"Move {dx}, {dy}";
         Document.MarkDirty();
     }
@@ -987,6 +1083,58 @@ public sealed class PaintSession
 
     // ---- selection --------------------------------------------------------
 
+    /// <summary>Starts a freehand selection and records its first point.</summary>
+    private void BeginLasso(float x, float y)
+    {
+        _lassoing = true;
+        _lassoPoints.Clear();
+        _lassoPoints.Add((x, y));
+        Status = "Draw a selection";
+        Changed();
+    }
+
+    /// <summary>Adds a point once the pointer has moved at least a pixel.</summary>
+    private void ExtendLasso(float x, float y)
+    {
+        (float lastX, float lastY) = _lassoPoints[^1];
+        float dx = x - lastX;
+        float dy = y - lastY;
+        if ((dx * dx) + (dy * dy) < 1f)
+        {
+            return;
+        }
+
+        _lassoPoints.Add((x, y));
+    }
+
+    /// <summary>Closes the lasso outline and turns it into a selection.</summary>
+    private void FinishLasso()
+    {
+        _lassoing = false;
+        Selection = SelectionOps.FromPolygon(_lassoPoints, Document.Width, Document.Height);
+        _lassoPoints.Clear();
+        Status = Selection is null
+            ? "Deselected"
+            : $"Selection {Selection.Width} x {Selection.Height}";
+        Changed();
+    }
+
+    /// <summary>Selects the colour region under a pointer position with the wand.</summary>
+    private void SelectMagicRegion(int x, int y)
+    {
+        Selection = SelectionOps.MagicWand(
+            Document,
+            x,
+            y,
+            MagicTolerance,
+            MagicContiguous);
+
+        Status = Selection is null
+            ? "Nothing selected"
+            : $"Selection {Selection.Width} x {Selection.Height}";
+        Changed();
+    }
+
     /// <summary>Selects the whole document.</summary>
     public void SelectAll()
     {
@@ -999,6 +1147,8 @@ public sealed class PaintSession
     public void Deselect()
     {
         Selection = null;
+        _lassoing = false;
+        _lassoPoints.Clear();
         Status = "Deselected";
         Changed();
     }
@@ -1051,17 +1201,11 @@ public sealed class PaintSession
     /// <summary>Gets whether there is copied pixels ready to paste.</summary>
     public bool HasClipboard => _clipboard is not null;
 
-    /// <summary>Copies the selected area of the active layer, or the visible image if the layer is empty there.</summary>
+    /// <summary>Copies the selected area of the active layer.</summary>
     public void Copy()
     {
         ClipboardImage? image = Capture(merged: false);
         string note = string.Empty;
-
-        if (image is null || image.Empty)
-        {
-            image = Capture(merged: true) ?? image;
-            note = " (merged)";
-        }
 
         if (image is null)
         {
@@ -1176,10 +1320,24 @@ public sealed class PaintSession
         uint[] source = merged ? Document.Composite : Document.Active.Pixels;
         uint[] pixels = new uint[width * height];
         bool empty = true;
+        Selection? selection = Selection;
+        bool masked = selection?.Mask is not null;
 
         for (int row = 0; row < height; row++)
         {
             Array.Copy(source, ((originY + row) * Document.Width) + originX, pixels, row * width, width);
+
+            if (masked)
+            {
+                for (int column = 0; column < width; column++)
+                {
+                    if (!selection!.Contains(originX + column, originY + row))
+                    {
+                        pixels[(row * width) + column] = Rgba.Transparent;
+                    }
+                }
+            }
+
             if (empty)
             {
                 for (int column = 0; column < width; column++)
@@ -1209,7 +1367,10 @@ public sealed class PaintSession
         {
             for (int x = Selection.X; x < Selection.Right; x++)
             {
-                layer.Put(x, y, Rgba.Transparent);
+                if (Selection.Contains(x, y))
+                {
+                    layer.Put(x, y, Rgba.Transparent);
+                }
             }
         }
     }
@@ -1517,6 +1678,11 @@ public sealed class PaintSession
             int sourceY = horizontal ? y : top + (bottom - 1) - (y - top);
             for (int x = left; x < right; x++)
             {
+                if (Selection is not null && !Selection.Contains(x, y))
+                {
+                    continue;
+                }
+
                 int sourceX = horizontal ? left + (right - 1) - (x - left) : x;
                 layer.Put(x, y, source[(sourceY * width) + sourceX]);
             }

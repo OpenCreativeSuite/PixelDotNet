@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Donkeh.LayoutLab;
 using Donkeh.UILab;
@@ -90,7 +91,9 @@ public sealed class CanvasSurface : Component
             DrawGrid(context, document, zoom);
         }
 
+        DrawSelectionOverlay(context, editor, zoom);
         DrawMarquee(context, editor, zoom);
+        DrawLassoPreview(context, editor, zoom);
         DrawTextTransform(context, editor, zoom);
         DrawBrushOutline(context, editor, zoom);
     }
@@ -210,6 +213,77 @@ public sealed class CanvasSurface : Component
         }
     }
 
+    /// <summary>
+    /// Washes a soft blue tint over the selected pixels so the region is readable
+    /// without hiding the artwork underneath.
+    /// </summary>
+    private static void DrawSelectionOverlay(CanvasContext context, PaintSession editor, float zoom)
+    {
+        if (editor.Selection is not { } selection || selection.IsEmpty)
+        {
+            return;
+        }
+
+        const uint Tint = 0x332F8DF0;
+
+        if (selection.Shape == SelectionShape.Mask && selection.Mask is { } mask)
+        {
+            int width = selection.Width;
+            int height = selection.Height;
+
+            for (int row = 0; row < height; row++)
+            {
+                int rowStart = row * width;
+                int column = 0;
+
+                while (column < width)
+                {
+                    while (column < width && mask[rowStart + column] == 0)
+                    {
+                        column++;
+                    }
+
+                    int start = column;
+                    while (column < width && mask[rowStart + column] != 0)
+                    {
+                        column++;
+                    }
+
+                    if (column > start)
+                    {
+                        context.FillRect(
+                            (selection.X + start) * zoom,
+                            (selection.Y + row) * zoom,
+                            ((column - start) * zoom) + 0.5f,
+                            zoom + 0.5f,
+                            Tint);
+                    }
+                }
+            }
+
+            return;
+        }
+
+        if (selection.Shape == SelectionShape.Ellipse)
+        {
+            context.FillEllipse(
+                new Rect(
+                    selection.X * zoom,
+                    selection.Y * zoom,
+                    selection.Width * zoom,
+                    selection.Height * zoom),
+                Tint);
+            return;
+        }
+
+        context.FillRect(
+            selection.X * zoom,
+            selection.Y * zoom,
+            selection.Width * zoom,
+            selection.Height * zoom,
+            Tint);
+    }
+
     /// <summary>Draws the selection dashes and, with the Move tool, its resize handles.</summary>
     private static void DrawMarquee(CanvasContext context, PaintSession editor, float zoom)
     {
@@ -218,19 +292,144 @@ public sealed class CanvasSurface : Component
             return;
         }
 
+        if (selection.Shape == SelectionShape.Mask)
+        {
+            DrawMaskMarquee(context, selection, zoom);
+        }
+        else if (selection.Shape == SelectionShape.Ellipse)
+        {
+            DrawEllipseMarquee(context, selection, zoom);
+        }
+        else
+        {
+            float left = selection.X * zoom;
+            float top = selection.Y * zoom;
+            float right = selection.Right * zoom;
+            float bottom = selection.Bottom * zoom;
+
+            Dash(context, left, top, right, top);
+            Dash(context, right, top, right, bottom);
+            Dash(context, right, bottom, left, bottom);
+            Dash(context, left, bottom, left, top);
+        }
+
+        if (editor.Tool == PaintTool.Move && selection.CanResize)
+        {
+            DrawHandles(
+                context,
+                selection.X * zoom,
+                selection.Y * zoom,
+                selection.Right * zoom,
+                selection.Bottom * zoom);
+        }
+    }
+
+    /// <summary>Draws the boundary of an arbitrary selection mask.</summary>
+    private static void DrawMaskMarquee(CanvasContext context, Selection selection, float zoom)
+    {
+        if (selection.Mask is not { } mask)
+        {
+            return;
+        }
+
+        int width = selection.Width;
+        int height = selection.Height;
+        int drawn = 0;
+        const int Limit = 24000;
+
+        for (int row = 0; row < height && drawn < Limit; row++)
+        {
+            int rowStart = row * width;
+            for (int column = 0; column < width && drawn < Limit; column++)
+            {
+                if (mask[rowStart + column] == 0)
+                {
+                    continue;
+                }
+
+                float x = (selection.X + column) * zoom;
+                float y = (selection.Y + row) * zoom;
+                uint color = (((selection.X + column) + (selection.Y + row)) / 4) % 2 == 0
+                    ? 0xFF101010
+                    : 0xFFFFFFFF;
+
+                if (column == 0 || mask[rowStart + column - 1] == 0)
+                {
+                    context.FillRect(x, y, 1.5f, zoom + 0.5f, color);
+                    drawn++;
+                }
+
+                if (column == width - 1 || mask[rowStart + column + 1] == 0)
+                {
+                    context.FillRect(x + zoom - 1.5f, y, 1.5f, zoom + 0.5f, color);
+                    drawn++;
+                }
+
+                if (row == 0 || mask[rowStart + column - width] == 0)
+                {
+                    context.FillRect(x, y, zoom + 0.5f, 1.5f, color);
+                    drawn++;
+                }
+
+                if (row == height - 1 || mask[rowStart + column + width] == 0)
+                {
+                    context.FillRect(x, y + zoom - 1.5f, zoom + 0.5f, 1.5f, color);
+                    drawn++;
+                }
+            }
+        }
+    }
+
+    /// <summary>Draws an elliptical selection as a dashed closed curve.</summary>
+    private static void DrawEllipseMarquee(CanvasContext context, Selection selection, float zoom)
+    {
         float left = selection.X * zoom;
         float top = selection.Y * zoom;
         float right = selection.Right * zoom;
         float bottom = selection.Bottom * zoom;
-
-        Dash(context, left, top, right, top);
-        Dash(context, right, top, right, bottom);
-        Dash(context, right, bottom, left, bottom);
-        Dash(context, left, bottom, left, top);
-
-        if (editor.Tool == PaintTool.Move)
+        float centerX = (left + right) * 0.5f;
+        float centerY = (top + bottom) * 0.5f;
+        float radiusX = (right - left) * 0.5f;
+        float radiusY = (bottom - top) * 0.5f;
+        if (radiusX <= 0f || radiusY <= 0f)
         {
-            DrawHandles(context, left, top, right, bottom);
+            return;
+        }
+
+        int steps = Math.Clamp((int)(MathF.PI * (radiusX + radiusY) * 0.5f / 6f), 24, 240);
+        (float X, float Y) previous = (centerX + radiusX, centerY);
+
+        for (int step = 1; step <= steps; step++)
+        {
+            float angle = step * MathF.PI * 2f / steps;
+            (float X, float Y) current = (
+                centerX + (radiusX * MathF.Cos(angle)),
+                centerY + (radiusY * MathF.Sin(angle)));
+            Dash(context, previous.X, previous.Y, current.X, current.Y);
+            previous = current;
+        }
+    }
+
+    /// <summary>Draws the open freehand path while a lasso drag is in progress.</summary>
+    private static void DrawLassoPreview(CanvasContext context, PaintSession editor, float zoom)
+    {
+        IReadOnlyList<(float X, float Y)> points = editor.LassoPoints;
+        if (points.Count < 2)
+        {
+            return;
+        }
+
+        (float X, float Y) previous = (points[0].X * zoom, points[0].Y * zoom);
+        for (int index = 1; index < points.Count; index++)
+        {
+            (float X, float Y) current = (points[index].X * zoom, points[index].Y * zoom);
+            Stroke(context, previous, current, index % 2 == 0 ? 0xFFFFFFFF : 0xFF101010);
+            previous = current;
+        }
+
+        if (points.Count > 3)
+        {
+            Stroke(context, previous, (points[0].X * zoom, points[0].Y * zoom), 0xFF9AA3AD);
         }
     }
 

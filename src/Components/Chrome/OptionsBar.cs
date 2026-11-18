@@ -42,6 +42,14 @@ public sealed class OptionsBar : Component
                     }, Ui.DefaultsGlyph()))));
     }
 
+    /// <summary>Explains what the active selection tool does.</summary>
+    private static string SelectionNote(PaintTool tool) => tool switch
+    {
+        PaintTool.EllipseSelect => "Drag an ellipse; paint inside it, or drag it with the Move tool",
+        PaintTool.Lasso => "Draw a freehand outline; it closes when you release",
+        _ => "Drag a rectangle, then paint inside it or drag it with the Move tool",
+    };
+
     /// <summary>Builds one text alignment toggle.</summary>
     private static Node AlignButton(PaintSession editor, TextAlign align, string icon, string title) =>
         Button(new()
@@ -263,8 +271,24 @@ public sealed class OptionsBar : Component
                 editor.Refresh?.Invoke();
             })),
 
-        PaintTool.Marquee => F(
-            Span(new() { ClassName = "options-note" }, Text("Drag a rectangle, then paint inside it or drag it with the Move tool")),
+        PaintTool.Marquee or PaintTool.EllipseSelect or PaintTool.Lasso => F(
+            Span(new() { ClassName = "options-note" }, Text(SelectionNote(editor.Tool))),
+            Ui.Button("Select all", "Select the whole document", editor.SelectAll),
+            Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null)),
+
+        PaintTool.MagicWand => F(
+            Ui.Field("Tolerance", editor.MagicTolerance, 0f, 128f, 1f, string.Empty, value =>
+            {
+                editor.MagicTolerance = (int)Ui.Parse(value, 0f, 128f);
+                editor.Refresh?.Invoke();
+            }),
+            Ui.Toggle("Contiguous", "Only select the connected region", editor.MagicContiguous, () =>
+            {
+                editor.MagicContiguous = !editor.MagicContiguous;
+                editor.Refresh?.Invoke();
+            }),
+            Span(new() { ClassName = "options-note" }, Text("Selects colours on the active layer")),
+            Ui.Button("Select all", "Select the whole document", editor.SelectAll),
             Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null)),
 
         PaintTool.Move => F(

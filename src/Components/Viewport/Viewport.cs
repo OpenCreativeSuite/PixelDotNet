@@ -82,6 +82,15 @@ public sealed class Viewport : Component
             case "M":
                 editor.SelectTool(PaintTool.Marquee);
                 break;
+            case "Q":
+                editor.SelectTool(PaintTool.EllipseSelect);
+                break;
+            case "F":
+                editor.SelectTool(PaintTool.Lasso);
+                break;
+            case "W":
+                editor.SelectTool(PaintTool.MagicWand);
+                break;
             case "B":
                 editor.SelectTool(PaintTool.Brush);
                 break;
