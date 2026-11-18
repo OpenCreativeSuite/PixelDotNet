@@ -36,11 +36,13 @@ public sealed class TextFxPanel : Component
                 Span(new() { ClassName = "text-fx-title" },
                     Ui.Icon(Icons.Sparkles, "text-fx-title-icon"),
                     Text("Text effects")),
-                Ui.IconButton(Icons.Close, "Close text effects", () =>
-                {
-                    editor.CloseTextFx();
-                    editor.Refresh?.Invoke();
-                }, className: "icon-btn is-tiny")),
+                Ui.Tip(editor,
+                    Ui.IconButton(Icons.Close, "Close text effects", () =>
+                    {
+                        editor.CloseTextFx();
+                        editor.Refresh?.Invoke();
+                    }, className: "icon-btn is-tiny"),
+                    Icons.Close, "Close Effects", "")),
             Div(new() { ClassName = "text-fx-body" },
                 Ui.Section("Presets",
                     Div(new() { ClassName = "text-fx-presets" }, [.. PresetButtons(editor)]),

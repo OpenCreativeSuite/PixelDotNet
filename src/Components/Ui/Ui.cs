@@ -221,7 +221,7 @@ internal static class Ui
         string helpId,
         string hint = "",
         TipPlacement placement = TipPlacement.Auto,
-        bool keepNameWhenDisabled = false)
+        bool keepNameWhenDisabled = true)
     {
         if ((!editor.ShowTooltips && !keepNameWhenDisabled) || content is not ElementNode element)
         {

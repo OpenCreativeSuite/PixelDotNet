@@ -1444,7 +1444,7 @@ public sealed class PaintSession
         Selection = start.Shape == SelectionShape.Ellipse
             ? Selection.Ellipse(left, top, newWidth, newHeight)
             : new Selection(left, top, newWidth, newHeight);
-        Status = $"Resize {newWidth} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {newHeight}";
+        Status = $"Resize {newWidth} x {newHeight}";
         Document.MarkDirty();
     }
 
@@ -1769,8 +1769,8 @@ public sealed class PaintSession
 
         _clipboard = image;
         Status = image.Empty
-            ? $"Copied {image.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {image.Height} (empty area)"
-            : $"Copied {image.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {image.Height}{note}";
+            ? $"Copied {image.Width} x {image.Height} (empty area)"
+            : $"Copied {image.Width} x {image.Height}{note}";
         Changed();
     }
 
@@ -1783,7 +1783,7 @@ public sealed class PaintSession
         }
 
         _clipboard = image;
-        Status = $"Copied merged {image.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {image.Height}";
+        Status = $"Copied merged {image.Width} x {image.Height}";
         Changed();
     }
 
@@ -1808,7 +1808,7 @@ public sealed class PaintSession
         _clipboard = image;
         PushUndo("Cut");
         ClearRegion(layer);
-        Status = $"Cut {image.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {image.Height}";
+        Status = $"Cut {image.Width} x {image.Height}";
         Changed();
     }
 
@@ -1853,10 +1853,11 @@ public sealed class PaintSession
             }
         }
 
+        layer.Group = Document.Active.Group;
         int insertAt = Math.Clamp(Document.ActiveIndex + 1, 0, Document.Layers.Count);
         Document.Layers.Insert(insertAt, layer);
         Document.ActiveIndex = insertAt;
-        Status = $"Pasted {clip.Width} ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â {clip.Height}";
+        Status = $"Pasted {clip.Width} x {clip.Height}";
         Changed();
     }
 
@@ -1981,7 +1982,10 @@ public sealed class PaintSession
     {
         CommitPreviews();
         PushUndo("New Layer");
-        PaintLayer layer = new($"Layer {Document.Layers.Count + 1}", Document.Width, Document.Height);
+        PaintLayer layer = new($"Layer {Document.Layers.Count + 1}", Document.Width, Document.Height)
+        {
+            Group = Document.Active.Group,
+        };
         int insertAt = Math.Clamp(Document.ActiveIndex + 1, 0, Document.Layers.Count);
         Document.Layers.Insert(insertAt, layer);
         Document.ActiveIndex = insertAt;
@@ -2005,6 +2009,7 @@ public sealed class PaintSession
             Opacity = source.Opacity,
             Blend = source.Blend,
             ClipToBelow = source.ClipToBelow,
+            Group = source.Group,
         };
         copy.Adopt(source.CapturePixels());
         copy.AdoptMask(source.CaptureMask());
@@ -2032,12 +2037,14 @@ public sealed class PaintSession
         PushUndo("Merge Down");
         PaintLayer top = Document.Layers[index];
         PaintLayer bottom = Document.Layers[index - 1];
+        LayerGroup? topGroup = top.Group;
 
         if (top.IsAdjustment)
         {
             AdjustmentOps.ApplyToPixels(bottom.Pixels, top);
             bottom.Opacity = 1f;
             Document.Layers.RemoveAt(index);
+            RemoveGroupIfEmpty(topGroup);
             Document.ActiveIndex = index - 1;
             Status = "Merged adjustment down";
             Changed();
@@ -2075,6 +2082,7 @@ public sealed class PaintSession
 
         bottom.Opacity = 1f;
         Document.Layers.RemoveAt(index);
+        RemoveGroupIfEmpty(topGroup);
         Document.ActiveIndex = index - 1;
         Status = "Merged down";
         Changed();
@@ -2091,6 +2099,7 @@ public sealed class PaintSession
         Array.Copy(composite, flattened.Pixels, composite.Length);
 
         Document.Layers.Clear();
+        Document.Groups.Clear();
         Document.Layers.Add(flattened);
         Document.ActiveIndex = 0;
         Selection = null;
@@ -2111,7 +2120,9 @@ public sealed class PaintSession
         CommitPreviews();
         PushUndo("Delete Layer");
         int index = Math.Clamp(Document.ActiveIndex, 0, Document.Layers.Count - 1);
+        LayerGroup? group = Document.Layers[index].Group;
         Document.Layers.RemoveAt(index);
+        RemoveGroupIfEmpty(group);
         Document.ActiveIndex = Math.Clamp(index - 1, 0, Document.Layers.Count - 1);
         Status = "Deleted layer";
         Changed();
@@ -2130,6 +2141,411 @@ public sealed class PaintSession
         MaskEditing = false;
         Status = Document.Active.Name;
         Changed();
+    }
+
+    /// <summary>Wraps the active layer in a new group.</summary>
+    public void GroupActiveLayer()
+    {
+        PaintLayer layer = Document.Active;
+        if (layer.Group is not null)
+        {
+            Status = "Layer is already in a group";
+            Changed();
+            return;
+        }
+
+        CommitPreviews();
+        PushUndo("New Group");
+        LayerGroup group = new(FreeGroupName());
+        Document.Groups.Add(group);
+        layer.Group = group;
+        Status = "Grouped " + layer.Name;
+        Changed();
+    }
+
+    /// <summary>Removes the active layer from its group.</summary>
+    public void UngroupActiveLayer()
+    {
+        LayerGroup? group = Document.Active.Group;
+        if (group is null)
+        {
+            Status = "Layer is not in a group";
+            Changed();
+            return;
+        }
+
+        CommitPreviews();
+        PushUndo("Ungroup");
+        for (int i = 0; i < Document.Layers.Count; i++)
+        {
+            if (ReferenceEquals(Document.Layers[i].Group, group))
+            {
+                Document.Layers[i].Group = null;
+            }
+        }
+
+        Document.Groups.Remove(group);
+        Status = "Ungrouped " + group.Name;
+        Changed();
+    }
+
+    /// <summary>Selects the topmost layer inside a group.</summary>
+    public void SelectGroup(LayerGroup group)
+    {
+        for (int i = Document.Layers.Count - 1; i >= 0; i--)
+        {
+            if (ReferenceEquals(Document.Layers[i].Group, group))
+            {
+                SelectLayer(i);
+                return;
+            }
+        }
+
+        Status = group.Name + " is empty";
+        Changed();
+    }
+
+    /// <summary>Shows or hides a group in the layer panel.</summary>
+    public void ToggleGroupExpanded(LayerGroup group)
+    {
+        group.Expanded = !group.Expanded;
+        Changed();
+    }
+
+    /// <summary>Shows or hides a group's contribution to the image.</summary>
+    public void ToggleGroupVisibility(LayerGroup group)
+    {
+        group.Visible = !group.Visible;
+        Document.MarkDirty();
+        Status = group.Visible ? "Group visible" : "Group hidden";
+        Changed();
+    }
+
+    /// <summary>Sets the opacity of a group.</summary>
+    public void SetGroupOpacity(LayerGroup group, float opacity)
+    {
+        group.Opacity = Math.Clamp(opacity, 0f, 1f);
+        Document.MarkDirty();
+        Changed();
+    }
+
+    /// <summary>Reorders a layer around another layer.</summary>
+    /// <param name="sourceIndex">Layer being dragged.</param>
+    /// <param name="targetIndex">Layer the pointer is over.</param>
+    /// <param name="above">True to place the dragged layer above the target.</param>
+    public void MoveLayerTo(int sourceIndex, int targetIndex, bool above)
+    {
+        if (sourceIndex < 0 || sourceIndex >= Document.Layers.Count
+            || targetIndex < 0 || targetIndex >= Document.Layers.Count
+            || sourceIndex == targetIndex)
+        {
+            return;
+        }
+
+        CommitPreviews();
+        PushUndo("Move Layer");
+
+        PaintLayer layer = Document.Layers[sourceIndex];
+        LayerGroup? oldGroup = layer.Group;
+        LayerGroup? newGroup = Document.Layers[targetIndex].Group;
+        Document.Layers.RemoveAt(sourceIndex);
+
+        int target = targetIndex > sourceIndex ? targetIndex - 1 : targetIndex;
+        int insertAt = Math.Clamp(above ? target + 1 : target, 0, Document.Layers.Count);
+
+        layer.Group = newGroup;
+        if (!ReferenceEquals(oldGroup, newGroup))
+        {
+            RemoveGroupIfEmpty(oldGroup);
+        }
+
+        Document.Layers.Insert(insertAt, layer);
+        Document.ActiveIndex = insertAt;
+        Status = "Moved " + layer.Name;
+        Changed();
+    }
+
+    /// <summary>Moves a layer inside a group, leaving it at the top of the group.</summary>
+    public void MoveLayerIntoGroup(int sourceIndex, LayerGroup group)
+    {
+        if (sourceIndex < 0 || sourceIndex >= Document.Layers.Count)
+        {
+            return;
+        }
+
+        PaintLayer layer = Document.Layers[sourceIndex];
+        LayerGroup? oldGroup = layer.Group;
+        if (ReferenceEquals(oldGroup, group))
+        {
+            return;
+        }
+
+        CommitPreviews();
+        PushUndo("Move Layer");
+        Document.Layers.RemoveAt(sourceIndex);
+        RemoveGroupIfEmpty(oldGroup);
+        layer.Group = group;
+        group.Expanded = true;
+
+        int insertAt = -1;
+        for (int i = Document.Layers.Count - 1; i >= 0; i--)
+        {
+            if (ReferenceEquals(Document.Layers[i].Group, group))
+            {
+                insertAt = i + 1;
+                break;
+            }
+        }
+
+        if (insertAt < 0)
+        {
+            insertAt = Document.Layers.Count;
+        }
+
+        Document.Layers.Insert(insertAt, layer);
+        Document.ActiveIndex = insertAt;
+        Status = "Moved " + layer.Name + " into " + group.Name;
+        Changed();
+    }
+
+    /// <summary>Takes a layer out of its group and puts it at the top of the stack.</summary>
+    public void MoveLayerToRoot(int sourceIndex)
+    {
+        if (sourceIndex < 0 || sourceIndex >= Document.Layers.Count)
+        {
+            return;
+        }
+
+        PaintLayer layer = Document.Layers[sourceIndex];
+        if (layer.Group is null)
+        {
+            return;
+        }
+
+        CommitPreviews();
+        PushUndo("Move Layer");
+        LayerGroup? oldGroup = layer.Group;
+        Document.Layers.RemoveAt(sourceIndex);
+        RemoveGroupIfEmpty(oldGroup);
+        layer.Group = null;
+        Document.Layers.Add(layer);
+        Document.ActiveIndex = Document.Layers.Count - 1;
+        Status = "Moved " + layer.Name + " out of the group";
+        Changed();
+    }
+
+    /// <summary>Dissolves a group, leaving its layers in place.</summary>
+    public void UngroupGroup(LayerGroup group)
+    {
+        if (!Document.Groups.Contains(group))
+        {
+            return;
+        }
+
+        CommitPreviews();
+        PushUndo("Ungroup");
+        for (int i = 0; i < Document.Layers.Count; i++)
+        {
+            if (ReferenceEquals(Document.Layers[i].Group, group))
+            {
+                Document.Layers[i].Group = null;
+            }
+        }
+
+        Document.Groups.Remove(group);
+        Status = "Ungrouped " + group.Name;
+        Changed();
+    }
+
+    // ---- layer drag state and context menu ---------------------------------
+
+    /// <summary>Gets the row currently highlighted as a drag target.</summary>
+    public string LayerDropTarget { get; private set; } = string.Empty;
+
+    /// <summary>Highlights a layer or group row during a drag.</summary>
+    public void SetLayerDropTarget(string target)
+    {
+        if (LayerDropTarget == target)
+        {
+            return;
+        }
+
+        LayerDropTarget = target;
+        Changed();
+    }
+
+    /// <summary>Gets whether the layer context menu is open.</summary>
+    public bool IsLayerMenuOpen { get; private set; }
+
+    /// <summary>Gets the context menu X in window CSS pixels.</summary>
+    public float LayerMenuX { get; private set; }
+
+    /// <summary>Gets the context menu Y in window CSS pixels.</summary>
+    public float LayerMenuY { get; private set; }
+
+    /// <summary>Gets the layer the context menu targets, or -1.</summary>
+    public int LayerMenuIndex { get; private set; } = -1;
+
+    /// <summary>Gets the group the context menu targets, or null.</summary>
+    public LayerGroup? LayerMenuGroup { get; private set; }
+
+    /// <summary>Opens the layer or group context menu.</summary>
+    public void OpenLayerMenu(int index, LayerGroup? group, float x, float y)
+    {
+        Tip = null;
+        LayerMenuIndex = index;
+        LayerMenuGroup = group;
+        LayerMenuX = MathF.Min(x, MathF.Max(0f, ViewportWidth - 210f));
+        LayerMenuY = MathF.Min(y, MathF.Max(0f, ViewportHeight - 320f));
+        IsLayerMenuOpen = true;
+        Changed();
+    }
+
+    /// <summary>Closes the layer context menu.</summary>
+    public void CloseLayerMenu()
+    {
+        if (!IsLayerMenuOpen)
+        {
+            return;
+        }
+
+        IsLayerMenuOpen = false;
+        LayerMenuGroup = null;
+        LayerMenuIndex = -1;
+        Changed();
+    }
+
+    /// <summary>Runs one action from the layer context menu.</summary>
+    public void LayerMenuAction(string action)
+    {
+        LayerGroup? group = LayerMenuGroup;
+        int index = LayerMenuIndex;
+        IsLayerMenuOpen = false;
+
+        if (group is not null)
+        {
+            switch (action)
+            {
+                case "newLayer":
+                    SelectGroup(group);
+                    AddLayer();
+                    break;
+                case "expand":
+                    ToggleGroupExpanded(group);
+                    break;
+                case "visible":
+                    ToggleGroupVisibility(group);
+                    break;
+                case "ungroup":
+                    UngroupGroup(group);
+                    break;
+                default:
+                    Changed();
+                    break;
+            }
+
+            LayerMenuGroup = null;
+            return;
+        }
+
+        if (index < 0)
+        {
+            switch (action)
+            {
+                case "newLayer":
+                    AddLayer();
+                    break;
+                case "newGroup":
+                    GroupActiveLayer();
+                    break;
+                default:
+                    Changed();
+                    break;
+            }
+
+            return;
+        }
+
+        SelectLayer(index);
+        switch (action)
+        {
+            case "duplicate":
+                DuplicateLayer();
+                break;
+            case "merge":
+                MergeDown();
+                break;
+            case "mask":
+                ToggleLayerMask();
+                break;
+            case "clip":
+                ToggleClipToBelow();
+                break;
+            case "lock":
+                ToggleLock(index);
+                break;
+            case "visible":
+                ToggleLayer(index);
+                break;
+            case "group":
+                GroupActiveLayer();
+                break;
+            case "ungroup":
+                UngroupActiveLayer();
+                break;
+            case "delete":
+                DeleteActiveLayer();
+                break;
+            default:
+                Changed();
+                break;
+        }
+    }
+
+    /// <summary>Removes a group from the document when its last layer is gone.</summary>
+    private void RemoveGroupIfEmpty(LayerGroup? group)
+    {
+        if (group is null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < Document.Layers.Count; i++)
+        {
+            if (ReferenceEquals(Document.Layers[i].Group, group))
+            {
+                return;
+            }
+        }
+
+        Document.Groups.Remove(group);
+    }
+
+    /// <summary>Returns a group name not already used in this document.</summary>
+    private string FreeGroupName()
+    {
+        string name = "Group";
+        int suffix = 1;
+        while (GroupNamed(name + " " + suffix))
+        {
+            suffix++;
+        }
+
+        return name + " " + suffix;
+    }
+
+    /// <summary>Returns whether any group already has the given name.</summary>
+    private bool GroupNamed(string name)
+    {
+        for (int i = 0; i < Document.Groups.Count; i++)
+        {
+            if (Document.Groups[i].Name == name)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>Adds or removes the active layer's mask.</summary>
@@ -2872,7 +3288,7 @@ public sealed class PaintSession
             }
 
             const int Limit = 26;
-            return text.Length <= Limit ? text : text[..Limit].TrimEnd() + "â€¦";
+            return text.Length <= Limit ? text : text[..Limit].TrimEnd() + "...";
         }
     }
 
@@ -3034,7 +3450,7 @@ public sealed class PaintSession
             case TextHandle.Rotate:
                 float angle = MathF.Atan2(y - _textDragCenterY, x - _textDragCenterX) * 180f / MathF.PI;
                 TextRotation = _textDragRotation + (angle - _textDragAngle);
-                Status = $"Rotate {TextRotation:0}Ã‚Â°";
+                Status = $"Rotate {TextRotation:0} deg";
                 TouchText();
                 break;
 
@@ -3360,8 +3776,8 @@ public sealed class PaintSession
 
         IsFontDownloading = true;
         FontImportFailed = false;
-        FontImportMessage = "Downloadingâ€¦";
-        Status = "Downloading fontâ€¦";
+        FontImportMessage = "Downloading...";
+        Status = "Downloading font...";
         Changed();
         return true;
     }
@@ -4126,6 +4542,168 @@ public sealed class PaintSession
         return name + " " + suffix;
     }
 
+    // ---- batch processing --------------------------------------------------
+
+    /// <summary>Gets whether the batch dialog is open.</summary>
+    public bool IsBatchOpen { get; private set; }
+
+    /// <summary>Gets the folder batch reads from.</summary>
+    public string BatchSource { get; private set; } = string.Empty;
+
+    /// <summary>Gets the folder batch writes to.</summary>
+    public string BatchOutput { get; private set; } = string.Empty;
+
+    /// <summary>Gets the resize percentage as typed.</summary>
+    public string BatchScaleText { get; private set; } = "100";
+
+    /// <summary>Gets the output format.</summary>
+    public ImageFormat BatchFormat { get; private set; } = ImageFormat.Png;
+
+    /// <summary>Gets the suffix appended to each output name.</summary>
+    public string BatchSuffix { get; private set; } = "-edited";
+
+    /// <summary>Gets whether existing files are replaced.</summary>
+    public bool BatchOverwrite { get; private set; }
+
+    /// <summary>Gets the last scan or run message.</summary>
+    public string BatchStatus { get; private set; } = string.Empty;
+
+    /// <summary>Gets how many images the last scan found.</summary>
+    public int BatchFound { get; private set; }
+
+    /// <summary>Gets the folder shortcuts offered by the batch dialog.</summary>
+    public IReadOnlyList<FileLocation> BatchPlaces => _filePlaces;
+
+    /// <summary>Opens the batch processing dialog.</summary>
+    public void ShowBatchDialog()
+    {
+        Tip = null;
+        OpenMenu = null;
+        FinishInteraction();
+        IsBatchOpen = true;
+        BatchSource = StartFolder();
+        BatchOutput = BatchSource;
+        BatchScaleText = "100";
+        BatchFormat = ImageFormat.Png;
+        BatchSuffix = "-edited";
+        BatchOverwrite = false;
+        RefreshFilePlaces();
+        BatchRefreshCount();
+        Status = "Batch processing";
+        Changed();
+    }
+
+    /// <summary>Closes the batch dialog.</summary>
+    public void CloseBatchDialog()
+    {
+        if (!IsBatchOpen)
+        {
+            return;
+        }
+
+        IsBatchOpen = false;
+        BatchStatus = string.Empty;
+        Status = "Ready";
+        Changed();
+    }
+
+    /// <summary>Updates the source folder.</summary>
+    public void BatchSetSource(string folder)
+    {
+        string previous = BatchSource;
+        BatchSource = folder;
+        if (BatchOutput.Trim().Length == 0
+            || string.Equals(BatchOutput, previous, StringComparison.OrdinalIgnoreCase))
+        {
+            BatchOutput = folder;
+        }
+
+        BatchRefreshCount();
+        Changed();
+    }
+
+    /// <summary>Updates the output folder.</summary>
+    public void BatchSetOutput(string folder)
+    {
+        BatchOutput = folder;
+        Changed();
+    }
+
+    /// <summary>Updates the resize percentage.</summary>
+    public void BatchSetScale(string text)
+    {
+        BatchScaleText = text;
+        Changed();
+    }
+
+    /// <summary>Chooses the output format.</summary>
+    public void BatchSetFormat(ImageFormat format)
+    {
+        BatchFormat = format;
+        Changed();
+    }
+
+    /// <summary>Updates the output name suffix.</summary>
+    public void BatchSetSuffix(string suffix)
+    {
+        BatchSuffix = suffix;
+        Changed();
+    }
+
+    /// <summary>Links or unlinks the source and output folders.</summary>
+    public void ToggleBatchOverwrite()
+    {
+        BatchOverwrite = !BatchOverwrite;
+        Changed();
+    }
+
+    /// <summary>Uses a well-known folder as the batch source.</summary>
+    public void BatchUsePlace(FileLocation place)
+    {
+        BatchSetSource(place.Path);
+    }
+
+    /// <summary>Recounts the images in the source folder.</summary>
+    public void BatchRefreshCount()
+    {
+        BatchFound = BatchProcessor.FindImages(BatchSource).Length;
+        BatchStatus = BatchFound == 0
+            ? "No supported images in that folder."
+            : $"{BatchFound} image{(BatchFound == 1 ? string.Empty : "s")} ready.";
+        Changed();
+    }
+
+    /// <summary>Runs the batch with the dialog's settings.</summary>
+    public void RunBatch()
+    {
+        if (!IsBatchOpen)
+        {
+            return;
+        }
+
+        if (!int.TryParse(BatchScaleText.Trim(), out int scale) || scale < 1 || scale > 400)
+        {
+            BatchStatus = "Enter a scale between 1% and 400%.";
+            Changed();
+            return;
+        }
+
+        BatchOptions options = new()
+        {
+            SourceFolder = BatchSource,
+            OutputFolder = BatchOutput,
+            ScalePercent = scale,
+            Format = BatchFormat,
+            Suffix = BatchSuffix,
+            Overwrite = BatchOverwrite,
+        };
+
+        BatchResult result = BatchProcessor.Run(options);
+        BatchStatus = result.Message;
+        Status = result.Message;
+        Changed();
+    }
+
     // ---- resize -----------------------------------------------------------
 
     /// <summary>Gets whether the resize dialog is open.</summary>
@@ -4322,11 +4900,13 @@ public sealed class PaintSession
         int oldWidth = Document.Width;
         int oldHeight = Document.Height;
         PaintDocument resized = new(width, height);
+        Dictionary<LayerGroup, LayerGroup> groups = CopyGroups(Document, resized);
 
         foreach (PaintLayer source in Document.Layers)
         {
             PaintLayer layer = CreateResizedLayer(source, width, height);
-            layer.Adopt(ScalePixels(source.Pixels, source.Width, source.Height, width, height));
+            layer.Group = MapGroup(source.Group, groups);
+            layer.Adopt(ImageOps.Scale(source.Pixels, source.Width, source.Height, width, height));
             if (source.Mask is { } mask)
             {
                 layer.AdoptMask(ScaleMask(mask, source.Width, source.Height, width, height));
@@ -4372,10 +4952,12 @@ public sealed class PaintSession
         };
 
         PaintDocument resized = new(width, height);
+        Dictionary<LayerGroup, LayerGroup> groups = CopyGroups(Document, resized);
 
         foreach (PaintLayer source in Document.Layers)
         {
             PaintLayer layer = CreateResizedLayer(source, width, height);
+            layer.Group = MapGroup(source.Group, groups);
             uint[] pixels = layer.Pixels;
 
             for (int y = 0; y < oldHeight; y++)
@@ -4441,6 +5023,35 @@ public sealed class PaintSession
         Status = $"Canvas resized to {width} × {height}";
     }
 
+    /// <summary>Copies group metadata into a resized document.</summary>
+    private static Dictionary<LayerGroup, LayerGroup> CopyGroups(
+        PaintDocument source,
+        PaintDocument target)
+    {
+        Dictionary<LayerGroup, LayerGroup> map = [];
+
+        foreach (LayerGroup group in source.Groups)
+        {
+            LayerGroup copy = new(group.Name)
+            {
+                Visible = group.Visible,
+                Opacity = group.Opacity,
+                Expanded = group.Expanded,
+            };
+
+            map[group] = copy;
+            target.Groups.Add(copy);
+        }
+
+        return map;
+    }
+
+    /// <summary>Maps a source group to its copy in the resized document.</summary>
+    private static LayerGroup? MapGroup(
+        LayerGroup? group,
+        Dictionary<LayerGroup, LayerGroup> map) =>
+        group is not null && map.TryGetValue(group, out LayerGroup? copy) ? copy : null;
+
     /// <summary>Creates an empty layer with the source layer's display settings.</summary>
     private static PaintLayer CreateResizedLayer(PaintLayer source, int width, int height)
     {
@@ -4465,75 +5076,6 @@ public sealed class PaintSession
         }
 
         return layer;
-    }
-
-    /// <summary>Scales a pixel buffer with alpha-correct bilinear sampling.</summary>
-    private static uint[] ScalePixels(uint[] source, int sourceWidth, int sourceHeight, int width, int height)
-    {
-        uint[] destination = new uint[width * height];
-        float scaleX = sourceWidth / (float)width;
-        float scaleY = sourceHeight / (float)height;
-
-        for (int y = 0; y < height; y++)
-        {
-            float sampleY = ((y + 0.5f) * scaleY) - 0.5f;
-            for (int x = 0; x < width; x++)
-            {
-                float sampleX = ((x + 0.5f) * scaleX) - 0.5f;
-                destination[(y * width) + x] = SampleBilinear(
-                    source,
-                    sourceWidth,
-                    sourceHeight,
-                    sampleX,
-                    sampleY);
-            }
-        }
-
-        return destination;
-    }
-
-    /// <summary>Samples four premultiplied neighbours and unpacks the result.</summary>
-    private static uint SampleBilinear(uint[] source, int width, int height, float x, float y)
-    {
-        int x0 = (int)MathF.Floor(x);
-        int y0 = (int)MathF.Floor(y);
-        float fx = x - x0;
-        float fy = y - y0;
-
-        int x1 = Math.Clamp(x0 + 1, 0, width - 1);
-        int y1 = Math.Clamp(y0 + 1, 0, height - 1);
-        x0 = Math.Clamp(x0, 0, width - 1);
-        y0 = Math.Clamp(y0, 0, height - 1);
-
-        uint p00 = source[(y0 * width) + x0];
-        uint p10 = source[(y0 * width) + x1];
-        uint p01 = source[(y1 * width) + x0];
-        uint p11 = source[(y1 * width) + x1];
-
-        float w00 = (1f - fx) * (1f - fy);
-        float w10 = fx * (1f - fy);
-        float w01 = (1f - fx) * fy;
-        float w11 = fx * fy;
-
-        float alpha = (Rgba.A(p00) * w00) + (Rgba.A(p10) * w10)
-            + (Rgba.A(p01) * w01) + (Rgba.A(p11) * w11);
-        if (alpha <= 0.5f)
-        {
-            return 0;
-        }
-
-        float red = (Rgba.R(p00) * Rgba.A(p00) * w00) + (Rgba.R(p10) * Rgba.A(p10) * w10)
-            + (Rgba.R(p01) * Rgba.A(p01) * w01) + (Rgba.R(p11) * Rgba.A(p11) * w11);
-        float green = (Rgba.G(p00) * Rgba.A(p00) * w00) + (Rgba.G(p10) * Rgba.A(p10) * w10)
-            + (Rgba.G(p01) * Rgba.A(p01) * w01) + (Rgba.G(p11) * Rgba.A(p11) * w11);
-        float blue = (Rgba.B(p00) * Rgba.A(p00) * w00) + (Rgba.B(p10) * Rgba.A(p10) * w10)
-            + (Rgba.B(p01) * Rgba.A(p01) * w01) + (Rgba.B(p11) * Rgba.A(p11) * w11);
-
-        int a = Math.Clamp((int)MathF.Round(alpha), 0, 255);
-        int r = Math.Clamp((int)MathF.Round(red / alpha), 0, 255);
-        int g = Math.Clamp((int)MathF.Round(green / alpha), 0, 255);
-        int b = Math.Clamp((int)MathF.Round(blue / alpha), 0, 255);
-        return ((uint)a << 24) | ((uint)r << 16) | ((uint)g << 8) | (uint)b;
     }
 
     /// <summary>Scales a single-channel mask with bilinear sampling.</summary>
@@ -4594,6 +5136,9 @@ public sealed class PaintSession
     /// <summary>Gets the format used when saving.</summary>
     public ImageFormat FileDialogFormat => _saveFormat;
 
+    /// <summary>Gets whether the browser is handling a layered project file.</summary>
+    public bool FileDialogProject { get; private set; }
+
     /// <summary>Gets whether the row context menu is open.</summary>
     public bool IsFileMenuOpen { get; private set; }
 
@@ -4643,7 +5188,10 @@ public sealed class PaintSession
                     stem = FileNameStem(DocumentName);
                 }
 
-                return Combine(FileDialogFolder, stem + ImageExporter.Extension(_saveFormat));
+                string extension = FileDialogProject
+                    ? ProjectFile.Extension
+                    : ImageExporter.Extension(_saveFormat);
+                return Combine(FileDialogFolder, stem + extension);
             }
 
             string name = FileDialogName.Trim();
@@ -5002,38 +5550,38 @@ public sealed class PaintSession
     }
 
     /// <summary>Opens the browser to choose an image file.</summary>
-    public void ShowOpenDialog()
-    {
-        Tip = null;
-        OpenMenu = null;
-        FinishInteraction();
-        FileDialogMode = FileDialogMode.Open;
-        IsFileDialogOpen = true;
-        FileDialogName = string.Empty;
-        FileDialogSelected = string.Empty;
-        FileDialogError = string.Empty;
-        FileDialogFolder = StartFolder();
-        RefreshFilePlaces();
-        RefreshFileEntries();
-        Status = "Choose an image to open";
-        Changed();
-    }
+    public void ShowOpenDialog() => ShowFileDialog(FileDialogMode.Open, project: false);
+
+    /// <summary>Opens the browser to choose a layered project file.</summary>
+    public void ShowOpenProjectDialog() => ShowFileDialog(FileDialogMode.Open, project: true);
 
     /// <summary>Opens the browser to choose where the current image is written.</summary>
-    public void ShowSaveDialog()
+    public void ShowSaveDialog() => ShowFileDialog(FileDialogMode.Save, project: false);
+
+    /// <summary>Opens the browser to choose where the layered project is written.</summary>
+    public void ShowSaveProjectDialog() => ShowFileDialog(FileDialogMode.Save, project: true);
+
+    /// <summary>Opens the file browser in one of its four modes.</summary>
+    private void ShowFileDialog(FileDialogMode mode, bool project)
     {
         Tip = null;
         OpenMenu = null;
         FinishInteraction();
-        FileDialogMode = FileDialogMode.Save;
+        FileDialogMode = mode;
+        FileDialogProject = project;
         IsFileDialogOpen = true;
         FileDialogSelected = string.Empty;
         FileDialogError = string.Empty;
         FileDialogFolder = StartFolder();
-        FileDialogName = FileNameStem(DocumentName) + ImageExporter.Extension(_saveFormat);
+        FileDialogName = mode == FileDialogMode.Save
+            ? FileNameStem(DocumentName)
+                + (project ? ProjectFile.Extension : ImageExporter.Extension(_saveFormat))
+            : string.Empty;
         RefreshFilePlaces();
         RefreshFileEntries();
-        Status = "Choose where to save";
+        Status = mode == FileDialogMode.Open
+            ? project ? "Choose a project to open" : "Choose an image to open"
+            : project ? "Choose where to save the project" : "Choose where to save";
         Changed();
     }
 
@@ -5117,6 +5665,11 @@ public sealed class PaintSession
     /// <summary>Chooses the output format and fixes the name's extension.</summary>
     public void FileDialogSetFormat(ImageFormat format)
     {
+        if (FileDialogProject)
+        {
+            return;
+        }
+
         _saveFormat = format;
         string stem = FileNameStem(FileDialogName);
         if (stem.Length == 0)
@@ -5134,6 +5687,12 @@ public sealed class PaintSession
     {
         if (!IsFileDialogOpen)
         {
+            return;
+        }
+
+        if (FileDialogProject)
+        {
+            ConfirmProjectFile();
             return;
         }
 
@@ -5180,6 +5739,75 @@ public sealed class PaintSession
 
         string target = Path.Combine(FileDialogFolder, stem + ImageExporter.Extension(_saveFormat));
         SaveImageFile(target);
+    }
+
+    /// <summary>Opens or writes a layered project file.</summary>
+    private void ConfirmProjectFile()
+    {
+        if (FileDialogMode == FileDialogMode.Open)
+        {
+            string name = FileDialogName.Trim();
+            if (name.Length == 0)
+            {
+                FileDialogError = "Choose a project to open.";
+                Changed();
+                return;
+            }
+
+            string path = Combine(FileDialogFolder, name);
+            if (path.Length == 0 || !File.Exists(path))
+            {
+                FileDialogError = "File not found: " + name;
+                Changed();
+                return;
+            }
+
+            try
+            {
+                PaintDocument document = ProjectFile.Load(path);
+                _lastFolder = Path.GetDirectoryName(path) ?? _lastFolder;
+                IsFileDialogOpen = false;
+                FileDialogError = string.Empty;
+                AddDocument(
+                    document,
+                    FreeName(Path.GetFileNameWithoutExtension(path)),
+                    "Opened project " + path);
+            }
+            catch (Exception error)
+            {
+                FileDialogError = error.Message;
+                Status = "Open project failed: " + error.Message;
+                Changed();
+            }
+
+            return;
+        }
+
+        string stem = FileNameStem(FileDialogName);
+        if (stem.Length == 0)
+        {
+            FileDialogError = "Enter a file name.";
+            Changed();
+            return;
+        }
+
+        string target = Path.Combine(FileDialogFolder, stem + ProjectFile.Extension);
+
+        try
+        {
+            ProjectFile.Save(target, Document);
+            _lastFolder = Path.GetDirectoryName(target) ?? _lastFolder;
+            IsFileDialogOpen = false;
+            FileDialogError = string.Empty;
+            Status = "Saved project " + target;
+        }
+        catch (Exception error)
+        {
+            FileDialogError = error.Message;
+            Status = "Save project failed: " + error.Message;
+        }
+
+        Changed();
     }
 
     /// <summary>Resolves the file name without its extension.</summary>
@@ -5252,7 +5880,10 @@ public sealed class PaintSession
                 {
                     folders.Add(new FileEntry(directory.Name, directory.FullName, true));
                 }
-                else if (entry is FileInfo file && ImageLoader.IsImage(file.Name))
+                else if (entry is FileInfo file
+                    && (FileDialogProject
+                        ? ProjectFile.IsProject(file.Name)
+                        : ImageLoader.IsImage(file.Name)))
                 {
                     files.Add(new FileEntry(file.Name, file.FullName, false));
                 }
@@ -5423,7 +6054,7 @@ public sealed class PaintSession
     private static string Shorten(string message)
     {
         string single = message.Replace('\r', ' ').Replace('\n', ' ').Trim();
-        return single.Length <= 72 ? single : single[..69] + "â€¦";
+        return single.Length <= 72 ? single : single[..69] + "...";
     }
 
     /// <summary>Snaps a zoom factor onto the next stop in a direction.</summary>
@@ -5894,6 +6525,7 @@ public sealed class PaintSession
     private sealed class DocumentSnapshot
     {
         private readonly Frame[] _frames;
+        private readonly GroupState[] _groups;
         private readonly int _active;
         private readonly Selection? _selection;
         private readonly int _width;
@@ -5901,6 +6533,7 @@ public sealed class PaintSession
 
         private DocumentSnapshot(
             Frame[] frames,
+            GroupState[] groups,
             int active,
             Selection? selection,
             string name,
@@ -5908,6 +6541,7 @@ public sealed class PaintSession
             int height)
         {
             _frames = frames;
+            _groups = groups;
             _active = active;
             _selection = selection;
             _width = width;
@@ -5933,6 +6567,7 @@ public sealed class PaintSession
                 PaintLayer layer = document.Layers[i];
                 frames[i] = new Frame(
                     layer,
+                    layer.Group,
                     layer.CapturePixels(),
                     layer.CaptureMask(),
                     layer.Visible,
@@ -5947,8 +6582,21 @@ public sealed class PaintSession
                     layer.IsAdjustment ? [.. layer.AdjustmentCurve] : null);
             }
 
+            GroupState[] groups = new GroupState[document.Groups.Count];
+            for (int i = 0; i < groups.Length; i++)
+            {
+                LayerGroup group = document.Groups[i];
+                groups[i] = new GroupState(
+                    group,
+                    group.Name,
+                    group.Visible,
+                    group.Opacity,
+                    group.Expanded);
+            }
+
             return new DocumentSnapshot(
                 frames,
+                groups,
                 document.ActiveIndex,
                 selection,
                 name,
@@ -5960,8 +6608,20 @@ public sealed class PaintSession
         public Selection? Restore(PaintDocument document)
         {
             document.Layers.Clear();
+            document.Groups.Clear();
+
+            foreach (GroupState state in _groups)
+            {
+                state.Group.Name = state.Name;
+                state.Group.Visible = state.Visible;
+                state.Group.Opacity = state.Opacity;
+                state.Group.Expanded = state.Expanded;
+                document.Groups.Add(state.Group);
+            }
+
             foreach (Frame frame in _frames)
             {
+                frame.Layer.Group = frame.Group;
                 frame.Layer.Adopt(frame.Pixels);
                 frame.Layer.AdoptMask(frame.Mask);
                 frame.Layer.Visible = frame.Visible;
@@ -5987,8 +6647,16 @@ public sealed class PaintSession
             return _selection;
         }
 
+        private readonly record struct GroupState(
+            LayerGroup Group,
+            string Name,
+            bool Visible,
+            float Opacity,
+            bool Expanded);
+
         private readonly record struct Frame(
             PaintLayer Layer,
+            LayerGroup? Group,
             uint[] Pixels,
             byte[]? Mask,
             bool Visible,

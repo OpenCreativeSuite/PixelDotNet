@@ -32,11 +32,13 @@ public sealed class ResizeDialog : Component
                     Div(new() { ClassName = "resize-head-titles" },
                         Span(new() { ClassName = "resize-title" }, Text(title)),
                         Span(new() { ClassName = "resize-sub" }, Text(summary))),
-                    Ui.IconButton(Icons.Close, "Close", () =>
-                    {
-                        editor.CloseResizeDialog();
-                        editor.Refresh?.Invoke();
-                    }, className: "icon-btn")),
+                    Ui.Tip(editor,
+                        Ui.IconButton(Icons.Close, "Close", () =>
+                        {
+                            editor.CloseResizeDialog();
+                            editor.Refresh?.Invoke();
+                        }, className: "icon-btn"),
+                        Icons.Close, "Close", "")),
                 Div(new() { ClassName = "resize-body" },
                     Div(new() { ClassName = "resize-current" },
                         Text($"Current: {editor.ResizeOriginalWidth} × {editor.ResizeOriginalHeight} px")),

@@ -40,6 +40,7 @@ public sealed class PaintDocument
     private static readonly int[] QuantShifts = [0, 1, 3, 5];
 
     private readonly uint[] _composite;
+    private readonly uint[] _groupBuffer;
     private readonly List<PaintRun> _runs = [];
     private PaintRun[] _runArray = [];
     private bool _dirty = true;
@@ -50,6 +51,7 @@ public sealed class PaintDocument
         Width = width;
         Height = height;
         _composite = new uint[width * height];
+        _groupBuffer = new uint[width * height];
         Layers = [];
     }
 
@@ -61,6 +63,13 @@ public sealed class PaintDocument
 
     /// <summary>Gets the layer stack, bottom first.</summary>
     public List<PaintLayer> Layers { get; }
+
+    /// <summary>Gets the layer groups in the document.</summary>
+    /// <remarks>
+    /// A group's members are contiguous in <see cref="Layers"/>. Groups may be
+    /// empty, but every layer belongs to at most one group.
+    /// </remarks>
+    public List<LayerGroup> Groups { get; } = [];
 
     /// <summary>Gets the document-space guide lines.</summary>
     public List<Guide> Guides { get; } = [];
@@ -145,69 +154,128 @@ public sealed class PaintDocument
     {
         Array.Clear(_composite);
 
-        for (int index = 0; index < Layers.Count; index++)
+        int index = 0;
+        while (index < Layers.Count)
         {
             PaintLayer layer = Layers[index];
-            if (!layer.Visible)
+            LayerGroup? group = layer.Group;
+
+            if (group is null)
+            {
+                CompositeLayerOnto(_composite, layer);
+                index++;
+                continue;
+            }
+
+            int end = index + 1;
+            while (end < Layers.Count && ReferenceEquals(Layers[end].Group, group))
+            {
+                end++;
+            }
+
+            if (group.Visible && group.Opacity > 0f)
+            {
+                Array.Clear(_groupBuffer);
+                for (int member = index; member < end; member++)
+                {
+                    CompositeLayerOnto(_groupBuffer, Layers[member]);
+                }
+
+                BlendGroup(group);
+            }
+
+            index = end;
+        }
+    }
+
+    /// <summary>Composites one layer onto a target buffer.</summary>
+    private static void CompositeLayerOnto(uint[] target, PaintLayer layer)
+    {
+        if (!layer.Visible)
+        {
+            return;
+        }
+
+        if (layer.IsAdjustment)
+        {
+            if (layer.Opacity > 0f)
+            {
+                AdjustmentOps.Apply(target, layer);
+            }
+
+            return;
+        }
+
+        int layerAlpha = (int)MathF.Round(Math.Clamp(layer.Opacity, 0f, 1f) * 255f);
+        if (layerAlpha <= 0)
+        {
+            return;
+        }
+
+        uint[] pixels = layer.Pixels;
+        byte[]? mask = layer.Mask;
+        bool clipped = layer.ClipToBelow;
+        BlendMode mode = layer.Blend;
+
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            uint source = pixels[i];
+            int alpha = (int)(source >> 24);
+            if (alpha == 0)
             {
                 continue;
             }
 
-            if (layer.IsAdjustment)
+            if (layerAlpha < 255)
             {
-                if (layer.Opacity <= 0f)
-                {
-                    continue;
-                }
+                alpha = alpha * layerAlpha / 255;
+            }
 
-                AdjustmentOps.Apply(_composite, layer);
+            if (mask is not null)
+            {
+                alpha = alpha * mask[i] / 255;
+            }
+
+            if (clipped)
+            {
+                alpha = alpha * Rgba.A(target[i]) / 255;
+            }
+
+            if (alpha == 0)
+            {
                 continue;
             }
 
-            int layerAlpha = (int)MathF.Round(Math.Clamp(layer.Opacity, 0f, 1f) * 255f);
-            if (layerAlpha <= 0)
+            target[i] = mode == BlendMode.Normal || Rgba.A(target[i]) == 0
+                ? Rgba.Over(target[i], source, alpha)
+                : Rgba.Blend(target[i], source, alpha, mode);
+        }
+    }
+
+    /// <summary>Composites a finished group buffer over the document.</summary>
+    private void BlendGroup(LayerGroup group)
+    {
+        int groupAlpha = (int)MathF.Round(Math.Clamp(group.Opacity, 0f, 1f) * 255f);
+        if (groupAlpha <= 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < _composite.Length; i++)
+        {
+            uint source = _groupBuffer[i];
+            int alpha = (int)(source >> 24);
+            if (alpha == 0)
             {
                 continue;
             }
 
-            uint[] pixels = layer.Pixels;
-            byte[]? mask = layer.Mask;
-            bool clipped = layer.ClipToBelow;
-            BlendMode mode = layer.Blend;
-
-            for (int i = 0; i < pixels.Length; i++)
+            if (groupAlpha < 255)
             {
-                uint source = pixels[i];
-                int alpha = (int)(source >> 24);
-                if (alpha == 0)
-                {
-                    continue;
-                }
-
-                if (layerAlpha < 255)
-                {
-                    alpha = alpha * layerAlpha / 255;
-                }
-
-                if (mask is not null)
-                {
-                    alpha = alpha * mask[i] / 255;
-                }
-
-                if (clipped)
-                {
-                    alpha = alpha * Rgba.A(_composite[i]) / 255;
-                }
-
-                if (alpha == 0)
-                {
-                    continue;
-                }
-
-                _composite[i] = mode == BlendMode.Normal || Rgba.A(_composite[i]) == 0
-                    ? Rgba.Over(_composite[i], source, alpha)
-                    : Rgba.Blend(_composite[i], source, alpha, mode);
+                alpha = alpha * groupAlpha / 255;
             }
+
+            _composite[i] = Rgba.Over(_composite[i], source, alpha);
         }
     }
 

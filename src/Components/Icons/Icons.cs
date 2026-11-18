@@ -137,6 +137,9 @@ public static class Icons
     /// <summary>Create a folder.</summary>
     public const string FolderPlus = "fa-folder-plus";
 
+    /// <summary>Remove a folder.</summary>
+    public const string FolderMinus = "fa-folder-minus";
+
     /// <summary>The text tool.</summary>
     public const string Text = "fa-font";
 

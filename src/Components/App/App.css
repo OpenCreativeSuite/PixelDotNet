@@ -1158,3 +1158,37 @@ canvas {
     display: flex;
     gap: 8px;
 }
+
+/* ---- batch processing ---- */
+
+.batch-panel {
+    width: 560px;
+}
+
+.batch-places {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    gap: 6px;
+    min-height: 24px;
+    padding-left: 80px;
+}
+
+.batch-formats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.batch-formats .btn {
+    height: 22px;
+    padding: 0 10px;
+    font-size: 10.5px;
+}
+
+.batch-status {
+    min-height: 14px;
+    font-size: 10.5px;
+    color: #9aa3ad;
+}

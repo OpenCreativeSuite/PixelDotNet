@@ -202,6 +202,10 @@
     content: "\f65d";
 }
 
+.fa-folder-minus::before {
+    content: "\f65e";
+}
+
 .fa-crop-simple::before {
     content: "\f565";
 }

@@ -86,6 +86,9 @@ public sealed class PaintLayer
     /// <summary>Gets or sets whether this layer is clipped to the visible content below it.</summary>
     public bool ClipToBelow { get; set; }
 
+    /// <summary>Gets or sets the group this layer belongs to, if any.</summary>
+    public LayerGroup? Group { get; set; }
+
     /// <summary>Gets whether this layer contributes pixels or an adjustment.</summary>
     public LayerKind Kind { get; }
 

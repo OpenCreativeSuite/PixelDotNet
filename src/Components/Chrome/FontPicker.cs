@@ -73,7 +73,7 @@ public sealed class FontPicker : Component
                 },
             }, Text("+  Add a font from cdnfonts…")),
             Span(new() { ClassName = "font-popup-hint" },
-                Text("type to search  ·  ↑↓  ·  Enter"))));
+                Text("Type to search - Enter"))));
     }
 
     /// <summary>Builds one family row with a preview set in that family.</summary>

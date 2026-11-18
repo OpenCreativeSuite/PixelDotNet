@@ -41,6 +41,7 @@ public sealed class TooltipOverlay : Component
             TipPlacement.Right => true,
             TipPlacement.Below => false,
             TipPlacement.Left => false,
+            TipPlacement.Above => false,
             _ => tip.X < viewportWidth * 0.35f
                 && tip.X + tip.Width + Gap + width <= viewportWidth - Margin,
         };
@@ -48,7 +49,12 @@ public sealed class TooltipOverlay : Component
         float left;
         float top;
 
-        if (placeRight && tip.X + tip.Width + Gap + width <= viewportWidth - Margin)
+        if (tip.Placement == TipPlacement.Above)
+        {
+            left = tip.X + ((tip.Width - width) * 0.5f);
+            top = tip.Y - Height - Gap;
+        }
+        else if (placeRight && tip.X + tip.Width + Gap + width <= viewportWidth - Margin)
         {
             left = tip.X + tip.Width + Gap;
             top = tip.Y + ((tip.Height - Height) * 0.5f);

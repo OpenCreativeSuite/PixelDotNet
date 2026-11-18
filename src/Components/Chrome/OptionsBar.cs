@@ -30,16 +30,24 @@ public sealed class OptionsBar : Component
             Div(new() { ClassName = "options-spacer" }),
             Div(new() { ClassName = "color-block" },
                 Div(new() { ClassName = "color-pair" },
-                    Ui.Swatch("color-chip-back", editor.Background, "Background colour — click to swap", editor.SwapColors, 22, 22),
-                    Ui.Swatch("color-chip-front", editor.Foreground, "Foreground colour — click to open the colour panel", editor.OpenColourTab, 22, 22)),
+                    Ui.Tip(editor,
+                        Ui.Swatch("color-chip-back", editor.Background, "Background colour — click to swap", editor.SwapColors, 22, 22),
+                        Icons.Palette, "Background Colour", "tab.colour"),
+                    Ui.Tip(editor,
+                        Ui.Swatch("color-chip-front", editor.Foreground, "Foreground colour — click to open the colour panel", editor.OpenColourTab, 22, 22),
+                        Icons.Palette, "Foreground Colour", "tab.colour")),
                 Div(new() { ClassName = "color-actions" },
-                    Ui.IconButton(Icons.Swap, "Swap foreground and background (X)", editor.SwapColors, className: "icon-btn is-tiny"),
-                    Button(new()
-                    {
-                        ClassName = "icon-btn is-tiny",
-                        Title = "Default black and white (D)",
-                        OnClick = editor.ResetColors,
-                    }, Ui.DefaultsGlyph()))));
+                    Ui.Tip(editor,
+                        Ui.IconButton(Icons.Swap, "Swap foreground and background (X)", editor.SwapColors, className: "icon-btn is-tiny"),
+                        Icons.Swap, "Swap Colours", "", "X"),
+                    Ui.Tip(editor,
+                        Button(new()
+                        {
+                            ClassName = "icon-btn is-tiny",
+                            Title = "Default black and white (D)",
+                            OnClick = editor.ResetColors,
+                        }, Ui.DefaultsGlyph()),
+                        Icons.Invert, "Default Colours", "", "D"))));
     }
 
     /// <summary>Explains what the active selection tool does.</summary>
@@ -131,11 +139,13 @@ public sealed class OptionsBar : Component
             },
             Span(new() { ClassName = "font-picker-name" }, Text(editor.Font.Name)),
             Ui.Icon(Icons.ChevronDown, "font-picker-arrow"))),
-        Ui.IconButton(Icons.Plus, "Add a font from cdnfonts", () =>
-        {
-            editor.ToggleFontAdd();
-            editor.Refresh?.Invoke();
-        }, className: "icon-btn is-tiny"),
+        Ui.Tip(editor,
+            Ui.IconButton(Icons.Plus, "Add a font from cdnfonts", () =>
+            {
+                editor.ToggleFontAdd();
+                editor.Refresh?.Invoke();
+            }, className: "icon-btn is-tiny"),
+            Icons.Plus, "Add Font", "options.addFont"),
         Ui.Field("Size", editor.TextSize, 8f, 200f, 1f, " px", value =>
         {
             editor.SetTextSize(Ui.Parse(value, 8f, 200f));

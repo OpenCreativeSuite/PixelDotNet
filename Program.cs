@@ -109,7 +109,23 @@ public sealed class App : Component
                     editor.Refresh?.Invoke();
                 },
             })),
-            Show(editor.IsResizeOpen, C<ResizeDialog>()));
+            Show(editor.IsResizeOpen, C<ResizeDialog>()),
+            Show(editor.IsBatchOpen, Div(new()
+            {
+                ClassName = "resize-backdrop",
+                OnClick = () =>
+                {
+                    editor.CloseBatchDialog();
+                    editor.Refresh?.Invoke();
+                },
+            })),
+            Show(editor.IsBatchOpen, C<BatchDialog>()),
+            Show(editor.IsLayerMenuOpen, Div(new()
+            {
+                ClassName = "file-menu-backdrop",
+                OnClick = () => editor.CloseLayerMenu(),
+            })),
+            Show(editor.IsLayerMenuOpen, C<LayerMenu>()));
 
         root.BindRef(rootRef);
         if (rootRef.Value is { Width: > 0, Height: > 0 } bounds)

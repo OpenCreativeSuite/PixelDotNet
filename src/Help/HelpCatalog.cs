@@ -18,6 +18,9 @@ public enum TipPlacement
 
     /// <summary>Put the bubble to the left of the control.</summary>
     Left,
+
+    /// <summary>Put the bubble above the control.</summary>
+    Above,
 }
 
 /// <summary>The tooltip currently shown over the canvas chrome.</summary>
@@ -270,6 +273,8 @@ public static class HelpCatalog
                 "Layers are listed top to bottom. Click one to make it active; painting and effects target only that layer.",
                 "Blend mode and opacity control how the layer mixes with the layers below.",
                 "Masks hide parts of a layer non-destructively, and Clip below restricts a layer to the visible content beneath it.",
+                "Drag a row to reorder it; drop it on a group header to move it inside that folder.",
+                "Right-click a layer, group or empty list space for its context actions.",
             ],
             [
                 "Keep text, ink and background art on separate layers.",
@@ -324,14 +329,16 @@ public static class HelpCatalog
             ]);
 
         Add("menu.file", Icons.Save, "File", "",
-            "Document creation, closing and image export.",
+            "Document creation, opening, saving and closing.",
             [
-                "New Document creates a fresh canvas; Open Sample reloads the demo.",
-                "Save PNG, JPEG, BMP and TGA write the visible image.",
+                "Open and Save use the in-app file browser and can write PNG, JPEG, BMP or TGA.",
+                "Open Project and Save Project use the .pxd format, which keeps layers, masks, groups, adjustment layers and guides.",
+                "Batch Process resizes and converts every supported image in a folder.",
+                "Right-click a file row to rename, copy, cut, paste or delete it.",
             ],
             [
-                "Ctrl+S saves a PNG.",
-                "PNG keeps transparency; JPEG suits photographs.",
+                "Ctrl+S opens the save browser; Ctrl+O opens the load browser.",
+                "Save a project before closing if you still need the layer stack.",
             ]);
 
         Add("menu.edit", Icons.Sliders, "Edit", "",
@@ -346,20 +353,23 @@ public static class HelpCatalog
             ]);
 
         Add("menu.image", Icons.Document, "Image", "",
-            "Colour operations and image-wide commands.",
+            "Colour operations, resizing and image-wide commands.",
             [
                 "Invert flips every colour channel; Desaturate removes colour while keeping luminance.",
                 "Flip Horizontal and Flip Vertical mirror the active layer or selection bounds.",
+                "Image Size scales the artwork; Canvas Size changes the document bounds without scaling.",
             ],
             [
                 "Invert makes quick negatives and mask-like looks.",
+                "Canvas Size uses an anchor to decide which side keeps the extra space.",
                 "Flatten only when you no longer need individual layers.",
             ]);
 
         Add("menu.layer", Icons.Flatten, "Layer", "",
-            "Create, duplicate, merge and delete layers.",
+            "Create, duplicate, group, merge and delete layers.",
             [
                 "New Layer adds an empty layer above the active one; Duplicate copies the active layer.",
+                "New Group wraps the active layer in a folder; Ungroup takes it back out.",
                 "Merge Down combines into the layer below; Delete removes the active layer.",
             ],
             [
@@ -460,6 +470,29 @@ public static class HelpCatalog
                 "Masks are undoable and never destroy the layer pixels.",
             ]);
 
+        Add("layer.group", Icons.FolderPlus, "New Group", "",
+            "Puts the active layer inside a new folder.",
+            [
+                "New layers created while a grouped layer is active join the same group.",
+                "The group header can be collapsed, hidden and faded as a unit.",
+            ],
+            ["Group related artwork so the stack stays readable."]);
+
+        Add("layer.ungroup", Icons.FolderMinus, "Ungroup", "",
+            "Takes the active layer out of its group.",
+            ["When the last layer leaves a group, the empty folder is removed."],
+            ["Ungroup before merging layers that should sit at the top level."]);
+
+        Add("layer.expand", Icons.ChevronDown, "Expand Group", "",
+            "Shows or hides the layers inside a group.",
+            ["Collapsed groups still composite their layers normally."],
+            ["Collapse finished groups to save panel space."]);
+
+        Add("layer.groupVisible", Icons.Eye, "Group Visibility", "",
+            "Shows or hides every layer in a group at once.",
+            ["Hiding a group is equivalent to hiding each of its layers."],
+            ["Toggle a group to compare it against the rest of the image."]);
+
         Add("status.zoomOut", Icons.Minus, "Zoom Out", "Ctrl+-",
             "Steps the canvas zoom down one stop.",
             ["Zooming changes only the view, never the document resolution."],
@@ -499,6 +532,14 @@ public static class HelpCatalog
             "Anchors the text line's right edge at the click point.",
             ["Right alignment grows text leftward from a fixed point."],
             ["Handy for captions that run toward a margin."]);
+
+        Add("options.addFont", Icons.Plus, "Add Font", "",
+            "Downloads a font family from cdnfonts and makes it available to the text tool.",
+            [
+                "Paste a cdnfonts URL or a family name into the row and press Add.",
+                "The font is added to the picker for this session.",
+            ],
+            ["Use a direct cdnfonts link when you know the family you want."]);
 
         Add("options.fx", Icons.Sparkles, "Text Effects", "",
             "Opens the outline, shadow, glow and preset panel for the text tool.",

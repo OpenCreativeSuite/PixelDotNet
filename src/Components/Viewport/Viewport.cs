@@ -97,6 +97,30 @@ public sealed class Viewport : Component
             return;
         }
 
+        if (editor.IsLayerMenuOpen)
+        {
+            if (key == "Escape")
+            {
+                editor.CloseLayerMenu();
+            }
+
+            return;
+        }
+
+        if (editor.IsBatchOpen)
+        {
+            if (key == "Escape")
+            {
+                editor.CloseBatchDialog();
+            }
+            else if (key is "Return" or "Enter")
+            {
+                editor.RunBatch();
+            }
+
+            return;
+        }
+
         if (editor.IsResizeOpen)
         {
             if (key == "Escape")

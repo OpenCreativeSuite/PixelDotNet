@@ -28,11 +28,13 @@ public sealed class HelpModal : Component
                             Show(topic.Shortcut.Length > 0,
                                 Span(new() { ClassName = "help-key" }, Text(topic.Shortcut)))),
                         Span(new() { ClassName = "help-summary" }, Text(topic.Summary))),
-                    Ui.IconButton(Icons.Close, "Close help", () =>
-                    {
-                        editor.CloseHelp();
-                        editor.Refresh?.Invoke();
-                    }, className: "icon-btn help-close")),
+                    Ui.Tip(editor,
+                        Ui.IconButton(Icons.Close, "Close help", () =>
+                        {
+                            editor.CloseHelp();
+                            editor.Refresh?.Invoke();
+                        }, className: "icon-btn help-close"),
+                        Icons.Close, "Close Help", "")),
                 Div(new() { ClassName = "help-body" },
                     Ui.Section("How it works", [.. Lines(topic.HowItWorks)]),
                     Ui.Section("Tips", [.. Tips(topic.Tips)])),

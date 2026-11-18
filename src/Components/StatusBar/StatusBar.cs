@@ -1,5 +1,6 @@
 using System;
 using Donkeh.UILab;
+using PixelDotNet.Help;
 using PixelDotNet.Paint;
 using static Donkeh.UILab.HtmlHelper;
 using static Donkeh.UILab._;
@@ -19,22 +20,22 @@ public sealed class StatusBar : Component
         return Div(new() { ClassName = "statusbar" },
             Div(new() { ClassName = "status-zoom" },
                 Ui.Tip(editor, Ui.IconButton(Icons.Minus, "Zoom out", editor.ZoomOut, className: "status-btn"),
-                    Icons.Minus, "Zoom Out", "status.zoomOut", "Ctrl+-"),
+                    Icons.Minus, "Zoom Out", "status.zoomOut", "Ctrl+-", TipPlacement.Above),
                 Ui.Tip(editor, Button(new()
                 {
                     ClassName = "status-item is-strong status-zoom-reset",
                     Title = "Reset to actual pixels (100%)",
                     OnClick = editor.ActualPixels,
                 }, Text(Ui.Format(editor.Zoom * 100f) + "%")),
-                Icons.Zoom, "Actual Pixels", "status.zoomReset", "Ctrl+0"),
+                Icons.Zoom, "Actual Pixels", "status.zoomReset", "Ctrl+0", TipPlacement.Above),
                 Ui.Tip(editor, Ui.IconButton(Icons.Plus, "Zoom in", editor.ZoomIn, className: "status-btn"),
-                    Icons.Plus, "Zoom In", "status.zoomIn", "Ctrl++")),
+                    Icons.Plus, "Zoom In", "status.zoomIn", "Ctrl++", TipPlacement.Above)),
             Span(new() { ClassName = "status-sep" }),
             Span(new() { ClassName = "status-item" }, Text($"{document.Width} × {document.Height} px")),
             Span(new() { ClassName = "status-sep" }),
             Span(new() { ClassName = "status-item is-muted" }, Text(editor.ColorMode)),
             Span(new() { ClassName = "status-sep" }),
-            Span(new() { ClassName = "status-item" }, Text($"{PaintSession.NameOf(editor.Tool)} · {position}")),
+            Span(new() { ClassName = "status-item" }, Text($"{PaintSession.NameOf(editor.Tool)} | {position}")),
             Show(editor.Selection is not null, F(
                 Span(new() { ClassName = "status-sep" }),
                 Span(new() { ClassName = "status-item is-muted" },
