@@ -1,15 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="../../UI Framework/CSS-Engine/Donkeh/Build/Donkeh.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>$(DonkehTargetFrameworks)</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <DonkehDesktop>true</DonkehDesktop>
     <OutputType>Exe</OutputType>
     <RootNamespace>PixelDotNet</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <DefaultItemExcludes>$(DefaultItemExcludes);builds/**</DefaultItemExcludes>
-    <DonkehVersion Condition="'$(DonkehVersion)' == ''">1.0.41</DonkehVersion>
+    <DonkehVersion Condition="'$(DonkehVersion)' == ''">1.0.42</DonkehVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- The HTML builders drop null children at runtime (that is what makes
          Show(...) composable), but their parameters are annotated as Node[] rather
@@ -48,5 +47,8 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Donkeh.Windowing" Version="$(DonkehVersion)" />
   </ItemGroup>
 </Project>
