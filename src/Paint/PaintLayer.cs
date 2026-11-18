@@ -14,6 +14,9 @@ public enum LayerKind
 
     /// <summary>Pixels retained from a source image and placed with a transform.</summary>
     SmartObject,
+
+    /// <summary>A non-destructive rectangle, ellipse or line.</summary>
+    Shape,
 }
 
 /// <summary>The adjustment used by an adjustment layer.</summary>
@@ -106,6 +109,37 @@ public sealed class PaintLayer
 
     /// <summary>Gets whether this layer keeps an original source image.</summary>
     public bool IsSmartObject => Kind == LayerKind.SmartObject && SmartSource is not null;
+
+    /// <summary>Gets whether this layer draws editable shape geometry.</summary>
+    public bool IsShapeLayer => Kind == LayerKind.Shape && Shape is not null;
+
+    /// <summary>Gets the editable shape geometry, if this is a shape layer.</summary>
+    public ShapeData? Shape { get; private set; }
+
+    /// <summary>Installs shape geometry and rebuilds the pixel cache.</summary>
+    public void AdoptShape(ShapeData shape)
+    {
+        Shape = shape;
+        Kind = LayerKind.Shape;
+        ShapeOps.Render(this);
+    }
+
+    /// <summary>Bakes the shape into its pixel cache and becomes a raster layer.</summary>
+    public void RasterizeShape()
+    {
+        Shape = null;
+        Kind = LayerKind.Raster;
+    }
+
+    /// <summary>Rebuilds the pixel cache from the shape geometry.</summary>
+    public void RefreshShape() => ShapeOps.Render(this);
+
+    /// <summary>Restores shape geometry from a snapshot without rerendering.</summary>
+    public void RestoreShape(ShapeData? shape, LayerKind kind)
+    {
+        Shape = shape;
+        Kind = kind;
+    }
 
     /// <summary>Gets the retained source pixels of a smart object.</summary>
     public uint[]? SmartSource { get; private set; }

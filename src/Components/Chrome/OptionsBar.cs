@@ -295,6 +295,11 @@ public sealed class OptionsBar : Component
             {
                 editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
                 editor.Refresh?.Invoke();
+            }),
+            Ui.Toggle("Shape layer", "Create an editable shape layer", editor.ShapeAsLayer, () =>
+            {
+                editor.ShapeAsLayer = !editor.ShapeAsLayer;
+                editor.Refresh?.Invoke();
             })),
 
         PaintTool.Rectangle or PaintTool.Ellipse => F(
@@ -317,6 +322,11 @@ public sealed class OptionsBar : Component
             Ui.Field("Opacity", editor.Opacity * 100f, 5f, 100f, 1f, " %", value =>
             {
                 editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
+                editor.Refresh?.Invoke();
+            }),
+            Ui.Toggle("Shape layer", "Create an editable shape layer", editor.ShapeAsLayer, () =>
+            {
+                editor.ShapeAsLayer = !editor.ShapeAsLayer;
                 editor.Refresh?.Invoke();
             })),
 

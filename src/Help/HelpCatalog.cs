@@ -388,6 +388,7 @@ public static class HelpCatalog
                 "New Layer adds an empty layer above the active one; Duplicate copies the active layer.",
                 "New Group wraps the active layer in a folder; Ungroup takes it back out.",
                 "Convert to Smart Object keeps the original pixels so repeated transforms stay sharp; Rasterize bakes the result.",
+                "Shape tools with Shape layer enabled create editable rectangles, ellipses and lines; Edit Shape changes the geometry.",
                 "Layer Style adds a non-destructive shadow, stroke or glow.",
                 "Merge Down combines into the layer below; Delete removes the active layer.",
             ],

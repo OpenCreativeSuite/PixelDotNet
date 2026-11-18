@@ -144,6 +144,12 @@ public sealed class PaintSession
     private bool _stroking;
     private bool _previewing;
     private bool _lassoing;
+    private bool _shapeAsLayer;
+    private PaintLayer? _shapeLayer;
+    private float _shapeStartX;
+    private float _shapeStartY;
+    private int _shapePreviousIndex;
+    private ShapeData? _shapeEditBackup;
     private bool _quickSelecting;
     private bool _quickSubtractGesture;
     private byte[]? _quickMask;
@@ -272,6 +278,28 @@ public sealed class PaintSession
 
     /// <summary>Gets or sets whether the shape tools fill instead of outline.</summary>
     public bool FillShapes { get; set; } = true;
+
+    /// <summary>Gets or sets whether shape tools create editable shape layers.</summary>
+    public bool ShapeAsLayer
+    {
+        get => _shapeAsLayer;
+        set => _shapeAsLayer = value;
+    }
+
+    /// <summary>Gets whether the shape editor is open.</summary>
+    public bool IsShapeEditOpen { get; private set; }
+
+    /// <summary>Gets the shape layer being edited.</summary>
+    public int ShapeEditIndex { get; private set; } = -1;
+
+    /// <summary>Gets the shape layer the editor targets.</summary>
+    public PaintLayer? ShapeEditLayer =>
+        ShapeEditIndex >= 0 && ShapeEditIndex < Document.Layers.Count
+            ? Document.Layers[ShapeEditIndex]
+            : null;
+
+    /// <summary>Gets the editable shape data for the dialog.</summary>
+    public ShapeData? ShapeEditTarget => ShapeEditLayer?.Shape;
 
     /// <summary>Gets whether brush and eraser strokes currently edit the active layer's mask.</summary>
     public bool MaskEditing { get; private set; }
@@ -534,6 +562,11 @@ public sealed class PaintSession
         }
 
         CommitPreviews();
+        if (_shapeLayer is not null)
+        {
+            FinishShapeLayer();
+        }
+
         Tool = tool;
         _quickSelecting = false;
         _quickMask = null;
@@ -1054,10 +1087,16 @@ public sealed class PaintSession
             return;
         }
 
-        if (Document.Active.IsSmartObject)
+        if (Document.Active.IsSmartObject || Document.Active.IsShapeLayer)
         {
-            Status = "Rasterize the smart object to paint";
+            Status = "Rasterize the layer to paint";
             Changed();
+            return;
+        }
+
+        if (_shapeAsLayer && Tool is PaintTool.Rectangle or PaintTool.Ellipse or PaintTool.Line)
+        {
+            BeginShapeLayer(documentX, documentY);
             return;
         }
 
@@ -1124,6 +1163,12 @@ public sealed class PaintSession
                 QuickSelectAt(CursorX, CursorY);
             }
 
+            return;
+        }
+
+        if (_shapeLayer is not null)
+        {
+            UpdateShapeLayer(documentX, documentY);
             return;
         }
 
@@ -1230,6 +1275,12 @@ public sealed class PaintSession
                 Changed();
             }
 
+            return;
+        }
+
+        if (_shapeLayer is not null)
+        {
+            FinishShapeLayer();
             return;
         }
 
@@ -2323,6 +2374,11 @@ public sealed class PaintSession
                 source.SmartFlipY);
         }
 
+        if (source.IsShapeLayer && source.Shape is { } shape)
+        {
+            copy.AdoptShape(shape.Clone());
+        }
+
         int insertAt = Math.Clamp(Document.ActiveIndex + 1, 0, Document.Layers.Count);
         Document.Layers.Insert(insertAt, copy);
         Document.ActiveIndex = insertAt;
@@ -2800,6 +2856,12 @@ public sealed class PaintSession
                 break;
             case "smartTransform":
                 ShowSmartTransformDialog();
+                break;
+            case "shapeEdit":
+                ShowShapeEditDialog();
+                break;
+            case "shapeRaster":
+                RasterizeShape();
                 break;
             case "lock":
                 ToggleLock(index);
@@ -5586,7 +5648,199 @@ public sealed class PaintSession
             return false;
         }
 
+        if (layer.IsShapeLayer)
+        {
+            Status = "Rasterize the shape first";
+            Changed();
+            return false;
+        }
+
         return true;
+    }
+
+    // ---- shape layers ------------------------------------------------------
+
+    /// <summary>Starts a shape layer from a drag on a shape tool.</summary>
+    private void BeginShapeLayer(float x, float y)
+    {
+        CommitPreviews();
+        PushUndo("Shape Layer");
+
+        ShapeKind kind = Tool switch
+        {
+            PaintTool.Ellipse => ShapeKind.Ellipse,
+            PaintTool.Line => ShapeKind.Line,
+            _ => ShapeKind.Rectangle,
+        };
+
+        _shapePreviousIndex = Document.ActiveIndex;
+        LayerGroup? group = Document.Active.Group;
+        PaintLayer layer = new(
+            FreeLayerName(kind + " Shape"),
+            Document.Width,
+            Document.Height)
+        {
+            Group = group,
+        };
+
+        layer.AdoptShape(new ShapeData
+        {
+            Kind = kind,
+            X = x,
+            Y = y,
+            Fill = kind != ShapeKind.Line && FillShapes,
+            StrokeWidth = MathF.Max(1f, kind == ShapeKind.Line ? BrushSize : StrokeWidth),
+            FillColor = Foreground,
+            StrokeColor = Foreground,
+        });
+
+        int insertAt = Math.Clamp(Document.ActiveIndex + 1, 0, Document.Layers.Count);
+        Document.Layers.Insert(insertAt, layer);
+        Document.ActiveIndex = insertAt;
+        _shapeLayer = layer;
+        _shapeStartX = x;
+        _shapeStartY = y;
+        Document.MarkDirty();
+        Status = "Drag to size the shape";
+        Changed();
+    }
+
+    /// <summary>Resizes the shape layer being dragged.</summary>
+    private void UpdateShapeLayer(float x, float y)
+    {
+        if (_shapeLayer?.Shape is not { } shape)
+        {
+            return;
+        }
+
+        shape.X = MathF.Min(_shapeStartX, x);
+        shape.Y = MathF.Min(_shapeStartY, y);
+        shape.Width = MathF.Abs(x - _shapeStartX);
+        shape.Height = MathF.Abs(y - _shapeStartY);
+        _shapeLayer.RefreshShape();
+        Document.MarkDirty();
+        Status = $"{shape.Kind} {MathF.Round(shape.Width)} x {MathF.Round(shape.Height)}";
+        Changed();
+    }
+
+    /// <summary>Finishes the shape drag, discarding degenerate shapes.</summary>
+    private void FinishShapeLayer()
+    {
+        if (_shapeLayer is null)
+        {
+            return;
+        }
+
+        ShapeData? shape = _shapeLayer.Shape;
+        if (shape is null || (shape.Width < 1f && shape.Height < 1f))
+        {
+            Document.Layers.Remove(_shapeLayer);
+            Document.ActiveIndex = Math.Clamp(
+                _shapePreviousIndex,
+                0,
+                Document.Layers.Count - 1);
+            Status = "Shape cancelled";
+        }
+        else
+        {
+            Status = $"{shape.Kind} shape";
+        }
+
+        _shapeLayer = null;
+        Document.MarkDirty();
+        Changed();
+    }
+
+    /// <summary>Opens the shape editor for the active shape layer.</summary>
+    public void ShowShapeEditDialog()
+    {
+        PaintLayer layer = Document.Active;
+        if (!layer.IsShapeLayer || layer.Shape is null)
+        {
+            Status = "Select a shape layer first";
+            Changed();
+            return;
+        }
+
+        Tip = null;
+        OpenMenu = null;
+        FinishInteraction();
+        ShapeEditIndex = Document.ActiveIndex;
+        _shapeEditBackup = layer.Shape.Clone();
+        IsShapeEditOpen = true;
+        PushUndo("Edit Shape");
+        Status = "Edit shape";
+        Changed();
+    }
+
+    /// <summary>Rerenders the edited shape after a setting changes.</summary>
+    public void TouchShape()
+    {
+        if (ShapeEditLayer is not { } layer || layer.Shape is null)
+        {
+            return;
+        }
+
+        layer.RefreshShape();
+        Document.MarkDirty();
+        Changed();
+    }
+
+    /// <summary>Keeps the shape edits and closes the dialog.</summary>
+    public void CommitShapeEdit()
+    {
+        if (!IsShapeEditOpen)
+        {
+            return;
+        }
+
+        IsShapeEditOpen = false;
+        ShapeEditIndex = -1;
+        _shapeEditBackup = null;
+        Status = "Shape updated";
+        Changed();
+    }
+
+    /// <summary>Restores the shape captured when the editor opened.</summary>
+    public void CancelShapeEdit()
+    {
+        if (!IsShapeEditOpen)
+        {
+            return;
+        }
+
+        if (ShapeEditLayer is { } layer
+            && layer.Shape is { } shape
+            && _shapeEditBackup is { } backup)
+        {
+            shape.CopyFrom(backup);
+            layer.RefreshShape();
+            Document.MarkDirty();
+        }
+
+        IsShapeEditOpen = false;
+        ShapeEditIndex = -1;
+        _shapeEditBackup = null;
+        Status = "Shape edit cancelled";
+        Changed();
+    }
+
+    /// <summary>Bakes the active shape layer into raster pixels.</summary>
+    public void RasterizeShape()
+    {
+        PaintLayer layer = Document.Active;
+        if (!layer.IsShapeLayer)
+        {
+            Status = "Select a shape layer first";
+            Changed();
+            return;
+        }
+
+        PushUndo("Rasterize Shape");
+        layer.RasterizeShape();
+        Document.MarkDirty();
+        Status = "Rasterized shape";
+        Changed();
     }
 
     // ---- smart objects -----------------------------------------------------
@@ -6397,7 +6651,7 @@ public sealed class PaintSession
             width,
             height,
             source.IsBackground,
-            source.IsSmartObject ? LayerKind.Raster : source.Kind,
+            source.IsSmartObject || source.IsShapeLayer ? LayerKind.Raster : source.Kind,
             source.Adjustment)
         {
             Visible = source.Visible,
@@ -7935,7 +8189,8 @@ public sealed class PaintSession
                     layer.SmartScaleY,
                     layer.SmartRotation,
                     layer.SmartFlipX,
-                    layer.SmartFlipY);
+                    layer.SmartFlipY,
+                    layer.Shape?.Clone());
             }
 
             GroupState[] groups = new GroupState[document.Groups.Count];
@@ -7998,6 +8253,7 @@ public sealed class PaintSession
                     frame.SmartFlipX,
                     frame.SmartFlipY,
                     frame.Kind);
+                frame.Layer.RestoreShape(frame.Shape, frame.Kind);
                 frame.Layer.Adjustment = frame.Adjustment;
                 frame.Layer.AdjustmentBlack = frame.AdjustmentBlack;
                 frame.Layer.AdjustmentWhite = frame.AdjustmentWhite;
@@ -8049,6 +8305,7 @@ public sealed class PaintSession
             float SmartScaleY,
             float SmartRotation,
             bool SmartFlipX,
-            bool SmartFlipY);
+            bool SmartFlipY,
+            ShapeData? Shape);
     }
 }

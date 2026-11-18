@@ -69,6 +69,8 @@ public sealed class MenuBar : Component
             new("New Group", "", session => session.Document.Active.Group is null, session => session.GroupActiveLayer()),
             new("Ungroup", "", session => session.Document.Active.Group is not null, session => session.UngroupActiveLayer()),
             new("Layer Style...", "", NeverDim, session => session.ShowLayerStyleDialog(session.Document.ActiveIndex)),
+            new("Edit Shape...", "", session => session.Document.Active.IsShapeLayer, session => session.ShowShapeEditDialog()),
+            new("Rasterize Shape", "", session => session.Document.Active.IsShapeLayer, session => session.RasterizeShape()),
             new("Convert to Smart Object", "", session => !session.Document.Active.IsSmartObject && !session.Document.Active.IsAdjustment, session => session.ConvertToSmartObject()),
             new("Rasterize Smart Object", "", session => session.Document.Active.IsSmartObject, session => session.RasterizeSmartObject()),
             new("Smart Object Transform...", "", session => session.Document.Active.IsSmartObject, session => session.ShowSmartTransformDialog()),

@@ -97,6 +97,16 @@ public sealed class Viewport : Component
             return;
         }
 
+        if (editor.IsShapeEditOpen)
+        {
+            if (key == "Escape")
+            {
+                editor.CancelShapeEdit();
+            }
+
+            return;
+        }
+
         if (editor.IsSmartTransformOpen)
         {
             if (key == "Escape")

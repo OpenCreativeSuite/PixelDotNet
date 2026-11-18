@@ -20,7 +20,7 @@ public static class ProjectFile
     public const string Extension = ".pxd";
 
     private const string Signature = "PXDP";
-    private const int Version = 3;
+    private const int Version = 4;
 
     /// <summary>Gets whether a file name has the project extension.</summary>
     public static bool IsProject(string path) =>
@@ -121,6 +121,20 @@ public static class ProjectFile
                 Buffer.BlockCopy(smart, 0, smartBytes, 0, smartBytes.Length);
                 writer.Write(smartBytes.Length);
                 writer.Write(smartBytes);
+            }
+
+            writer.Write(layer.IsShapeLayer);
+            if (layer.IsShapeLayer && layer.Shape is { } shape)
+            {
+                writer.Write((int)shape.Kind);
+                writer.Write(shape.X);
+                writer.Write(shape.Y);
+                writer.Write(shape.Width);
+                writer.Write(shape.Height);
+                writer.Write(shape.Fill);
+                writer.Write(shape.StrokeWidth);
+                writer.Write(shape.FillColor);
+                writer.Write(shape.StrokeColor);
             }
 
             byte[] pixels = new byte[layer.Pixels.Length * sizeof(uint)];
@@ -303,6 +317,22 @@ public static class ProjectFile
                     smartRotation,
                     smartFlipX,
                     smartFlipY);
+            }
+
+            if (version >= 4 && reader.ReadBoolean())
+            {
+                layer.AdoptShape(new ShapeData
+                {
+                    Kind = (ShapeKind)reader.ReadInt32(),
+                    X = reader.ReadSingle(),
+                    Y = reader.ReadSingle(),
+                    Width = reader.ReadSingle(),
+                    Height = reader.ReadSingle(),
+                    Fill = reader.ReadBoolean(),
+                    StrokeWidth = reader.ReadSingle(),
+                    FillColor = reader.ReadUInt32(),
+                    StrokeColor = reader.ReadUInt32(),
+                });
             }
 
             int pixelBytes = reader.ReadInt32();

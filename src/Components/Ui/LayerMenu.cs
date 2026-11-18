@@ -82,6 +82,8 @@ public sealed class LayerMenu : Component
                     "visible"),
                 Div(new() { ClassName = "file-menu-sep" }),
                 Item(editor, Icons.Sparkles, "Layer Style...", "style"),
+                Item(editor, Icons.Rectangle, "Edit Shape...", "shapeEdit", layer.IsShapeLayer),
+                Item(editor, Icons.Flatten, "Rasterize Shape", "shapeRaster", layer.IsShapeLayer),
                 Item(
                     editor,
                     Icons.SmartObject,
