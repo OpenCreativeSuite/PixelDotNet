@@ -3,6 +3,10 @@
 A free raster painting and photo editing application with layers, selections, masks, effects, editable shapes, paths, text, and SVG support.
 
 [![PixelDotNet main window](docs/screenshots/main.png)](https://opencreativesuite.github.io/PixelDotNet/)
+
+[![Deploy documentation to GitHub Pages](https://github.com/OpenCreativeSuite/PixelDotNet/actions/workflows/pages.yml/badge.svg)](https://github.com/OpenCreativeSuite/PixelDotNet/actions/workflows/pages.yml)
+[![Build and release](https://github.com/OpenCreativeSuite/PixelDotNet/actions/workflows/release.yml/badge.svg)](https://github.com/OpenCreativeSuite/PixelDotNet/actions/workflows/release.yml)
+
 ## Read the User Guide
 
 The complete illustrated guide is published with GitHub Pages:
@@ -40,6 +44,8 @@ The guide source lives in [`docs/`](docs/index.html) and can also be opened dire
 - Multiple document tabs, undo history, rulers, guides, and snapping
 
 ## Run It
+
+Prebuilt Windows, Linux, and macOS downloads are attached to each [GitHub release](https://github.com/OpenCreativeSuite/PixelDotNet/releases/latest).
 
 From the project folder:
 
