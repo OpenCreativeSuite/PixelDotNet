@@ -47,6 +47,7 @@ public sealed class MenuBar : Component
             new("Clear", "Del", session => !session.Document.Active.Locked, session => session.ClearSelectedPixels()),
             new("Content-Aware Fill", "", session => session.Selection is not null && !session.Document.Active.Locked, session => session.ContentAwareFill()),
             new("Perspective Transform...", "", NeverDim, session => session.ShowPerspectiveDialog()),
+            new("Mesh Warp...", "", NeverDim, session => session.ShowMeshWarpDialog()),
         ]),
         new("Image",
         [

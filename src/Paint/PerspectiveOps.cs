@@ -127,7 +127,7 @@ public static class PerspectiveOps
     }
 
     /// <summary>Builds the inverse of the unit-square to quad homography.</summary>
-    private static bool TryInvert(float[] quad, out float[] inverse)
+    internal static bool TryInvert(float[] quad, out float[] inverse)
     {
         float dx1 = quad[2] - quad[4];
         float dx2 = quad[6] - quad[4];
@@ -197,7 +197,7 @@ public static class PerspectiveOps
     }
 
     /// <summary>Bilinear sample with premultiplied alpha.</summary>
-    private static uint Sample(uint[] source, int width, int height, float x, float y)
+    internal static uint Sample(uint[] source, int width, int height, float x, float y)
     {
         int x0 = (int)MathF.Floor(x);
         int y0 = (int)MathF.Floor(y);

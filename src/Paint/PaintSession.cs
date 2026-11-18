@@ -4814,6 +4814,13 @@ public sealed class PaintSession
         AdjustLightness = tab.Lightness;
     }
 
+    /// <summary>Renames the active tab after a save.</summary>
+    private void NameActiveDocument(string name)
+    {
+        DocumentName = name;
+        _tabs[_activeTab].Name = name;
+    }
+
     /// <summary>Returns a name that no open tab is already using.</summary>
     private string FreeName(string name)
     {
@@ -4839,6 +4846,9 @@ public sealed class PaintSession
     private readonly float[] _perspective = new float[8];
     private uint[]? _perspectiveBase;
     private Selection? _perspectiveSelection;
+    private readonly float[] _mesh = new float[MeshWarpOps.Points * MeshWarpOps.Points * 2];
+    private uint[]? _meshBase;
+    private Selection? _meshSelection;
 
     /// <summary>Gets whether the colour tools dialog is open.</summary>
     public bool IsColourToolsOpen { get; private set; }
@@ -4890,6 +4900,34 @@ public sealed class PaintSession
     /// <summary>Gets one of the eight perspective corner offsets.</summary>
     public float PerspectiveValue(int index) =>
         index >= 0 && index < _perspective.Length ? _perspective[index] : 0f;
+
+    /// <summary>Gets whether the mesh warp is active.</summary>
+    public bool IsMeshWarpOpen { get; private set; }
+
+    /// <summary>Gets the layer being mesh-warped.</summary>
+    public int MeshWarpIndex { get; private set; } = -1;
+
+    /// <summary>Gets the control point currently being dragged, or -1.</summary>
+    public int MeshWarpActiveNode { get; private set; } = -1;
+
+    /// <summary>Gets the layer being mesh-warped.</summary>
+    public PaintLayer? MeshWarpLayer =>
+        MeshWarpIndex >= 0 && MeshWarpIndex < Document.Layers.Count
+            ? Document.Layers[MeshWarpIndex]
+            : null;
+
+    /// <summary>Gets the document-space position of a mesh control point.</summary>
+    public (float X, float Y) MeshNodePosition(int node)
+    {
+        MeshRect(out float x, out float y, out float width, out float height);
+        int column = node % MeshWarpOps.Points;
+        int row = node / MeshWarpOps.Points;
+        int index = node * 2;
+
+        return (
+            x + (column * width / (MeshWarpOps.Points - 1f)) + _mesh[index],
+            y + (row * height / (MeshWarpOps.Points - 1f)) + _mesh[index + 1]);
+    }
 
     /// <summary>Gets one of the four offsets for the selected colour range.</summary>
     public float SelectiveValue(int channel)
@@ -5115,6 +5153,186 @@ public sealed class PaintSession
         FillOps.ContentAware(layer, Selection);
         Status = "Content-aware fill";
         Changed();
+    }
+
+    // ---- mesh warp --------------------------------------------------------
+
+    /// <summary>Opens the interactive mesh warp.</summary>
+    public void ShowMeshWarpDialog()
+    {
+        PaintLayer layer = Document.Active;
+        if (layer.IsAdjustment)
+        {
+            Status = "Adjustment layers cannot be warped";
+            Changed();
+            return;
+        }
+
+        if (layer.Locked)
+        {
+            Status = "Layer is locked";
+            Changed();
+            return;
+        }
+
+        Tip = null;
+        OpenMenu = null;
+        FinishInteraction();
+        MeshWarpIndex = Document.ActiveIndex;
+        _meshBase = layer.CapturePixels();
+        _meshSelection = Selection;
+        Array.Clear(_mesh);
+        MeshWarpActiveNode = -1;
+        IsMeshWarpOpen = true;
+        PushUndo("Mesh Warp");
+        Status = "Drag the mesh points";
+        Changed();
+    }
+
+    /// <summary>Starts dragging a control point near a document position.</summary>
+    public bool BeginMeshWarpDrag(float x, float y, float zoom)
+    {
+        if (!IsMeshWarpOpen)
+        {
+            return false;
+        }
+
+        float threshold = 12f / MathF.Max(zoom, 0.05f);
+        float bestDistance = threshold * threshold;
+        int best = -1;
+
+        for (int node = 0; node < MeshWarpOps.Points * MeshWarpOps.Points; node++)
+        {
+            (float nodeX, float nodeY) = MeshNodePosition(node);
+            float dx = nodeX - x;
+            float dy = nodeY - y;
+            float distance = (dx * dx) + (dy * dy);
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                best = node;
+            }
+        }
+
+        MeshWarpActiveNode = best;
+        return best >= 0;
+    }
+
+    /// <summary>Moves the active control point and refreshes the preview.</summary>
+    public void UpdateMeshWarpDrag(float x, float y)
+    {
+        if (!IsMeshWarpOpen || MeshWarpActiveNode < 0)
+        {
+            return;
+        }
+
+        MeshRect(out float left, out float top, out float width, out float height);
+        int column = MeshWarpActiveNode % MeshWarpOps.Points;
+        int row = MeshWarpActiveNode / MeshWarpOps.Points;
+        float baseX = left + (column * width / (MeshWarpOps.Points - 1f));
+        float baseY = top + (row * height / (MeshWarpOps.Points - 1f));
+        int index = MeshWarpActiveNode * 2;
+
+        _mesh[index] = Math.Clamp(x - baseX, -500f, 500f);
+        _mesh[index + 1] = Math.Clamp(y - baseY, -500f, 500f);
+        ApplyMeshWarpPreview();
+    }
+
+    /// <summary>Ends the current control-point drag.</summary>
+    public void EndMeshWarpDrag() => MeshWarpActiveNode = -1;
+
+    /// <summary>Clears every control-point offset.</summary>
+    public void ResetMeshWarp()
+    {
+        Array.Clear(_mesh);
+        MeshWarpActiveNode = -1;
+        ApplyMeshWarpPreview();
+    }
+
+    /// <summary>Keeps the warp and closes the mesh editor.</summary>
+    public void CommitMeshWarp()
+    {
+        if (!IsMeshWarpOpen)
+        {
+            return;
+        }
+
+        IsMeshWarpOpen = false;
+        MeshWarpIndex = -1;
+        MeshWarpActiveNode = -1;
+        _meshBase = null;
+        _meshSelection = null;
+        Status = "Mesh warp applied";
+        Changed();
+    }
+
+    /// <summary>Restores the captured pixels and closes the mesh editor.</summary>
+    public void CancelMeshWarp()
+    {
+        if (!IsMeshWarpOpen)
+        {
+            return;
+        }
+
+        if (_meshBase is not null && MeshWarpLayer is { } layer)
+        {
+            layer.Adopt((uint[])_meshBase.Clone());
+        }
+
+        IsMeshWarpOpen = false;
+        MeshWarpIndex = -1;
+        MeshWarpActiveNode = -1;
+        _meshBase = null;
+        _meshSelection = null;
+        Document.MarkDirty();
+        Status = "Mesh warp cancelled";
+        Changed();
+    }
+
+    /// <summary>Rebuilds the mesh-warp preview from the captured pixels.</summary>
+    private void ApplyMeshWarpPreview()
+    {
+        if (MeshWarpLayer is not { } layer || _meshBase is null)
+        {
+            return;
+        }
+
+        layer.Adopt((uint[])_meshBase.Clone());
+
+        bool identity = true;
+        for (int i = 0; i < _mesh.Length; i++)
+        {
+            if (MathF.Abs(_mesh[i]) > 0.01f)
+            {
+                identity = false;
+                break;
+            }
+        }
+
+        if (!identity && !MeshWarpOps.Transform(layer, _meshBase, _meshSelection, _mesh))
+        {
+            layer.Adopt((uint[])_meshBase.Clone());
+        }
+
+        Document.MarkDirty();
+        Changed();
+    }
+
+    /// <summary>Gets the mesh rectangle in document pixels.</summary>
+    private void MeshRect(out float x, out float y, out float width, out float height)
+    {
+        int documentWidth = Document.Width;
+        int documentHeight = Document.Height;
+        x = Math.Clamp(_meshSelection?.X ?? 0, 0, documentWidth);
+        y = Math.Clamp(_meshSelection?.Y ?? 0, 0, documentHeight);
+        width = Math.Clamp(
+            _meshSelection?.Width ?? documentWidth,
+            0,
+            documentWidth - x);
+        height = Math.Clamp(
+            _meshSelection?.Height ?? documentHeight,
+            0,
+            documentHeight - y);
     }
 
     // ---- perspective transform --------------------------------------------
@@ -6645,6 +6863,7 @@ public sealed class PaintSession
         {
             ProjectFile.Save(target, Document);
             _lastFolder = Path.GetDirectoryName(target) ?? _lastFolder;
+            NameActiveDocument(Path.GetFileName(target));
             IsFileDialogOpen = false;
             FileDialogError = string.Empty;
             Status = "Saved project " + target;
@@ -6808,6 +7027,7 @@ public sealed class PaintSession
                     _saveFormat));
 
             _lastFolder = Path.GetDirectoryName(path) ?? _lastFolder;
+            NameActiveDocument(Path.GetFileName(path));
             IsFileDialogOpen = false;
             FileDialogError = string.Empty;
             Status = "Saved " + path;

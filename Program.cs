@@ -155,7 +155,8 @@ public sealed class App : Component
                     editor.Refresh?.Invoke();
                 },
             })),
-            Show(editor.IsPerspectiveOpen, C<PerspectiveDialog>()));
+            Show(editor.IsPerspectiveOpen, C<PerspectiveDialog>()),
+            Show(editor.IsMeshWarpOpen, C<MeshWarpBar>()));
 
         root.BindRef(rootRef);
         if (rootRef.Value is { Width: > 0, Height: > 0 } bounds)

@@ -361,6 +361,7 @@ public static class HelpCatalog
                 "Copy Merged copies the visible composite; Copy stays on the active layer.",
                 "Content-Aware Fill reconstructs a selection from the pixels around it.",
                 "Perspective Transform moves the four corners of the layer or selection with a live preview.",
+                "Mesh Warp drags a three-by-three grid of control points over the layer or selection.",
             ],
             [
                 "Paste always creates a new layer.",

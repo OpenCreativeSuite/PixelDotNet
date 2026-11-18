@@ -91,6 +91,13 @@ public sealed class CanvasSurface : Component
             OnDraw = context => Draw(context, editor, paintRef.Value),
             OnPointerDown = (x, y) =>
             {
+                if (editor.IsMeshWarpOpen)
+                {
+                    float zoom = MathF.Max(editor.Zoom, 0.05f);
+                    editor.BeginMeshWarpDrag(x / zoom, y / zoom, zoom);
+                    return;
+                }
+
                 if (InputState.Control && editor.Tool is PaintTool.CloneStamp or PaintTool.HealingBrush)
                 {
                     editor.SetCloneSource(x, y);
@@ -107,9 +114,29 @@ public sealed class CanvasSurface : Component
                     return;
                 }
 
+                if (editor.IsMeshWarpOpen)
+                {
+                    float zoom = MathF.Max(editor.Zoom, 0.05f);
+                    if (editor.MeshWarpActiveNode >= 0)
+                    {
+                        editor.UpdateMeshWarpDrag(x / zoom, y / zoom);
+                    }
+
+                    return;
+                }
+
                 editor.PointerMove(x, y);
             },
-            OnPointerUp = (x, y) => editor.PointerUp(x, y),
+            OnPointerUp = (x, y) =>
+            {
+                if (editor.IsMeshWarpOpen)
+                {
+                    editor.EndMeshWarpDrag();
+                    return;
+                }
+
+                editor.PointerUp(x, y);
+            },
             OnScroll = (horizontal, vertical) =>
             {
                 if (InputState.Control)
@@ -178,6 +205,84 @@ public sealed class CanvasSurface : Component
         DrawCloneSource(context, editor, zoom);
         DrawTextTransform(context, editor, zoom);
         DrawBrushOutline(context, editor, zoom, canvasNode);
+        DrawMeshWarp(context, editor, zoom);
+    }
+
+    /// <summary>Draws the mesh warp grid and its draggable control points.</summary>
+    private static void DrawMeshWarp(CanvasContext context, PaintSession editor, float zoom)
+    {
+        if (!editor.IsMeshWarpOpen)
+        {
+            return;
+        }
+
+        int points = MeshWarpOps.Points;
+        const uint Line = 0xCC2F8DF0;
+        const uint Node = 0xFFFFFFFF;
+        const uint ActiveNode = 0xFFFFC24D;
+
+        for (int row = 0; row < points; row++)
+        {
+            for (int column = 0; column < points; column++)
+            {
+                int node = (row * points) + column;
+                (float x, float y) = editor.MeshNodePosition(node);
+                float canvasX = x * zoom;
+                float canvasY = y * zoom;
+
+                if (column < points - 1)
+                {
+                    (float nextX, float nextY) = editor.MeshNodePosition(node + 1);
+                    DrawLine(context, canvasX, canvasY, nextX * zoom, nextY * zoom, Line);
+                }
+
+                if (row < points - 1)
+                {
+                    (float nextX, float nextY) = editor.MeshNodePosition(node + points);
+                    DrawLine(context, canvasX, canvasY, nextX * zoom, nextY * zoom, Line);
+                }
+            }
+        }
+
+        for (int node = 0; node < points * points; node++)
+        {
+            (float x, float y) = editor.MeshNodePosition(node);
+            float canvasX = x * zoom;
+            float canvasY = y * zoom;
+            uint color = node == editor.MeshWarpActiveNode ? ActiveNode : Node;
+            context.FillEllipse(
+                new Rect(canvasX - 5f, canvasY - 5f, 10f, 10f),
+                0xCC101215);
+            context.FillEllipse(
+                new Rect(canvasX - 3.5f, canvasY - 3.5f, 7f, 7f),
+                color);
+        }
+    }
+
+    /// <summary>Draws a short line as a run of small rectangles.</summary>
+    private static void DrawLine(
+        CanvasContext context,
+        float x1,
+        float y1,
+        float x2,
+        float y2,
+        uint color)
+    {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float length = MathF.Sqrt((dx * dx) + (dy * dy));
+        int steps = Math.Max(1, (int)MathF.Ceiling(length / 3f));
+
+        for (int i = 0; i <= steps; i++)
+        {
+            float t = i / (float)steps;
+            context.FillRect(
+                x1 + (dx * t) - 1f,
+                y1 + (dy * t) - 1f,
+                2f,
+                2f,
+                color);
+        }
     }
 
     /// <summary>Draws the live text box, its corner handles and the rotate handle.</summary>
@@ -743,8 +848,8 @@ public sealed class CanvasSurface : Component
             return;
         }
 
-        // A pan owns the pointer; a brush ring would just be visual noise.
-        if (InputState.Middle)
+        // A pan or a mesh drag owns the pointer; a brush ring is visual noise.
+        if (InputState.Middle || editor.IsMeshWarpOpen)
         {
             return;
         }

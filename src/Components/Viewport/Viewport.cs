@@ -97,6 +97,16 @@ public sealed class Viewport : Component
             return;
         }
 
+        if (editor.IsMeshWarpOpen)
+        {
+            if (key == "Escape")
+            {
+                editor.CancelMeshWarp();
+            }
+
+            return;
+        }
+
         if (editor.IsPerspectiveOpen)
         {
             if (key == "Escape")
