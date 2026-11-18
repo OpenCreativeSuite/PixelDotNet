@@ -26,6 +26,37 @@ public readonly record struct FileEntry(string Name, string FullPath, bool IsDir
 /// <param name="Path">Absolute folder path.</param>
 public readonly record struct FileLocation(string Label, string Path);
 
+/// <summary>Where existing artwork sits when the canvas is resized.</summary>
+public enum ResizeAnchor
+{
+    /// <summary>Top-left corner.</summary>
+    TopLeft,
+
+    /// <summary>Top edge, horizontally centred.</summary>
+    Top,
+
+    /// <summary>Top-right corner.</summary>
+    TopRight,
+
+    /// <summary>Left edge, vertically centred.</summary>
+    Left,
+
+    /// <summary>Centred in both axes.</summary>
+    Center,
+
+    /// <summary>Right edge, vertically centred.</summary>
+    Right,
+
+    /// <summary>Bottom-left corner.</summary>
+    BottomLeft,
+
+    /// <summary>Bottom edge, horizontally centred.</summary>
+    Bottom,
+
+    /// <summary>Bottom-right corner.</summary>
+    BottomRight,
+}
+
 /// <summary>
 /// The whole editor state: document, tool settings, selection, zoom, adjustments
 /// and undo history.
@@ -3889,7 +3920,7 @@ public sealed class PaintSession
         DocumentSnapshot snapshot = _undo[^1];
         _undo.RemoveAt(_undo.Count - 1);
         _redo.Add(DocumentSnapshot.Capture(Document, Selection, snapshot.Name));
-        Selection = snapshot.Restore(Document);
+        Selection = RestoreSnapshot(snapshot);
         Status = "Undo " + snapshot.Name;
         Changed();
     }
@@ -3906,9 +3937,23 @@ public sealed class PaintSession
         DocumentSnapshot snapshot = _redo[^1];
         _redo.RemoveAt(_redo.Count - 1);
         _undo.Add(DocumentSnapshot.Capture(Document, Selection, snapshot.Name));
-        Selection = snapshot.Restore(Document);
+        Selection = RestoreSnapshot(snapshot);
         Status = "Redo " + snapshot.Name;
         Changed();
+    }
+
+    /// <summary>Restores a snapshot, rebuilding the document when its size changed.</summary>
+    private Selection? RestoreSnapshot(DocumentSnapshot snapshot)
+    {
+        if (snapshot.Width == Document.Width && snapshot.Height == Document.Height)
+        {
+            return snapshot.Restore(Document);
+        }
+
+        PaintDocument resized = new(snapshot.Width, snapshot.Height);
+        Selection? selection = snapshot.Restore(resized);
+        AdoptDocument(resized);
+        return selection;
     }
 
     /// <summary>Travels to a history step by undoing or redoing as needed.</summary>
@@ -4079,6 +4124,451 @@ public sealed class PaintSession
         }
 
         return name + " " + suffix;
+    }
+
+    // ---- resize -----------------------------------------------------------
+
+    /// <summary>Gets whether the resize dialog is open.</summary>
+    public bool IsResizeOpen { get; private set; }
+
+    /// <summary>Gets whether the dialog changes canvas size instead of scaling pixels.</summary>
+    public bool ResizeIsCanvas { get; private set; }
+
+    /// <summary>Gets the width typed into the resize dialog.</summary>
+    public string ResizeWidthText { get; private set; } = string.Empty;
+
+    /// <summary>Gets the height typed into the resize dialog.</summary>
+    public string ResizeHeightText { get; private set; } = string.Empty;
+
+    /// <summary>Gets whether the dialog keeps the document aspect ratio.</summary>
+    public bool ResizeKeepAspect { get; private set; } = true;
+
+    /// <summary>Gets the anchor used when the canvas grows or shrinks.</summary>
+    public ResizeAnchor ResizeAnchor { get; private set; } = ResizeAnchor.Center;
+
+    /// <summary>Gets the last problem reported by the resize dialog.</summary>
+    public string ResizeError { get; private set; } = string.Empty;
+
+    /// <summary>Gets the width of the document when the dialog opened.</summary>
+    public int ResizeOriginalWidth { get; private set; }
+
+    /// <summary>Gets the height of the document when the dialog opened.</summary>
+    public int ResizeOriginalHeight { get; private set; }
+
+    /// <summary>Opens the dialog that scales the artwork.</summary>
+    public void ShowImageResizeDialog() => ShowResizeDialog(canvas: false);
+
+    /// <summary>Opens the dialog that changes the canvas bounds.</summary>
+    public void ShowCanvasResizeDialog() => ShowResizeDialog(canvas: true);
+
+    /// <summary>Closes the resize dialog.</summary>
+    public void CloseResizeDialog()
+    {
+        if (!IsResizeOpen)
+        {
+            return;
+        }
+
+        IsResizeOpen = false;
+        ResizeError = string.Empty;
+        Changed();
+    }
+
+    /// <summary>Updates the width field and, when linked, the height.</summary>
+    public void ResizeSetWidth(string text)
+    {
+        ResizeWidthText = text;
+        ResizeError = string.Empty;
+        SyncAspect(fromWidth: true);
+        Changed();
+    }
+
+    /// <summary>Updates the height field and, when linked, the width.</summary>
+    public void ResizeSetHeight(string text)
+    {
+        ResizeHeightText = text;
+        ResizeError = string.Empty;
+        SyncAspect(fromWidth: false);
+        Changed();
+    }
+
+    /// <summary>Links or unlinks the width and height fields.</summary>
+    public void ToggleResizeAspect()
+    {
+        ResizeKeepAspect = !ResizeKeepAspect;
+        if (ResizeKeepAspect)
+        {
+            SyncAspect(fromWidth: true);
+        }
+
+        Changed();
+    }
+
+    /// <summary>Chooses the anchor used by a canvas resize.</summary>
+    public void SetResizeAnchor(ResizeAnchor anchor)
+    {
+        ResizeAnchor = anchor;
+        Changed();
+    }
+
+    /// <summary>Applies the dialog's size to the document.</summary>
+    public void ApplyResize()
+    {
+        if (!IsResizeOpen)
+        {
+            return;
+        }
+
+        if (!int.TryParse(ResizeWidthText.Trim(), out int width)
+            || !int.TryParse(ResizeHeightText.Trim(), out int height)
+            || width < 1
+            || height < 1)
+        {
+            ResizeError = "Enter a whole number of pixels for both sides.";
+            Changed();
+            return;
+        }
+
+        width = Math.Clamp(width, 1, 8192);
+        height = Math.Clamp(height, 1, 8192);
+        if (width == Document.Width && height == Document.Height)
+        {
+            ResizeError = "The document is already that size.";
+            Changed();
+            return;
+        }
+
+        if (ResizeIsCanvas)
+        {
+            ResizeCanvas(width, height, ResizeAnchor);
+        }
+        else
+        {
+            ResizeImage(width, height);
+        }
+
+        IsResizeOpen = false;
+        ResizeError = string.Empty;
+        Changed();
+    }
+
+    /// <summary>Opens the resize dialog seeded from the current document size.</summary>
+    private void ShowResizeDialog(bool canvas)
+    {
+        Tip = null;
+        OpenMenu = null;
+        FinishInteraction();
+        ResizeIsCanvas = canvas;
+        ResizeOriginalWidth = Document.Width;
+        ResizeOriginalHeight = Document.Height;
+        ResizeWidthText = Document.Width.ToString();
+        ResizeHeightText = Document.Height.ToString();
+        ResizeKeepAspect = true;
+        ResizeAnchor = ResizeAnchor.Center;
+        ResizeError = string.Empty;
+        IsResizeOpen = true;
+        Status = canvas ? "Canvas size" : "Image size";
+        Changed();
+    }
+
+    /// <summary>Derives the linked side from the edited one.</summary>
+    private void SyncAspect(bool fromWidth)
+    {
+        if (!ResizeKeepAspect || ResizeOriginalWidth <= 0 || ResizeOriginalHeight <= 0)
+        {
+            return;
+        }
+
+        float aspect = ResizeOriginalWidth / (float)ResizeOriginalHeight;
+        if (fromWidth && int.TryParse(ResizeWidthText.Trim(), out int widthValue) && widthValue > 0)
+        {
+            int derivedHeight = Math.Max(1, (int)MathF.Round(widthValue / aspect));
+            if (derivedHeight <= 8192)
+            {
+                ResizeHeightText = derivedHeight.ToString();
+            }
+        }
+        else if (!fromWidth
+            && int.TryParse(ResizeHeightText.Trim(), out int heightValue)
+            && heightValue > 0)
+        {
+            int derivedWidth = Math.Max(1, (int)MathF.Round(heightValue * aspect));
+            if (derivedWidth <= 8192)
+            {
+                ResizeWidthText = derivedWidth.ToString();
+            }
+        }
+    }
+
+    /// <summary>Replaces the document and drops state tied to the old pixel grid.</summary>
+    private void AdoptDocument(PaintDocument document)
+    {
+        FinishInteraction();
+        Document = document;
+        _tabs[_activeTab].Document = document;
+        Selection = null;
+        MaskEditing = false;
+        CursorX = -1;
+        CursorY = -1;
+    }
+
+    /// <summary>Scales every layer, mask and guide to a new size.</summary>
+    private void ResizeImage(int width, int height)
+    {
+        CommitPreviews();
+        FinishInteraction();
+        PushUndo("Image Size");
+
+        int oldWidth = Document.Width;
+        int oldHeight = Document.Height;
+        PaintDocument resized = new(width, height);
+
+        foreach (PaintLayer source in Document.Layers)
+        {
+            PaintLayer layer = CreateResizedLayer(source, width, height);
+            layer.Adopt(ScalePixels(source.Pixels, source.Width, source.Height, width, height));
+            if (source.Mask is { } mask)
+            {
+                layer.AdoptMask(ScaleMask(mask, source.Width, source.Height, width, height));
+            }
+
+            resized.Layers.Add(layer);
+        }
+
+        resized.ActiveIndex = Math.Clamp(Document.ActiveIndex, 0, resized.Layers.Count - 1);
+
+        foreach (Guide guide in Document.Guides)
+        {
+            int limit = guide.Horizontal ? height : width;
+            int basis = guide.Horizontal ? oldHeight : oldWidth;
+            int position = basis <= 0 ? 0 : (guide.Position * limit) / basis;
+            resized.Guides.Add(new Guide(guide.Horizontal, Math.Clamp(position, 0, limit)));
+        }
+
+        AdoptDocument(resized);
+        Status = $"Image resized to {width} × {height}";
+    }
+
+    /// <summary>Moves the existing pixels inside a new canvas size.</summary>
+    private void ResizeCanvas(int width, int height, ResizeAnchor anchor)
+    {
+        CommitPreviews();
+        FinishInteraction();
+        PushUndo("Canvas Size");
+
+        int oldWidth = Document.Width;
+        int oldHeight = Document.Height;
+        int offsetX = anchor switch
+        {
+            ResizeAnchor.TopLeft or ResizeAnchor.Left or ResizeAnchor.BottomLeft => 0,
+            ResizeAnchor.TopRight or ResizeAnchor.Right or ResizeAnchor.BottomRight => width - oldWidth,
+            _ => (width - oldWidth) / 2,
+        };
+        int offsetY = anchor switch
+        {
+            ResizeAnchor.TopLeft or ResizeAnchor.Top or ResizeAnchor.TopRight => 0,
+            ResizeAnchor.BottomLeft or ResizeAnchor.Bottom or ResizeAnchor.BottomRight => height - oldHeight,
+            _ => (height - oldHeight) / 2,
+        };
+
+        PaintDocument resized = new(width, height);
+
+        foreach (PaintLayer source in Document.Layers)
+        {
+            PaintLayer layer = CreateResizedLayer(source, width, height);
+            uint[] pixels = layer.Pixels;
+
+            for (int y = 0; y < oldHeight; y++)
+            {
+                int targetY = y + offsetY;
+                if (targetY < 0 || targetY >= height)
+                {
+                    continue;
+                }
+
+                for (int x = 0; x < oldWidth; x++)
+                {
+                    int targetX = x + offsetX;
+                    if (targetX < 0 || targetX >= width)
+                    {
+                        continue;
+                    }
+
+                    pixels[(targetY * width) + targetX] = source.Pixels[(y * oldWidth) + x];
+                }
+            }
+
+            if (source.Mask is { } mask)
+            {
+                byte[] targetMask = new byte[width * height];
+
+                for (int y = 0; y < oldHeight; y++)
+                {
+                    int targetY = y + offsetY;
+                    if (targetY < 0 || targetY >= height)
+                    {
+                        continue;
+                    }
+
+                    for (int x = 0; x < oldWidth; x++)
+                    {
+                        int targetX = x + offsetX;
+                        if (targetX < 0 || targetX >= width)
+                        {
+                            continue;
+                        }
+
+                        targetMask[(targetY * width) + targetX] = mask[(y * oldWidth) + x];
+                    }
+                }
+
+                layer.AdoptMask(targetMask);
+            }
+
+            resized.Layers.Add(layer);
+        }
+
+        resized.ActiveIndex = Math.Clamp(Document.ActiveIndex, 0, resized.Layers.Count - 1);
+
+        foreach (Guide guide in Document.Guides)
+        {
+            int limit = guide.Horizontal ? height : width;
+            int shift = guide.Horizontal ? offsetY : offsetX;
+            resized.Guides.Add(new Guide(guide.Horizontal, Math.Clamp(guide.Position + shift, 0, limit)));
+        }
+
+        AdoptDocument(resized);
+        Status = $"Canvas resized to {width} × {height}";
+    }
+
+    /// <summary>Creates an empty layer with the source layer's display settings.</summary>
+    private static PaintLayer CreateResizedLayer(PaintLayer source, int width, int height)
+    {
+        PaintLayer layer = new(
+            source.Name,
+            width,
+            height,
+            source.IsBackground,
+            source.Kind,
+            source.Adjustment)
+        {
+            Visible = source.Visible,
+            Opacity = source.Opacity,
+            Blend = source.Blend,
+            Locked = source.Locked,
+            ClipToBelow = source.ClipToBelow,
+        };
+
+        if (source.IsAdjustment)
+        {
+            layer.CopyAdjustmentFrom(source);
+        }
+
+        return layer;
+    }
+
+    /// <summary>Scales a pixel buffer with alpha-correct bilinear sampling.</summary>
+    private static uint[] ScalePixels(uint[] source, int sourceWidth, int sourceHeight, int width, int height)
+    {
+        uint[] destination = new uint[width * height];
+        float scaleX = sourceWidth / (float)width;
+        float scaleY = sourceHeight / (float)height;
+
+        for (int y = 0; y < height; y++)
+        {
+            float sampleY = ((y + 0.5f) * scaleY) - 0.5f;
+            for (int x = 0; x < width; x++)
+            {
+                float sampleX = ((x + 0.5f) * scaleX) - 0.5f;
+                destination[(y * width) + x] = SampleBilinear(
+                    source,
+                    sourceWidth,
+                    sourceHeight,
+                    sampleX,
+                    sampleY);
+            }
+        }
+
+        return destination;
+    }
+
+    /// <summary>Samples four premultiplied neighbours and unpacks the result.</summary>
+    private static uint SampleBilinear(uint[] source, int width, int height, float x, float y)
+    {
+        int x0 = (int)MathF.Floor(x);
+        int y0 = (int)MathF.Floor(y);
+        float fx = x - x0;
+        float fy = y - y0;
+
+        int x1 = Math.Clamp(x0 + 1, 0, width - 1);
+        int y1 = Math.Clamp(y0 + 1, 0, height - 1);
+        x0 = Math.Clamp(x0, 0, width - 1);
+        y0 = Math.Clamp(y0, 0, height - 1);
+
+        uint p00 = source[(y0 * width) + x0];
+        uint p10 = source[(y0 * width) + x1];
+        uint p01 = source[(y1 * width) + x0];
+        uint p11 = source[(y1 * width) + x1];
+
+        float w00 = (1f - fx) * (1f - fy);
+        float w10 = fx * (1f - fy);
+        float w01 = (1f - fx) * fy;
+        float w11 = fx * fy;
+
+        float alpha = (Rgba.A(p00) * w00) + (Rgba.A(p10) * w10)
+            + (Rgba.A(p01) * w01) + (Rgba.A(p11) * w11);
+        if (alpha <= 0.5f)
+        {
+            return 0;
+        }
+
+        float red = (Rgba.R(p00) * Rgba.A(p00) * w00) + (Rgba.R(p10) * Rgba.A(p10) * w10)
+            + (Rgba.R(p01) * Rgba.A(p01) * w01) + (Rgba.R(p11) * Rgba.A(p11) * w11);
+        float green = (Rgba.G(p00) * Rgba.A(p00) * w00) + (Rgba.G(p10) * Rgba.A(p10) * w10)
+            + (Rgba.G(p01) * Rgba.A(p01) * w01) + (Rgba.G(p11) * Rgba.A(p11) * w11);
+        float blue = (Rgba.B(p00) * Rgba.A(p00) * w00) + (Rgba.B(p10) * Rgba.A(p10) * w10)
+            + (Rgba.B(p01) * Rgba.A(p01) * w01) + (Rgba.B(p11) * Rgba.A(p11) * w11);
+
+        int a = Math.Clamp((int)MathF.Round(alpha), 0, 255);
+        int r = Math.Clamp((int)MathF.Round(red / alpha), 0, 255);
+        int g = Math.Clamp((int)MathF.Round(green / alpha), 0, 255);
+        int b = Math.Clamp((int)MathF.Round(blue / alpha), 0, 255);
+        return ((uint)a << 24) | ((uint)r << 16) | ((uint)g << 8) | (uint)b;
+    }
+
+    /// <summary>Scales a single-channel mask with bilinear sampling.</summary>
+    private static byte[] ScaleMask(byte[] source, int sourceWidth, int sourceHeight, int width, int height)
+    {
+        byte[] destination = new byte[width * height];
+        float scaleX = sourceWidth / (float)width;
+        float scaleY = sourceHeight / (float)height;
+
+        for (int y = 0; y < height; y++)
+        {
+            float sampleY = ((y + 0.5f) * scaleY) - 0.5f;
+            int y0 = Math.Clamp((int)MathF.Floor(sampleY), 0, sourceHeight - 1);
+            int y1 = Math.Clamp(y0 + 1, 0, sourceHeight - 1);
+            float fy = sampleY - MathF.Floor(sampleY);
+
+            for (int x = 0; x < width; x++)
+            {
+                float sampleX = ((x + 0.5f) * scaleX) - 0.5f;
+                int x0 = Math.Clamp((int)MathF.Floor(sampleX), 0, sourceWidth - 1);
+                int x1 = Math.Clamp(x0 + 1, 0, sourceWidth - 1);
+                float fx = sampleX - MathF.Floor(sampleX);
+
+                float top = (source[(y0 * sourceWidth) + x0] * (1f - fx))
+                    + (source[(y0 * sourceWidth) + x1] * fx);
+                float bottom = (source[(y1 * sourceWidth) + x0] * (1f - fx))
+                    + (source[(y1 * sourceWidth) + x1] * fx);
+                destination[(y * width) + x] = (byte)Math.Clamp(
+                    (int)MathF.Round((top * (1f - fy)) + (bottom * fy)),
+                    0,
+                    255);
+            }
+        }
+
+        return destination;
     }
 
     // ---- file browser -----------------------------------------------------
@@ -5406,17 +5896,33 @@ public sealed class PaintSession
         private readonly Frame[] _frames;
         private readonly int _active;
         private readonly Selection? _selection;
+        private readonly int _width;
+        private readonly int _height;
 
-        private DocumentSnapshot(Frame[] frames, int active, Selection? selection, string name)
+        private DocumentSnapshot(
+            Frame[] frames,
+            int active,
+            Selection? selection,
+            string name,
+            int width,
+            int height)
         {
             _frames = frames;
             _active = active;
             _selection = selection;
+            _width = width;
+            _height = height;
             Name = name;
         }
 
         /// <summary>Gets the name of the step this snapshot represents.</summary>
         public string Name { get; }
+
+        /// <summary>Gets the document width this snapshot was taken at.</summary>
+        public int Width => _width;
+
+        /// <summary>Gets the document height this snapshot was taken at.</summary>
+        public int Height => _height;
 
         /// <summary>Copies every layer's pixels and the selection around them.</summary>
         public static DocumentSnapshot Capture(PaintDocument document, Selection? selection, string name)
@@ -5441,7 +5947,13 @@ public sealed class PaintSession
                     layer.IsAdjustment ? [.. layer.AdjustmentCurve] : null);
             }
 
-            return new DocumentSnapshot(frames, document.ActiveIndex, selection, name);
+            return new DocumentSnapshot(
+                frames,
+                document.ActiveIndex,
+                selection,
+                name,
+                document.Width,
+                document.Height);
         }
 
         /// <summary>Restores the copied layers and their order, returning the selection.</summary>

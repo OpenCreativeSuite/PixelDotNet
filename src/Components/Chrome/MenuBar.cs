@@ -51,6 +51,8 @@ public sealed class MenuBar : Component
             new("Flip Vertical", "", session => !session.Document.Active.Locked, session => session.FlipVertical()),
             new("Brightness / Contrast", "", NeverDim, session => session.OpenSideTab(2)),
             new("Effects", "", NeverDim, session => session.OpenSideTab(4)),
+            new("Image Size...", "", NeverDim, session => session.ShowImageResizeDialog()),
+            new("Canvas Size...", "", NeverDim, session => session.ShowCanvasResizeDialog()),
             new("Flatten Image", "", NeverDim, session => session.FlattenImage()),
         ]),
         new("Layer",

@@ -97,6 +97,20 @@ public sealed class Viewport : Component
             return;
         }
 
+        if (editor.IsResizeOpen)
+        {
+            if (key == "Escape")
+            {
+                editor.CloseResizeDialog();
+            }
+            else if (key is "Return" or "Enter")
+            {
+                editor.ApplyResize();
+            }
+
+            return;
+        }
+
         if (editor.IsFileDialogOpen)
         {
             if (editor.IsFilePromptOpen)
