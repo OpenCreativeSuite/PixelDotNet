@@ -25,6 +25,20 @@ public sealed class Viewport : Component
         Ref<ElementNode> viewportRef = UseRef<ElementNode>();
         ViewportPan.Attach(viewportRef);
 
+        // The pasteboard is wider than the view when the window is small, so a
+        // fresh document starts at scroll zero with the artwork pushed toward
+        // the bottom-right. Scrolling by half the pasteboard brings it back
+        // toward the middle; the layout engine clamps it when there is no
+        // overflow to scroll through.
+        Effect(() =>
+        {
+            if (viewportRef.Value is { } viewport)
+            {
+                viewport.ScrollOffsetX = CanvasPadding * 0.5f;
+                viewport.ScrollOffsetY = CanvasPadding * 0.5f;
+            }
+        }, [editor.Document]);
+
         float zoom = MathF.Max(editor.Zoom, 0.05f);
         float ruler = editor.ShowRulers ? CanvasSurface.RulerSize : 0f;
         int pixelWidth = Math.Max(16, (int)MathF.Round(editor.Document.Width * zoom));
