@@ -188,6 +188,9 @@ public static class Icons
     /// <summary>Layer mask.</summary>
     public const string Mask = "fa-mask";
 
+    /// <summary>Check mark for a selected menu setting.</summary>
+    public const string Check = "fa-check";
+
     /// <summary>Gets the glyph for a tool.</summary>
     public static string ForTool(PaintTool tool) => tool switch
     {

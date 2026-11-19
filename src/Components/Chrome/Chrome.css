@@ -141,7 +141,7 @@ button {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 22px;
+    gap: 7px;
     width: 100%;
     padding: 3px 9px;
     border: 0;
@@ -152,6 +152,20 @@ button {
     font-size: 11.5px;
     text-align: left;
     cursor: pointer;
+}
+
+.menu-item-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+    font-size: 9px;
+}
+
+.menu-item-label {
+    flex: 1;
 }
 
 .menu-item:hover {
@@ -172,6 +186,12 @@ button {
 
 .menu-item:hover .menu-item-key {
     color: #dceaff;
+}
+
+.menu-sep {
+    height: 1px;
+    margin: 4px 7px;
+    background-color: rgba(255, 255, 255, 0.09);
 }
 
 .menu-spacer {

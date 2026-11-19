@@ -1011,6 +1011,19 @@ public sealed class PaintSession
         Changed();
     }
 
+    /// <summary>Switches the open menu when the pointer moves to another title.</summary>
+    public void HoverMenu(string name)
+    {
+        if (OpenMenu is null || OpenMenu == name)
+        {
+            return;
+        }
+
+        Tip = null;
+        OpenMenu = name;
+        Changed();
+    }
+
     /// <summary>Closes any open menu.</summary>
     public void CloseMenu()
     {
