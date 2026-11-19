@@ -453,7 +453,7 @@ public static class HelpCatalog
                 "The Help menu itself has no tooltip until tooltips are enabled.",
             ]);
 
-        Add("quick.undo", Icons.Undo, "Undo", "Z",
+        Add("quick.undo", Icons.Undo, "Undo", "Ctrl+Z",
             "Reverses the last committed action.",
             ["Undo walks back through the history timeline for the current document."],
             ["Ctrl+Z works everywhere.", "Open History to jump back several steps at once."]);
@@ -503,7 +503,7 @@ public static class HelpCatalog
             [
                 "White reveals the layer, black hides it and grey partially reveals it.",
                 "Press the mask button to add a mask, then click the mask thumbnail to paint on it with the brush or eraser.",
-                "Right-click the mask thumbnail to remove the mask.",
+                "Right-click the layer and choose Remove Mask to delete the mask.",
             ],
             [
                 "Paint soft edges with a feathered brush instead of erasing pixels.",
@@ -601,8 +601,8 @@ public static class HelpCatalog
             ["Set shadow X and Y to 0 and raise Blur for a glow."]);
 
         Add("options.place", Icons.Text, "Place Text", "Enter",
-            "Bakes the live text preview into the active layer.",
-            ["Place ends the preview and clears the text field as one undo step."],
+            "Commits the text preview, clearing the text field as one undo step.",
+            ["With Text layer on, the result stays editable from Layer > Edit Text."],
             ["Place text on its own layer so it stays easy to move."]);
 
         Add("options.cancel", Icons.Close, "Cancel Text", "",

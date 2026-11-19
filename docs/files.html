@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Files and export - PixelDotNet User Guide</title>
+    <title>Saving, export and files - PixelDotNet User Guide</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,11 +15,12 @@
         </a>
         <nav class="mainnav">
             <a href="index.html">Home</a>
-            <a href="tools.html">Tools</a>
-            <a href="selections.html">Selections</a>
-            <a href="layers.html">Layers</a>
-            <a href="adjustments.html">Adjustments</a>
-            <a class="active" href="files.html">Files</a>
+            <a href="recipes.html">Recipes</a>
+            <a href="tools.html">Painting</a>
+            <a href="selections.html">Cutting out</a>
+            <a href="layers.html">Layers &amp; text</a>
+            <a href="adjustments.html">Colour &amp; effects</a>
+            <a class="active" href="files.html">Save &amp; share</a>
             <a href="shortcuts.html">Shortcuts</a>
         </nav>
     </div>
@@ -27,52 +28,60 @@
 
 <main>
     <div class="pagehead">
-        <h1>Files and export</h1>
-        <p>This chapter covers documents, tabs, the in-app file browser, image formats, layered project files, batch processing, and SVG import and export. It also explains which format to choose for which job.</p>
+        <h1>Saving, export and files</h1>
+        <p>How to open a picture, save something you can share, and keep a layered project you can edit again. This chapter also covers tabs, image formats, batch processing, and SVG.</p>
     </div>
 
     <div class="toc">
         <strong>On this page</strong>
         <ol>
-            <li><a href="#new">New documents</a></li>
-            <li><a href="#tabs">Tabs and multiple documents</a></li>
-            <li><a href="#browser">The file browser</a></li>
-            <li><a href="#save-image">Saving an image</a></li>
-            <li><a href="#formats">Image formats</a></li>
-            <li><a href="#project">Project files</a></li>
-            <li><a href="#batch">Batch processing</a></li>
+            <li><a href="#open">Open a picture</a></li>
+            <li><a href="#new">Start a new document</a></li>
+            <li><a href="#tabs">Work with several documents</a></li>
+            <li><a href="#browser">The in-app file browser</a></li>
+            <li><a href="#save-image">Save an image to share</a></li>
+            <li><a href="#formats">Choose the right format</a></li>
+            <li><a href="#project">Keep a layered project</a></li>
+            <li><a href="#batch">Batch process a folder</a></li>
             <li><a href="#svg">SVG import and export</a></li>
             <li><a href="#safe">Keeping your work safe</a></li>
         </ol>
     </div>
 
-    <h2 id="new">New documents</h2>
-    <p>Use <strong>File &gt; New Document</strong> for a blank canvas. The normal size is 768 by 576 pixels. <strong>File &gt; New Small Document</strong> creates a 480 by 360 canvas, which is handy for quick tests.</p>
-    <p>The new document starts with one layer, ready for painting. Use <strong>Image &gt; Canvas Size</strong> later if you need a different shape.</p>
-    <p><strong>File &gt; Open Sample</strong> reloads the built-in Moonlight image. It is a safe place to experiment because you can always reload it.</p>
+    <h2 id="open">Open a picture</h2>
+    <p>Choose <strong>File → Open…</strong> or press <kbd>Ctrl</kbd>+<kbd>O</kbd>. The in-app browser opens and lists PNG, JPEG, BMP, and TGA images. Pick a file and press <strong>Open</strong>.</p>
+    <p>To open a layered project, choose <strong>File → Open Project…</strong> and pick a <code>.pxd</code> file. To import vector artwork, use <strong>File → Import SVG…</strong>.</p>
+    <div class="tip">
+        <strong>Nothing open?</strong>
+        Choose <strong>File → Open Sample</strong> to reload the built-in Moonlight image at any time. It is a safe place to experiment because you can always reload it.
+    </div>
 
-    <h2 id="tabs">Tabs and multiple documents</h2>
-    <p>Each open image appears as a tab above the canvas. Click a tab to switch documents. Each tab keeps its own layers, selection, zoom, and undo history.</p>
+    <h2 id="new">Start a new document</h2>
+    <p><strong>File → New Document</strong> (<kbd>Ctrl</kbd>+<kbd>N</kbd>) creates a blank 768 by 576 canvas with a white background and one empty layer. <strong>File → New Small Document</strong> creates a 480 by 360 canvas for quick tests.</p>
+    <p>If you need a different shape later, use <strong>Image → Canvas Size</strong> rather than starting over.</p>
+
+    <h2 id="tabs">Work with several documents</h2>
+    <p>Each open picture appears as a tab above the canvas. Click a tab to switch. Every tab keeps its own layers, selection, zoom, and undo history.</p>
     <ul>
-        <li><strong>File &gt; Next Document</strong> or <kbd>Ctrl</kbd>+<kbd>Tab</kbd> moves to the next tab.</li>
-        <li><strong>File &gt; Previous Document</strong> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd> moves back.</li>
-        <li><strong>File &gt; Close Document</strong> or <kbd>Ctrl</kbd>+<kbd>W</kbd> closes the active tab. The last tab cannot be closed.</li>
+        <li><strong>File → Next Document</strong> or <kbd>Ctrl</kbd>+<kbd>Tab</kbd> moves to the next tab.</li>
+        <li><strong>File → Previous Document</strong> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd> moves back.</li>
+        <li><strong>File → Close Document</strong> or <kbd>Ctrl</kbd>+<kbd>W</kbd> closes the active tab. The last tab cannot be closed.</li>
     </ul>
-    <p>When you save an image or a project, the tab name changes to the saved file name. That makes it easy to see which tab belongs to which file.</p>
+    <p>When you save an image or a project, the tab name changes to the saved file name, so it is easy to see which tab belongs to which file.</p>
 
-    <h2 id="browser">The file browser</h2>
-    <p>PixelDotNet uses its own file browser instead of the system dialog. The browser has a folder list on the left, file rows in the middle, and a name field and action buttons at the bottom.</p>
+    <h2 id="browser">The in-app file browser</h2>
+    <p>PixelDotNet uses its own file browser instead of the system dialog. There is a folder list on the left, file rows in the middle, and a name field and action buttons at the bottom.</p>
     <ul>
         <li>Click a folder to open it. Use the parent row to go up one level.</li>
         <li>Double-click a file to open it, or select it and press the open button.</li>
-        <li>Click a shortcut on the left to jump to a common place such as Pictures or the current project folder.</li>
+        <li>Use the shortcuts on the left to jump to Pictures, Desktop, Documents, Home, or Downloads.</li>
         <li>Right-click a file row to rename, copy, cut, paste, or delete it.</li>
-        <li>Use the new folder button to create a folder without leaving the app.</li>
+        <li>Use the new-folder button to create a folder without leaving the app.</li>
         <li>The file name field at the bottom shows the name that will be saved.</li>
     </ul>
     <div class="note">
-        <strong>Supported files</strong>
-        The browser lists PNG, JPEG, BMP, and TGA images, plus <code>.pxd</code> projects and SVG files when the matching command is open.
+        <strong>What the browser lists</strong>
+        PNG, JPEG, BMP, and TGA images, plus <code>.pxd</code> projects and SVG files when the matching command is open.
     </div>
 
     <figure>
@@ -80,32 +89,36 @@
         <figcaption>The in-app file browser. Choose a folder, type a name, pick a format, and save.</figcaption>
     </figure>
 
-    <h2 id="save-image">Saving an image</h2>
-    <p>Choose <strong>File &gt; Save...</strong> or press <kbd>Ctrl</kbd>+<kbd>S</kbd>. The browser opens in save mode.</p>
-    <ol>
+    <h2 id="save-image">Save an image to share</h2>
+    <p>Choose <strong>File → Save…</strong> or press <kbd>Ctrl</kbd>+<kbd>S</kbd>. The browser opens in save mode.</p>
+    <ol class="steps">
         <li>Choose the destination folder.</li>
         <li>Type a file name. The extension is added automatically.</li>
         <li>Pick PNG, JPEG, BMP, or TGA from the format buttons.</li>
-        <li>Press the save button.</li>
+        <li>Press <strong>Save</strong>.</li>
     </ol>
-    <p>The saved image is the visible composite. Transparent areas stay transparent in PNG and TGA. JPEG does not support transparency, so transparent areas become white.</p>
+    <p>The saved image is the visible result on the canvas. Transparent areas stay transparent in PNG and TGA. JPEG does not support transparency, so transparent areas become white.</p>
     <div class="tip">
         <strong>Quick save</strong>
-        The save button in the top right also opens the save browser. The status bar confirms where the file was written.
+        The save button at the top right also opens the save browser. The status bar confirms where the file was written.
     </div>
 
-    <h2 id="formats">Image formats</h2>
+    <h2 id="formats">Choose the right format</h2>
     <table>
-        <tr><th>Format</th><th>Transparency</th><th>Best use</th><th>Watch out for</th></tr>
+        <tr><th>Format</th><th>Transparency</th><th>Best for</th><th>Watch out for</th></tr>
         <tr><td>PNG</td><td>Yes</td><td>Artwork, screenshots, pixel art, anything with transparency</td><td>Larger files than JPEG for photos</td></tr>
-        <tr><td>JPEG</td><td>No</td><td>Photos and sharing</td><td>Loses a little quality each time you save</td></tr>
+        <tr><td>JPEG</td><td>No</td><td>Photos and everyday sharing</td><td>Loses a little quality each time you save</td></tr>
         <tr><td>BMP</td><td>No</td><td>Simple uncompressed images</td><td>Very large files</td></tr>
         <tr><td>TGA</td><td>Yes</td><td>Game textures and simple alpha images</td><td>Less common for everyday sharing</td></tr>
         <tr><td>PXD</td><td>Yes</td><td>Editable layered projects</td><td>Only PixelDotNet can open it</td></tr>
-        <tr><td>SVG</td><td>Yes</td><td>Scalable shapes and text</td><td>Raster layers are embedded as one PNG</td></tr>
+        <tr><td>SVG</td><td>Yes</td><td>Scalable shapes and text</td><td>Ordinary painted layers become one embedded PNG</td></tr>
     </table>
+    <div class="tip">
+        <strong>Not sure?</strong>
+        Choose PNG. It keeps transparency and crisp edges, and it opens everywhere.
+    </div>
 
-    <h2 id="project">Project files</h2>
+    <h2 id="project">Keep a layered project</h2>
     <p>A project file uses the <code>.pxd</code> extension. It keeps the whole working document, not just the final picture.</p>
     <p>A project stores:</p>
     <ul>
@@ -116,27 +129,25 @@
         <li>Layer styles</li>
         <li>Smart objects and their transforms</li>
         <li>Shape layers, path nodes, and text layers</li>
-        <li>Guides</li>
-        <li>The active layer</li>
+        <li>Guides and the active layer</li>
     </ul>
-    <p>Use <strong>File &gt; Save Project...</strong> and <strong>File &gt; Open Project...</strong>. Project files are compressed, so they are usually smaller than you might expect.</p>
+    <p>Use <strong>File → Save Project…</strong> and <strong>File → Open Project…</strong>. Project files are compressed, so they are usually smaller than you might expect.</p>
     <div class="warning">
         <strong>Save a project before closing</strong>
         A PNG or JPEG cannot bring back your layers. If the picture might need more work later, save a project as well.
     </div>
 
-    <h2 id="batch">Batch processing</h2>
-    <p><strong>File &gt; Batch Process...</strong> resizes and converts every supported image in a folder. It is useful for making thumbnails, preparing a web gallery, or converting a folder of PNGs to JPEG.</p>
+    <h2 id="batch">Batch process a folder</h2>
+    <p><strong>File → Batch Process…</strong> resizes and converts every supported image in a folder. It is useful for making thumbnails, preparing a web gallery, or converting a folder of PNGs to JPEG. The images never open in tabs; the work happens directly from the source folder to the output folder.</p>
     <ol class="steps">
-        <li><strong>Source.</strong> Type or paste the folder that contains the images. Press Enter to confirm, then click <strong>Scan</strong> to count the files.</li>
-        <li><strong>Output.</strong> Type or paste the folder where the new files should go. It can be the same folder if you turn on Overwrite, but a separate output folder is safer.</li>
-        <li><strong>Scale.</strong> Enter a percentage. 100 keeps the original size. 50 makes every image half as wide and half as tall.</li>
+        <li><strong>Source.</strong> Type or paste the folder that contains the images. Press <kbd>Enter</kbd> to confirm, then click <strong>Scan</strong> to count the files.</li>
+        <li><strong>Output.</strong> Type or paste the folder where the new files should go. A separate output folder is safer while you check the results.</li>
+        <li><strong>Scale.</strong> Enter a percentage. 100 keeps the original size; 50 makes every image half as wide and half as tall.</li>
         <li><strong>Suffix.</strong> Add text to each output name, such as <code>-web</code> or <code>-small</code>. The original name is kept and the suffix is added.</li>
         <li><strong>Format.</strong> Choose PNG, JPEG, BMP, or TGA.</li>
-        <li><strong>Overwrite.</strong> Turn this on only if you are happy to replace existing files with the same name.</li>
+        <li><strong>Overwrite.</strong> Turn this on only if you are happy to replace files with the same name.</li>
         <li><strong>Run.</strong> The status line reports how many files were written.</li>
     </ol>
-    <p>Batch processing never opens the images in tabs. It works directly from the source folder to the output folder.</p>
 
     <figure>
         <img src="screenshots/batch.png" alt="The Batch Processing dialog with source and output folders, scale, suffix, and format">
@@ -144,10 +155,10 @@
     </figure>
 
     <h2 id="svg">SVG import and export</h2>
-    <p>SVG is a vector file format. Vector shapes are described by geometry rather than a fixed pixel grid, so they can be scaled without becoming blurry. PixelDotNet supports a practical subset of SVG.</p>
+    <p>SVG is a vector file format. Shapes are described by geometry rather than a fixed grid of pixels, so they can be scaled without becoming blurry. PixelDotNet supports a practical subset of SVG.</p>
 
     <h3>Importing SVG</h3>
-    <p>Choose <strong>File &gt; Import SVG...</strong>, or open an SVG through the normal Open dialog. Each imported primitive becomes a layer.</p>
+    <p>Choose <strong>File → Import SVG…</strong>, or open an SVG through the normal Open dialog. Each imported shape becomes a layer.</p>
     <p>Supported elements and features:</p>
     <ul>
         <li><code>rect</code>, <code>circle</code>, <code>ellipse</code>, <code>line</code>, <code>polyline</code>, and <code>polygon</code></li>
@@ -157,10 +168,10 @@
         <li>Basic <code>text</code> and <code>textPath</code> elements</li>
         <li>Embedded base64 images</li>
     </ul>
-    <p>Axis-aligned rectangles and ellipses stay as editable shape layers. Rotated shapes become editable path layers. Imported text becomes an editable text layer. Arc commands are currently imported as straight segments.</p>
+    <p>Axis-aligned rectangles and ellipses stay as editable shape layers. Rotated shapes become editable path layers. Imported text becomes an editable text layer. Arc commands are imported as straight segments.</p>
 
     <h3>Exporting SVG</h3>
-    <p>Choose <strong>File &gt; Export SVG...</strong>. The file browser opens with an <code>.svg</code> name.</p>
+    <p>Choose <strong>File → Export SVG…</strong>. The file browser opens with an <code>.svg</code> name.</p>
     <ul>
         <li>Rectangle, ellipse, line, and path layers are written as real SVG elements.</li>
         <li>Text layers are written as SVG text, including text on a path.</li>
@@ -168,11 +179,11 @@
         <li>Layer and group opacity and visibility are respected.</li>
         <li>Open and closed paths keep their geometry.</li>
     </ul>
-    <p>Outlines are exported as SVG stroke. Text shadows are not represented in SVG because they depend on a raster blur filter. If you need the exact shadow, export a PNG instead.</p>
+    <p>Outlines are exported as SVG strokes. Text shadows are not represented in SVG because they rely on a soft blur that vector shapes cannot describe. If you need the exact shadow, export a PNG instead.</p>
 
     <figure>
         <img src="screenshots/svgexport.png" alt="The Export SVG file browser">
-        <figcaption>Export SVG. Shape, path, and text layers stay vector. Other layers are embedded as a PNG.</figcaption>
+        <figcaption>Export SVG. Shape, path, and text layers stay vector; other layers are embedded as a PNG.</figcaption>
     </figure>
 
     <figure>
@@ -182,19 +193,19 @@
 
     <h2 id="safe">Keeping your work safe</h2>
     <ul>
-        <li>Save a project before doing anything destructive, such as flattening or a large resize.</li>
+        <li>Save a project before anything destructive, such as flattening or a large resize.</li>
         <li>Use PNG when transparency matters. Use JPEG for photos you plan to share.</li>
         <li>Keep a separate output folder when batch processing, at least until you have checked the results.</li>
         <li>If a layer refuses to paint, check its lock icon and its visibility. The status bar often explains the problem.</li>
-        <li>Undo is reliable, but it is not a substitute for saving. It only covers the current session.</li>
+        <li>Undo is reliable, but it only covers the current session. Save as well.</li>
     </ul>
 
     <div class="pager">
-        <a href="adjustments.html">&lt; Previous: Adjustments and effects</a>
-        <a href="shortcuts.html">Next: Keyboard shortcuts &gt;</a>
+        <a href="adjustments.html">&lt; Previous: Colour &amp; effects</a>
+        <a href="shortcuts.html">Next: Shortcuts &gt;</a>
     </div>
 </main>
 
-<footer>PixelDotNet User Guide. Use the navigation above to move between chapters.</footer>
+<footer>PixelDotNet User Guide · Opening, saving, and exporting.</footer>
 </body>
 </html>

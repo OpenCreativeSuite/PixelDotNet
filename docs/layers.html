@@ -15,11 +15,12 @@
         </a>
         <nav class="mainnav">
             <a href="index.html">Home</a>
-            <a href="tools.html">Tools</a>
-            <a href="selections.html">Selections</a>
-            <a class="active" href="layers.html">Layers</a>
-            <a href="adjustments.html">Adjustments</a>
-            <a href="files.html">Files</a>
+            <a href="recipes.html">Recipes</a>
+            <a href="tools.html">Painting</a>
+            <a href="selections.html">Cutting out</a>
+            <a class="active" href="layers.html">Layers &amp; text</a>
+            <a href="adjustments.html">Colour &amp; effects</a>
+            <a href="files.html">Save &amp; share</a>
             <a href="shortcuts.html">Shortcuts</a>
         </nav>
     </div>
@@ -28,57 +29,58 @@
 <main>
     <div class="pagehead">
         <h1>Layers, shapes and text</h1>
-        <p>Layers are the heart of the program. This chapter explains the Layers panel, groups, masks, styles, smart objects, shape layers, paths, and editable text. Take your time here. Almost everything else becomes easier once layers make sense.</p>
+        <p>Layers are the heart of the program. This chapter explains the Layers panel, groups, masks, styles, smart objects, shape layers, paths, and editable text. Take your time here — almost everything else becomes easier once layers make sense.</p>
     </div>
 
     <div class="toc">
         <strong>On this page</strong>
         <ol>
             <li><a href="#panel">The Layers panel</a></li>
-            <li><a href="#order">Choosing and reordering layers</a></li>
+            <li><a href="#order">Choose and reorder layers</a></li>
             <li><a href="#blend">Opacity and blend modes</a></li>
             <li><a href="#locks">Lock and visibility</a></li>
             <li><a href="#groups">Groups</a></li>
             <li><a href="#actions">Layer actions</a></li>
             <li><a href="#style">Layer styles</a></li>
             <li><a href="#smart">Smart objects</a></li>
-            <li><a href="#vector">Shapes, paths and text</a></li>
+            <li><a href="#vector">Shapes and paths</a></li>
+            <li><a href="#text-layers">Text layers</a></li>
+            <li><a href="#path-text">Text on a path</a></li>
         </ol>
     </div>
 
     <h2 id="panel">The Layers panel</h2>
-    <p>Open the <strong>Layers</strong> tab on the right side. Layers are listed from top to bottom. The layer at the top of the list is drawn last and appears in front of the others.</p>
+    <p>Open the <strong>Layers</strong> tab on the right. Layers are listed from top to bottom: the row at the top is drawn last and appears in front of the others.</p>
     <p>Each row shows:</p>
     <ul>
         <li>A small thumbnail of the layer content</li>
-        <li>The layer name and a short description, such as Normal, Multiply, or a shape type</li>
-        <li>A layer style button, shown as a sparkle icon</li>
+        <li>The layer name and a short description, such as Normal, Multiply, or the shape type</li>
+        <li>A sparkle button for layer styles</li>
         <li>A lock button</li>
         <li>A visibility eye</li>
     </ul>
     <p>Above the list are the blend mode picker, the clip control, and the opacity slider. They always apply to the active layer, which is the row highlighted in blue.</p>
 
     <figure>
-        <img src="screenshots/layers.png" alt="The Layers panel with several layers, blend mode, clip, opacity, and action buttons">
-        <figcaption>The Layers panel. Click a row to make it active. The top row is the frontmost layer.</figcaption>
+        <img src="screenshots/layers.png" alt="The Layers panel with a group, layers, blend mode, clip, opacity, and layer actions">
+        <figcaption>The Layers panel. Click a row to make it active; the top row is the frontmost layer. Groups keep related layers together.</figcaption>
     </figure>
 
-    <h2 id="order">Choosing and reordering layers</h2>
+    <h2 id="order">Choose and reorder layers</h2>
     <ul>
-        <li>Click a layer row to make it active. Painting, effects, adjustments, and layer commands always target the active layer.</li>
-        <li>Double-click the layer name to rename it. A clear name such as "Sky", "Line art", or "Shadows" is much easier to work with than "Layer 4".</li>
-        <li>Drag a row up or down to reorder it. A horizontal insertion line shows where it will land.</li>
-        <li>Drop a layer onto a group header to move it into that group.</li>
-        <li>Right-click a layer, a group, or empty space in the list for a context menu with the same actions as the Layer menu.</li>
+        <li><strong>Click a layer row</strong> to make it active. Painting, effects, adjustments, and layer commands always target the active layer.</li>
+        <li><strong>Drag a row up or down</strong> to reorder it. A horizontal insertion line shows where it will land.</li>
+        <li><strong>Drop a layer onto a group header</strong> to move it into that group.</li>
+        <li><strong>Right-click a layer, a group, or empty space</strong> in the list for a context menu with the same actions as the Layer menu.</li>
     </ul>
     <div class="note">
         <strong>Why order matters</strong>
-        A layer can only hide what is below it. If your new paint disappears, check whether it is underneath another layer in the list.
+        A layer can only hide what is below it. If new paint seems to disappear, check whether it is underneath another layer in the list.
     </div>
 
     <h2 id="blend">Opacity and blend modes</h2>
     <p><strong>Opacity</strong> fades the active layer from fully visible to fully invisible. The percentage is shown next to the slider.</p>
-    <p><strong>Blend mode</strong> changes how the layer mixes with the layers below. The available modes are:</p>
+    <p><strong>Blend mode</strong> changes how the layer mixes with the layers below. These are the ones you will reach for most:</p>
     <table>
         <tr><th>Mode</th><th>What it does</th><th>Good for</th></tr>
         <tr><td>Normal</td><td>Covers the layers below normally.</td><td>Everyday painting and text.</td></tr>
@@ -89,24 +91,24 @@
         <tr><td>Lighten</td><td>Keeps the lighter of the two colours.</td><td>Removing dark areas from a texture.</td></tr>
         <tr><td>Linear Dodge</td><td>Adds the colours together and clips.</td><td>Bright glows and sparks.</td></tr>
     </table>
-    <p><strong>Clip</strong> restricts the layer to the visible pixels of the layer directly below it. See <a href="selections.html#clip">Clipping a layer</a> for a full explanation.</p>
+    <p><strong>Clip</strong> restricts a layer to the visible pixels of the layer directly below it. See <a href="selections.html#clip">Clipping a layer</a> for the full explanation.</p>
 
     <h2 id="locks">Lock and visibility</h2>
     <ul>
         <li><strong>Lock</strong> prevents painting, fills, effects, adjustments, and moves on that layer. It is useful for finishing an element and then working around it.</li>
         <li><strong>Visibility</strong> hides the layer from the canvas and from Copy Merged. Hidden layers are still saved in project files.</li>
-        <li>Locked layers can still be duplicated, reordered, or deleted unless the last layer rule prevents it.</li>
+        <li>Locked layers can still be duplicated, reordered, or deleted unless the last-layer rule prevents it.</li>
     </ul>
 
     <h2 id="groups">Groups</h2>
     <p>A group is a folder for layers. It keeps a busy stack readable and lets you hide or fade several related layers as one unit.</p>
     <ol>
-        <li>Select a layer and choose <strong>Layer &gt; New Group</strong> or click the folder plus button in the Layers panel.</li>
+        <li>Select a layer and choose <strong>Layer → New Group</strong>, or click the folder-plus button in the Layers panel.</li>
         <li>The active layer moves into the new group. Any new layer created while a grouped layer is active also joins that group.</li>
         <li>Click the arrow on the group header to expand or collapse it.</li>
         <li>Click the group eye to show or hide every layer inside.</li>
         <li>Use the group opacity slider to fade the whole group at once.</li>
-        <li>Select a layer and choose <strong>Layer &gt; Ungroup</strong> or click the folder minus button to take it out.</li>
+        <li>Select a layer and choose <strong>Layer → Ungroup</strong>, or click the folder-minus button, to take it out.</li>
     </ol>
     <p>Groups are one level deep, and the layers inside a group stay together in the stack. A group is saved in project files along with its visibility, opacity, and expanded state.</p>
 
@@ -119,14 +121,14 @@
         <tr><td>Merge Down</td><td>Combine the active layer into the one below</td><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td></tr>
         <tr><td>Folder plus</td><td>Put the active layer in a new group</td><td></td></tr>
         <tr><td>Folder minus</td><td>Take the active layer out of its group</td><td></td></tr>
-        <tr><td>Mask</td><td>Add or remove a layer mask</td><td></td></tr>
+        <tr><td>Mask</td><td>Add a layer mask, or switch between painting the layer and painting its mask</td><td></td></tr>
         <tr><td>Trash</td><td>Delete the active layer</td><td></td></tr>
     </table>
-    <p>The <strong>Layer</strong> menu also has these actions, plus <strong>Layer Style</strong>, the shape and text commands, smart object commands, and <strong>Delete Layer</strong>.</p>
+    <p>The <strong>Layer</strong> menu also has these actions, plus layer styles, shape and text commands, smart object commands, and <strong>Delete Layer</strong>.</p>
 
     <h2 id="style">Layer styles</h2>
     <p>A layer style adds a drop shadow, a stroke, or an outer glow without changing the layer pixels. The style redraws automatically whenever you paint on the layer or change its mask.</p>
-    <p>Open a style editor by clicking the sparkle button on a layer row, or choose <strong>Layer &gt; Layer Style...</strong>.</p>
+    <p>Open the style editor by clicking the sparkle button on a layer row, or by choosing <strong>Layer → Layer Style…</strong>.</p>
 
     <h3>Drop Shadow</h3>
     <ul>
@@ -148,20 +150,20 @@
         <li><strong>Size</strong> sets how far the glow spreads.</li>
         <li><strong>Opacity</strong> and <strong>Colour</strong> set its strength and tint.</li>
     </ul>
-    <p>Styles are non-destructive, survive undo, and are stored in project files. To remove a style, click its <strong>On</strong> button to switch it off, or reset its values in the editor.</p>
+    <p>Styles are non-destructive, survive undo, and are stored in project files. To switch one off, use its <strong>On</strong> button in the editor.</p>
 
     <figure>
         <img src="screenshots/layerstyle.png" alt="The Layer Style dialog showing Drop Shadow, Stroke, and Outer Glow controls">
-        <figcaption>The Layer Style editor. Styles stay live, so painting the layer updates the shadow or glow.</figcaption>
+        <figcaption>The Layer Style editor. Styles stay live, so painting the layer updates the shadow or glow automatically.</figcaption>
     </figure>
 
     <h2 id="smart">Smart objects</h2>
-    <p>A smart object keeps a pristine copy of the original pixels. Transforms such as scaling, rotating, and flipping are recalculated from that source, so repeatedly transforming the layer does not make it blurry or jagged.</p>
+    <p>A smart object keeps a pristine copy of the original pixels. Transforms such as scaling, rotating, and flipping are recalculated from that source, so repeated transforms do not make the layer blurry or jagged.</p>
     <h3>Convert a layer to a smart object</h3>
     <ol>
         <li>Select the layer.</li>
-        <li>Choose <strong>Layer &gt; Convert to Smart Object</strong>.</li>
-        <li>Choose <strong>Layer &gt; Smart Object Transform...</strong> to open its transform controls.</li>
+        <li>Choose <strong>Layer → Convert to Smart Object</strong>.</li>
+        <li>Choose <strong>Layer → Smart Object Transform…</strong> to open its transform controls.</li>
     </ol>
     <h3>Transform controls</h3>
     <ul>
@@ -172,54 +174,44 @@
         <li><strong>Flip Y</strong> mirrors it vertically.</li>
     </ul>
     <p>Press <strong>Reset</strong> to return to the original transform, <strong>Cancel</strong> to discard the changes, or <strong>Done</strong> to keep them. <strong>Rasterize Smart Object</strong> bakes the current result into ordinary pixels. Painting on a smart object asks you to rasterize it first.</p>
-    <p>Smart objects are stored in project files. A PNG or JPEG export simply contains the rendered result.</p>
+    <p>Smart objects are stored in project files. A PNG or JPEG export contains the rendered result.</p>
 
     <figure>
         <img src="screenshots/smartobject.png" alt="The Smart Object transform dialog with position, scale, rotation, and flip controls">
         <figcaption>Smart Object Transform. Repeated transforms reuse the original source pixels, so quality stays consistent.</figcaption>
     </figure>
 
-    <h2 id="vector">Shapes, paths and text</h2>
-    <p>PixelDotNet can keep some artwork editable instead of baking it into pixels. Shape layers, path layers, and text layers are called vector layers. They are still normal layers in the stack, but their content is described by numbers rather than a fixed grid of pixels.</p>
+    <h2 id="vector">Shapes and paths</h2>
+    <p>PixelDotNet can keep some artwork editable instead of baking it into pixels. Shape layers, path layers, and text layers are often called vector layers. They are still normal layers in the stack, but their content is described by numbers rather than a fixed grid.</p>
 
     <h3>Shape layers</h3>
-    <p>Turn on <strong>Shape layer</strong> in the options bar for the Rectangle or Ellipse tool. Drag on the canvas to create the shape. The result is a special layer that can be edited later.</p>
+    <p>Turn on <strong>Shape layer</strong> in the options bar for the Rectangle, Ellipse, or Line tool, then drag on the canvas. The result is a special layer that can be edited later.</p>
     <ul>
-        <li>Choose <strong>Layer &gt; Edit Shape...</strong> to change X, Y, Width, Height, Stroke width, Fill, Outline, and the fill and stroke colours.</li>
+        <li>Choose <strong>Layer → Edit Shape…</strong> to change its position, size, stroke width, fill, outline, and colours.</li>
         <li><strong>Rasterize Shape</strong> turns it into ordinary pixels so you can paint on it.</li>
         <li>Shape layers can be duplicated, grouped, masked, styled, and saved in projects.</li>
     </ul>
-    <p>The same idea applies to the Line tool. A line shape is a simple editable line rather than a painted stroke.</p>
-
-    <figure>
-        <img src="screenshots/shape.png" alt="The Edit Shape dialog with position, size, stroke, fill, and colour controls">
-        <figcaption>Edit Shape. Change the geometry and paint settings without redrawing the shape.</figcaption>
-    </figure>
 
     <h3>Paths and nodes</h3>
-    <p>The Pen tool creates a path. A path is a set of anchor points joined by straight or curved segments. A finished path becomes an editable path layer.</p>
+    <p>The Pen tool creates a path: a set of anchor points joined by straight or curved segments. A finished path becomes an editable path layer.</p>
     <p>To edit an existing path:</p>
     <ol>
         <li>Select the path layer.</li>
-        <li>Choose <strong>Layer &gt; Edit Path Nodes</strong>, or click <strong>Edit Nodes</strong> in the Pen options bar.</li>
+        <li>Choose <strong>Layer → Edit Path Nodes</strong>, or click <strong>Edit Nodes</strong> in the Pen options bar.</li>
         <li>Drag an anchor to move it. Drag a round handle to change the curve.</li>
-        <li>Click a segment to insert a new anchor. Use <strong>Add Node</strong> and <strong>Delete Node</strong> for precise changes.</li>
+        <li>Click a segment to insert a new anchor, or use <strong>Add Node</strong> and <strong>Delete Node</strong> for precise changes.</li>
         <li>Hold <kbd>Alt</kbd> while dragging a handle to move it independently of the other handle.</li>
-        <li>Press <kbd>Esc</kbd> or <kbd>Enter</kbd>, or click Done, to leave node editing.</li>
+        <li>Press <kbd>Esc</kbd> or <kbd>Enter</kbd>, or click <strong>Done</strong>, to leave node editing.</li>
     </ol>
     <p>Path edits are undoable. If text is attached to the path, the text follows the new shape immediately.</p>
+    <p>For drawing steps, see <a href="tools.html#pen">Draw a path</a>.</p>
 
-    <figure>
-        <img src="screenshots/pathnodes.png" alt="A path layer with editable anchors, handles, and the selected node highlighted">
-        <figcaption>Path node editing. Drag anchors to move the path, or drag handles to change the curve.</figcaption>
-    </figure>
-
-    <h3>Text layers</h3>
+    <h2 id="text-layers">Text layers</h2>
     <p>Turn on <strong>Text layer</strong> in the Text options bar before placing text. The text is stored as editable text rather than flat pixels.</p>
     <ul>
-        <li>Choose <strong>Layer &gt; Edit Text...</strong> to reopen the text editor.</li>
+        <li>Choose <strong>Layer → Edit Text…</strong> to reopen the text editor.</li>
         <li>Change the content, font, size, rotation, spacing, bold, italic, and fill colour.</li>
-        <li>Choose <strong>Layer &gt; Rasterize Text</strong> when you are ready to paint on the text.</li>
+        <li>Choose <strong>Layer → Rasterize Text</strong> when you are ready to paint on the text.</li>
         <li>Text layers can have layer styles and masks like any other layer.</li>
     </ul>
     <p>If you leave <strong>Text layer</strong> off, the text is painted directly into the active layer and cannot be edited as text later.</p>
@@ -229,16 +221,16 @@
         <figcaption>Edit Text. Text layers stay editable until you rasterize them.</figcaption>
     </figure>
 
-    <h3>Text on a path</h3>
-    <p>Text can follow the shape of any path layer. This is a lovely way to make badges, ribbons, and curved titles.</p>
+    <h2 id="path-text">Text on a path</h2>
+    <p>Text can follow the shape of any path layer. This is a lovely way to make badges, ribbons, seals, and curved titles.</p>
     <ol class="steps">
-        <li>Create a path with the Pen tool.</li>
+        <li>Create a path with the Pen tool. Curves work best for titles.</li>
         <li>Select the path layer in the Layers panel.</li>
-        <li>Choose <strong>Layer &gt; Text on Path...</strong>.</li>
-        <li>Type the text in the editor. Use <strong>Path offset</strong> to slide the text along the path, and <strong>Spacing</strong> to open up the letters.</li>
-        <li>Press <strong>Done</strong>.</li>
+        <li>Choose <strong>Layer → Text on Path…</strong>.</li>
+        <li>Type the text in the editor. Use <strong>Path offset</strong> to slide it along the path, and <strong>Spacing</strong> to open up the letters.</li>
+        <li>Press <strong>Done</strong>, then style the new text layer as usual.</li>
     </ol>
-    <p>The text stays linked to the path by name. If you edit the path nodes later, the text reflows along the new curve. Open and closed paths both work. If the text is longer than the path, the extra characters are not drawn.</p>
+    <p>The text stays linked to the path by name. If you edit the path nodes later, the text flows along the new curve. Open and closed paths both work. If the text is longer than the path, the extra characters are not drawn.</p>
 
     <figure>
         <img src="screenshots/textpath.png" alt="Text following a curved path layer">
@@ -246,11 +238,11 @@
     </figure>
 
     <div class="pager">
-        <a href="selections.html">&lt; Previous: Selections</a>
-        <a href="adjustments.html">Next: Adjustments and effects &gt;</a>
+        <a href="selections.html">&lt; Previous: Cutting out</a>
+        <a href="adjustments.html">Next: Colour &amp; effects &gt;</a>
     </div>
 </main>
 
-<footer>PixelDotNet User Guide. Use the navigation above to move between chapters.</footer>
+<footer>PixelDotNet User Guide · Layers, styles, shapes, and text.</footer>
 </body>
 </html>

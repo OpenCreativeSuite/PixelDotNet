@@ -15,11 +15,12 @@
         </a>
         <nav class="mainnav">
             <a href="index.html">Home</a>
-            <a href="tools.html">Tools</a>
-            <a href="selections.html">Selections</a>
-            <a href="layers.html">Layers</a>
-            <a href="adjustments.html">Adjustments</a>
-            <a href="files.html">Files</a>
+            <a href="recipes.html">Recipes</a>
+            <a href="tools.html">Painting</a>
+            <a href="selections.html">Cutting out</a>
+            <a href="layers.html">Layers &amp; text</a>
+            <a href="adjustments.html">Colour &amp; effects</a>
+            <a href="files.html">Save &amp; share</a>
             <a class="active" href="shortcuts.html">Shortcuts</a>
         </nav>
     </div>
@@ -28,14 +29,14 @@
 <main>
     <div class="pagehead">
         <h1>Keyboard shortcuts</h1>
-        <p>Shortcuts save time, but you do not need to learn them all at once. Start with undo, brush size, and deselect. The rest will come naturally.</p>
+        <p>You do not need to learn these all at once. Start with undo, brush size, and deselect. The rest will come naturally as you use the tools.</p>
     </div>
 
     <div class="toc">
         <strong>On this page</strong>
         <ol>
             <li><a href="#tools">Tools</a></li>
-            <li><a href="#file">File and document</a></li>
+            <li><a href="#file">File and documents</a></li>
             <li><a href="#edit">Edit and history</a></li>
             <li><a href="#layers">Layers</a></li>
             <li><a href="#view">View and navigation</a></li>
@@ -43,6 +44,11 @@
             <li><a href="#mouse">Mouse and modifier keys</a></li>
             <li><a href="#special">Text, paths, and dialogs</a></li>
         </ol>
+    </div>
+
+    <div class="tip">
+        <strong>Text fields take priority</strong>
+        While you are typing in a text field, letters type normally instead of switching tools. Click the canvas or another control first if a shortcut seems to do nothing.
     </div>
 
     <h2 id="tools">Tools</h2>
@@ -70,7 +76,7 @@
         <tr><td><kbd>Z</kbd></td><td>Zoom</td></tr>
     </table>
 
-    <h2 id="file">File and document</h2>
+    <h2 id="file">File and documents</h2>
     <table>
         <tr><th>Shortcut</th><th>Action</th></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>N</kbd></td><td>New 768 by 576 document</td></tr>
@@ -79,19 +85,19 @@
         <tr><td><kbd>Ctrl</kbd>+<kbd>W</kbd></td><td>Close the active document</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>Tab</kbd></td><td>Next document tab</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Previous document tab</td></tr>
-        <tr><td><kbd>Tab</kbd></td><td>Next document tab (canvas shortcut)</td></tr>
+        <tr><td><kbd>Tab</kbd></td><td>Next document tab</td></tr>
     </table>
 
     <h2 id="edit">Edit and history</h2>
     <table>
         <tr><th>Shortcut</th><th>Action</th></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Undo</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>Y</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Redo</td></tr>
-        <tr><td><kbd>Y</kbd></td><td>Redo (single key)</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Y</kbd>, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>, or <kbd>Y</kbd></td><td>Redo</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>X</kbd></td><td>Cut the selected pixels</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>C</kbd></td><td>Copy the selected pixels from the active layer</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>V</kbd></td><td>Paste as a new layer</td></tr>
         <tr><td><kbd>Delete</kbd></td><td>Clear the selected pixels</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>Deselect</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>I</kbd></td><td>Invert colours</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd></td><td>Desaturate</td></tr>
     </table>
@@ -107,7 +113,7 @@
     <h2 id="view">View and navigation</h2>
     <table>
         <tr><th>Shortcut</th><th>Action</th></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>0</kbd></td><td>Actual pixels, also called 100 percent</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>0</kbd></td><td>Actual pixels, also called 100%</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>+</kbd></td><td>Zoom in</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>-</kbd></td><td>Zoom out</td></tr>
         <tr><td><kbd>Ctrl</kbd>+mouse wheel</td><td>Zoom around the pointer</td></tr>
@@ -133,9 +139,8 @@
         <tr><td><kbd>Alt</kbd> plus Quick Selection</td><td>Subtract from the selection</td></tr>
         <tr><td><kbd>Ctrl</kbd> plus click with Clone Stamp or Healing Brush</td><td>Set the sample source point</td></tr>
         <tr><td>Right-click with Zoom</td><td>Zoom out</td></tr>
-        <tr><td>Right-click with Eyedropper</td><td>Pick a colour</td></tr>
         <tr><td>Right-click a layer or file row</td><td>Open its context menu</td></tr>
-        <tr><td><kbd>Esc</kbd></td><td>Deselect, cancel a path, or close the current modal editor</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Deselect, cancel a path, or close the current editor</td></tr>
         <tr><td><kbd>Enter</kbd></td><td>Close a pen path, or confirm a dialog</td></tr>
     </table>
 
@@ -154,15 +159,15 @@
         <li><kbd>Esc</kbd> or <kbd>Enter</kbd> leaves node editing.</li>
         <li>Hold <kbd>Alt</kbd> while dragging a handle to break its symmetry.</li>
     </ul>
-    <h3>While a modal editor is open</h3>
-    <p>Modal editors include Layer Style, Colour Tools, Perspective, Mesh Warp, Smart Object, Image Size, Canvas Size, Shape, Text, and Batch. While one is open, tool shortcuts do not fire. Use the dialog buttons, or press <kbd>Esc</kbd> to cancel and close.</p>
+    <h3>While an editor is open</h3>
+    <p>Editors include Layer Style, Colour Tools, Perspective, Mesh Warp, Smart Object, Image Size, Canvas Size, Shape, Text, and Batch. While one is open, tool shortcuts do not fire. Use the dialog buttons, or press <kbd>Esc</kbd> to cancel and close.</p>
 
     <div class="pager">
-        <a href="files.html">&lt; Previous: Files and export</a>
-        <span></span>
+        <a href="files.html">&lt; Previous: Save &amp; share</a>
+        <a href="recipes.html">Recipes →</a>
     </div>
 </main>
 
-<footer>PixelDotNet User Guide. Use the navigation above to move between chapters.</footer>
+<footer>PixelDotNet User Guide · Every shortcut in one place.</footer>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tools - PixelDotNet User Guide</title>
+    <title>Painting and drawing - PixelDotNet User Guide</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,11 +15,12 @@
         </a>
         <nav class="mainnav">
             <a href="index.html">Home</a>
-            <a class="active" href="tools.html">Tools</a>
-            <a href="selections.html">Selections</a>
-            <a href="layers.html">Layers</a>
-            <a href="adjustments.html">Adjustments</a>
-            <a href="files.html">Files</a>
+            <a href="recipes.html">Recipes</a>
+            <a class="active" href="tools.html">Painting</a>
+            <a href="selections.html">Cutting out</a>
+            <a href="layers.html">Layers &amp; text</a>
+            <a href="adjustments.html">Colour &amp; effects</a>
+            <a href="files.html">Save &amp; share</a>
             <a href="shortcuts.html">Shortcuts</a>
         </nav>
     </div>
@@ -27,244 +28,213 @@
 
 <main>
     <div class="pagehead">
-        <h1>Tools</h1>
-        <p>Every tool lives in the rail on the left. Pick a tool, check the options bar, then use the canvas. This chapter explains what each tool does and how to get good results from it.</p>
+        <h1>Painting and drawing</h1>
+        <p>Pick a tool, choose a colour, and use the canvas. This chapter explains what each tool is for, how to use it, and the small habits that make the results look better.</p>
     </div>
 
     <div class="toc">
         <strong>On this page</strong>
         <ol>
-            <li><a href="#basics">How tools work</a></li>
-            <li><a href="#move">Move</a></li>
-            <li><a href="#selection-tools">Selection tools</a></li>
-            <li><a href="#brush-eraser">Brush and Eraser</a></li>
-            <li><a href="#repair">Clone, Heal and Dodge / Burn</a></li>
-            <li><a href="#shapes">Line, Rectangle, Ellipse and Pen</a></li>
-            <li><a href="#fill">Gradient and Paint Bucket</a></li>
-            <li><a href="#sample">Eyedropper</a></li>
-            <li><a href="#colour-panel">The Colour panel</a></li>
-            <li><a href="#text">Text</a></li>
-            <li><a href="#zoom">Zoom</a></li>
+            <li><a href="#basics">Pick a tool and a colour</a></li>
+            <li><a href="#brush">Paint with the brush</a></li>
+            <li><a href="#eraser">Erase without losing the original</a></li>
+            <li><a href="#shapes">Draw lines, rectangles, and ellipses</a></li>
+            <li><a href="#fill">Fill an area with colour</a></li>
+            <li><a href="#sample">Pick a colour from the picture</a></li>
+            <li><a href="#repair">Retouch a photo</a></li>
+            <li><a href="#pen">Draw a path</a></li>
+            <li><a href="#text">Add text</a></li>
+            <li><a href="#zoom">Zoom and pan</a></li>
+            <li><a href="#cheat-sheet">Every tool at a glance</a></li>
         </ol>
     </div>
 
-    <h2 id="basics">How tools work</h2>
-    <p>The tool rail is ordered roughly by purpose. The top group moves things, the next group makes selections, then comes painting, repair, shapes, fills, text, and zoom. You can also press a single letter to switch tools without touching the rail.</p>
-    <p>After you pick a tool, the options bar at the top shows its settings. These settings are remembered while the app is open, so you can switch back and forth without resetting everything each time.</p>
+    <h2 id="basics">Pick a tool and a colour</h2>
+    <p>Every tool lives in the rail on the left. Hover an icon to see its name, click it once, then look at the options bar across the top. The options change to match the tool, and they stay where you left them while the app is open.</p>
+    <ul>
+        <li><strong>Single-letter shortcuts</strong> switch tools without touching the rail. <kbd>B</kbd> is the brush, <kbd>E</kbd> the eraser, <kbd>M</kbd> the rectangular selection, and so on.</li>
+        <li><strong>The foreground colour</strong> is what the brush, bucket, shapes, and text use. Click the colour swatches at the top right or open the <strong>Colour</strong> tab to choose one precisely.</li>
+        <li><strong><kbd>X</kbd> swaps</strong> the foreground and background colours. <kbd>D</kbd> resets them to black and white.</li>
+    </ul>
     <div class="tip">
-        <strong>Stuck?</strong>
-        Look at the status bar at the bottom. It usually explains what the program expects, such as "Ctrl-click to set the clone source" or "Select a raster layer to paint".
+        <strong>If a tool does nothing</strong>
+        Read the status bar at the bottom. It usually says what the program expects, such as “Select a raster layer to paint” or “Ctrl-click to set the clone source”. A locked layer or an empty active layer is the usual culprit.
     </div>
 
     <figure>
-        <img src="screenshots/tools.png" alt="The Brush tool selected with the tool rail on the left and options across the top">
-        <figcaption>The Brush tool is active. The options bar shows Size, Hardness, and Opacity. The tool rail is on the left.</figcaption>
+        <img src="screenshots/paint.png" alt="The Brush tool painting a stroke on a new layer in PixelDotNet">
+        <figcaption>The Brush is active. The options bar shows size, hardness, and opacity, and the stroke lands on its own layer.</figcaption>
     </figure>
 
-    <h2 id="move">Move</h2>
-    <p><strong>Shortcut:</strong> <kbd>V</kbd></p>
-    <p>The Move tool drags the pixels on the active layer, or the selected pixels if a selection exists. Think of it as sliding one sheet of glass around without changing the other sheets.</p>
-    <ul>
-        <li>Drag anywhere on the canvas to move the active layer's content.</li>
-        <li>If a selection is active, only the selected pixels move, leaving a transparent hole behind.</li>
-        <li>Dragging outside a selection still moves the active layer's entire content.</li>
-        <li>PixelDotNet does not nudge with the keyboard, so drag with the mouse for precise placement.</li>
-    </ul>
-    <div class="note">
-        <strong>Locked layer?</strong>
-        A padlock icon in the Layers panel means the layer cannot be moved or painted. Click the lock to unlock it.
-    </div>
-
-    <h2 id="selection-tools">Selection tools</h2>
-    <p>The selection tools create a stencil. Everything you do next is limited to the selected area until you deselect.</p>
-
-    <h3>Marquee</h3>
-    <p><strong>Shortcut:</strong> <kbd>M</kbd></p>
-    <p>Drag a rectangle. Release to finish the selection. Use the mode buttons in the options bar, or hold <kbd>Shift</kbd> or <kbd>Ctrl</kbd> to add another area, and hold <kbd>Alt</kbd> to subtract an area.</p>
-
-    <h3>Elliptical Select</h3>
-    <p><strong>Shortcut:</strong> <kbd>Q</kbd></p>
-    <p>Drag a bounding box and the program selects the ellipse inside it. The modifier keys work the same as the Marquee: <kbd>Shift</kbd> or <kbd>Ctrl</kbd> adds, <kbd>Alt</kbd> subtracts.</p>
-
-    <h3>Lasso</h3>
-    <p><strong>Shortcut:</strong> <kbd>F</kbd></p>
-    <p>Draw a freehand outline around a subject. When you release the mouse, the outline closes itself. This is good for rough, organic shapes. Use the modifier keys to add or subtract.</p>
-
-    <h3>Magic Wand</h3>
-    <p><strong>Shortcut:</strong> <kbd>W</kbd></p>
-    <p>Click a colour and the wand selects similar pixels on the active layer. <strong>Tolerance</strong> controls how different a pixel can be and still count as a match. <strong>Contiguous</strong> limits the selection to the connected area you clicked.</p>
-    <ul>
-        <li>Use a low tolerance for flat colours and line art.</li>
-        <li>Raise tolerance for skies, gradients, and photos.</li>
-        <li>The wand samples the active layer, so select the right layer first.</li>
-    </ul>
-
-    <h3>Quick Selection</h3>
-    <p><strong>Shortcut:</strong> <kbd>A</kbd></p>
-    <p>Paint over an object and the selection grows through similar connected pixels. It is the fastest tool for cutting out a subject from a fairly clean background.</p>
-    <ul>
-        <li><strong>Size</strong> sets how much area each dab samples.</li>
-        <li><strong>Tolerance</strong> sets how different a neighbouring pixel can be and still join the region.</li>
-        <li>Turn on <strong>Subtract</strong>, or hold <kbd>Alt</kbd>, to remove areas from the selection.</li>
-        <li>Start with a small brush on a clear edge. The region often spreads much farther than the dab itself.</li>
-    </ul>
-
-    <figure>
-        <img src="screenshots/selection.png" alt="A rectangular marquee selection active on the canvas">
-        <figcaption>A marquee selection. Painting and effects will stay inside the moving dotted outline.</figcaption>
-    </figure>
-
-    <figure>
-        <img src="screenshots/quickselect.png" alt="The Quick Selection tool selected and a region highlighted on the canvas">
-        <figcaption>Quick Selection grows through connected, similar pixels. Use Alt or Subtract to take areas back out.</figcaption>
-    </figure>
-
-    <p>Selections are explained in much more detail in <a href="selections.html">Selections and masks</a>.</p>
-
-    <h2 id="brush-eraser">Brush and Eraser</h2>
-    <h3>Brush</h3>
-    <p><strong>Shortcut:</strong> <kbd>B</kbd></p>
-    <p>The Brush paints with the foreground colour. It has three main settings:</p>
-    <ul>
-        <li><strong>Size</strong> is the diameter in document pixels. The on-screen ring shows it.</li>
-        <li><strong>Hardness</strong> controls the softness of the edge. A high value gives a crisp stamp. A low value gives a soft airbrush.</li>
-        <li><strong>Opacity</strong> limits how much paint one stroke can add. Low opacity builds up gradually.</li>
-    </ul>
-    <p>Strokes are rebuilt from a snapshot each time, so passing over the same spot inside one stroke does not double the paint. The selection clips every stroke.</p>
-
-    <h3>Eraser</h3>
-    <p><strong>Shortcut:</strong> <kbd>E</kbd></p>
-    <p>The Eraser removes paint from the active layer. On a normal layer it creates transparency. On the bottom background layer it paints white instead, because the background layer is always opaque. The size, hardness, and opacity controls work like the brush.</p>
-    <div class="tip">
-        <strong>Non destructive erasing</strong>
-        Add a layer mask and paint black on the mask instead of erasing pixels. You can paint white later to bring the area back.
-    </div>
-
-    <h2 id="repair">Clone, Heal and Dodge / Burn</h2>
-    <h3>Clone Stamp</h3>
-    <p><strong>Shortcut:</strong> <kbd>C</kbd></p>
-    <p>The Clone Stamp copies pixels from one place to another.</p>
-    <ol>
-        <li>Hold <kbd>Ctrl</kbd> and click the place you want to copy from. This sets the source point.</li>
-        <li>Paint where you want the copy to appear. The offset from the first stroke point is preserved.</li>
-        <li>Set a new source whenever you need a fresh sample.</li>
+    <h2 id="brush">Paint with the brush</h2>
+    <p><strong>Use it when:</strong> you want to paint colour, shade, sketch, or add a soft glow. Shortcut: <kbd>B</kbd>.</p>
+    <ol class="steps">
+        <li><strong>Make a new layer</strong> with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>, so the artwork underneath stays safe.</li>
+        <li><strong>Pick a colour</strong> in the <strong>Colour</strong> tab, or click the foreground swatch at the top right.</li>
+        <li><strong>Choose a size.</strong> Drag the <strong>Size</strong> slider, press <kbd>[</kbd> and <kbd>]</kbd>, or hold <kbd>Alt</kbd> and scroll over the canvas.</li>
+        <li><strong>Drag on the canvas.</strong> The ring under the pointer shows the brush size before you start.</li>
+        <li><strong>Soften or strengthen.</strong> Lower <strong>Hardness</strong> for a soft airbrush edge. Lower <strong>Opacity</strong> to build colour gradually instead of covering it in one pass.</li>
     </ol>
-    <p>The source is captured when the stroke starts, so one clone stroke will not feed back into itself and smear.</p>
+    <div class="grid2">
+        <div class="card">
+            <h3>Good for soft shading</h3>
+            <p>A large soft brush at 20–40% opacity. Pass over the same area two or three times to build depth slowly.</p>
+        </div>
+        <div class="card">
+            <h3>Good for clean edges</h3>
+            <p>A small hard brush at 100% opacity. Ideal for line art, pixel art, and crisp highlights.</p>
+        </div>
+    </div>
 
-    <h3>Healing Brush</h3>
-    <p><strong>Shortcut:</strong> <kbd>H</kbd></p>
-    <p>The Healing Brush also copies texture, but it shifts the sampled colour so its brightness matches the destination. That makes it excellent for removing small blemishes on skin, clouds, and other smooth areas. Use the same Ctrl-click source method as the Clone Stamp.</p>
+    <h2 id="eraser">Erase without losing the original</h2>
+    <p><strong>Use it when:</strong> you need to remove paint from a layer. Shortcut: <kbd>E</kbd>.</p>
+    <p>On a normal layer the eraser creates transparency. On the bottom background layer it paints white, because that layer is always opaque. Size, hardness, and opacity work exactly like the brush.</p>
+    <div class="tip">
+        <strong>A safer way to erase</strong>
+        Add a layer mask and paint black on the mask instead. The pixels are never destroyed, and you can paint white later to bring the area back. See <a href="selections.html#masks">Layer masks</a>.
+    </div>
 
-    <h3>Dodge / Burn</h3>
-    <p><strong>Shortcut:</strong> <kbd>J</kbd></p>
-    <p>Dodge lightens and Burn darkens. Choose the mode in the options bar, then paint. <strong>Strength</strong> controls how quickly the tone changes. These tools do not change hue, so they are a safe way to add local contrast.</p>
+    <h2 id="shapes">Draw lines, rectangles, and ellipses</h2>
+    <p><strong>Use it when:</strong> you need a clean edge, a frame, a circle, or a simple diagram rather than a painted stroke.</p>
+
+    <h3>Line (<kbd>L</kbd>)</h3>
+    <p>Drag from the start point to the end point. <strong>Weight</strong> sets the thickness and <strong>Opacity</strong> sets the strength. Turn on <strong>Shape layer</strong> if you want to adjust the line later from <strong>Layer → Edit Shape…</strong>.</p>
+
+    <h3>Rectangle (<kbd>R</kbd>) and Ellipse (<kbd>O</kbd>)</h3>
+    <ol class="steps">
+        <li><strong>Choose Fill or Stroke</strong> in the options bar. Fill paints a solid shape; Stroke draws only the outline.</li>
+        <li><strong>Set the width</strong> when using Stroke. This is the outline thickness.</li>
+        <li><strong>Drag on the canvas.</strong> Hold <kbd>Shift</kbd> while dragging for a perfect square or circle.</li>
+        <li><strong>Keep it editable.</strong> Turn on <strong>Shape layer</strong> before drawing. You can then change its size, fill, outline, and colours with <strong>Layer → Edit Shape…</strong>.</li>
+    </ol>
+    <div class="note">
+        <strong>Shape or pixels?</strong>
+        A shape layer stays sharp and editable. A painted shape becomes ordinary pixels and can be brushed over immediately. Choose based on whether you expect to change it later.
+    </div>
+
+    <figure>
+        <img src="screenshots/shape.png" alt="The Edit Shape dialog with position, size, stroke, fill, and colour controls">
+        <figcaption>Edit Shape. A shape layer can be resized and recoloured long after it was drawn.</figcaption>
+    </figure>
+
+    <h2 id="fill">Fill an area with colour</h2>
+    <h3>Paint Bucket (<kbd>K</kbd>)</h3>
+    <p>Click a connected area to flood it with the foreground colour. <strong>Tolerance</strong> decides how different a neighbouring pixel can be and still be filled. Use a low tolerance for flat colours and line art; raise it for soft gradients and scans.</p>
+    <p><strong>Good habit:</strong> put the colour on its own layer below the line art. The lines stay clean, and the colour can be changed without repainting the whole picture.</p>
+
+    <h3>Gradient (<kbd>G</kbd>)</h3>
+    <p>Drag from the start point to the end point to make a smooth fade between the foreground and background colours. The direction and length of the drag set the ramp.</p>
+    <ul>
+        <li>A short drag makes tight bands; a long drag makes a gentle fade.</li>
+        <li>Press <kbd>X</kbd> to swap the colours and reverse the gradient.</li>
+        <li>Lower <strong>Opacity</strong> to tint an existing picture instead of replacing it.</li>
+    </ul>
+
+    <h2 id="sample">Pick a colour from the picture</h2>
+    <p><strong>Use it when:</strong> you want to match an existing colour exactly. Shortcut: <kbd>I</kbd>.</p>
+    <p>Click any visible pixel to make it the foreground colour. The eyedropper samples the final visible result, so it sees the combined layers rather than one layer on its own. The status bar shows the picked hex value.</p>
+    <div class="tip">
+        <strong>Match a brand colour</strong>
+        Open the <strong>Colour</strong> tab and type the hex value into the field. That is more precise than clicking the spectrum.
+    </div>
+
+    <h2 id="repair">Retouch a photo</h2>
+    <p><strong>Use it when:</strong> something small needs to disappear without leaving a patch. These three tools are the everyday retouching kit.</p>
+
+    <h3>Clone Stamp (<kbd>C</kbd>)</h3>
+    <ol class="steps">
+        <li>Hold <kbd>Ctrl</kbd> and click a clean area to set the source.</li>
+        <li>Paint where the copy should appear. The offset from the first stroke point is preserved as you paint.</li>
+        <li>Set a new source whenever the texture starts repeating.</li>
+    </ol>
+
+    <h3>Healing Brush (<kbd>H</kbd>)</h3>
+    <p>The Healing Brush copies texture but shifts the colour to match the destination. It is the better choice for skin, clouds, and smooth surfaces because the repair blends into the surrounding tone. Use the same <kbd>Ctrl</kbd>-click method to set a source.</p>
+
+    <h3>Dodge / Burn (<kbd>J</kbd>)</h3>
+    <p>Dodge lightens and Burn darkens. Choose the mode in the options bar and paint. <strong>Strength</strong> controls how quickly the tone changes. These tools do not change hue, so they are a safe way to add local contrast.</p>
     <div class="tip">
         <strong>Go slowly</strong>
-        Use a low strength and build the effect in several passes. It is easier to add more than to take it back.
+        Use a low strength and build the effect in several passes. It is much easier to add more than to take it back.
     </div>
 
-    <h2 id="shapes">Line, Rectangle, Ellipse and Pen</h2>
-    <h3>Line</h3>
-    <p><strong>Shortcut:</strong> <kbd>L</kbd></p>
-    <p>Drag from the start point to the end point. The options bar sets the line weight and opacity. The line uses the current brush size and is clipped by the selection.</p>
-
-    <h3>Rectangle</h3>
-    <p><strong>Shortcut:</strong> <kbd>R</kbd></p>
-    <p>Drag a box to draw a rectangle. In the options bar you can choose <strong>Fill</strong> or <strong>Stroke</strong>. Width sets the outline thickness. Opacity and the selection also apply.</p>
-
-    <h3>Ellipse</h3>
-    <p><strong>Shortcut:</strong> <kbd>O</kbd></p>
-    <p>Drag a box and the ellipse is drawn inside it. Fill, Stroke, and Width work exactly like the Rectangle tool. Hold <kbd>Shift</kbd> while dragging for a perfect circle or square.</p>
-
-    <div class="note">
-        <strong>Shape layers</strong>
-        Turn on <strong>Shape layer</strong> in the Rectangle or Ellipse options to keep the shape editable. You can change its size, fill, outline, and colours later from <strong>Layer &gt; Edit Shape...</strong>. See <a href="layers.html#vector">Shapes, paths and text</a>.
-    </div>
-
-    <h3>Pen</h3>
-    <p><strong>Shortcut:</strong> <kbd>P</kbd></p>
-    <p>The Pen builds a path point by point. A finished path becomes an editable path layer, which can be filled, outlined, or used as a text baseline.</p>
-    <ol>
-        <li>Click to add a corner point.</li>
-        <li>Drag while placing a point to pull curve handles. The two handles stay symmetrical.</li>
-        <li>Click the first point again, or press <kbd>Enter</kbd>, to close the path.</li>
-        <li>Press <kbd>Esc</kbd> to cancel the path in progress.</li>
+    <h2 id="pen">Draw a path</h2>
+    <p><strong>Use it when:</strong> you need a clean curved outline, a logo shape, or a path for text to follow. Shortcut: <kbd>P</kbd>.</p>
+    <ol class="steps">
+        <li><strong>Choose Fill or Stroke</strong>, and set the width for a stroke.</li>
+        <li><strong>Click to place a corner point.</strong></li>
+        <li><strong>Drag while placing a point</strong> to pull out curve handles. The two handles stay symmetrical.</li>
+        <li><strong>Close the path</strong> by clicking the first point again, pressing <kbd>Enter</kbd>, or pressing <strong>Finish</strong>.</li>
+        <li><strong>Press <kbd>Esc</kbd></strong> to cancel a path in progress.</li>
     </ol>
-    <p>After the path is created, use <strong>Edit Nodes</strong> in the Pen options or <strong>Layer &gt; Edit Path Nodes</strong> to adjust it. Click a segment to add a node, drag anchors and handles to reshape, and use the Add Node and Delete Node buttons for precise edits.</p>
+    <p>The finished path becomes an editable path layer. Use <strong>Edit Nodes</strong> in the Pen options, or <strong>Layer → Edit Path Nodes</strong>, to drag anchors and handles. Click a segment to insert a node, and use <strong>Add Node</strong> or <strong>Delete Node</strong> for precision. Hold <kbd>Alt</kbd> while dragging a handle to move it independently.</p>
 
     <figure>
         <img src="screenshots/pathnodes.png" alt="A path layer with visible anchors and one selected node">
-        <figcaption>Path node editing. The orange line shows the path, round points are anchors, and handles appear when a curve point is selected.</figcaption>
+        <figcaption>Path editing. Drag an anchor to move the path, or drag a round handle to change the curve.</figcaption>
     </figure>
+    <p>Paths can be filled, outlined, and used as a text baseline. See <a href="layers.html#path-text">Text on a path</a> for the fun part.</p>
 
-    <h2 id="fill">Gradient and Paint Bucket</h2>
-    <h3>Gradient</h3>
-    <p><strong>Shortcut:</strong> <kbd>G</kbd></p>
-    <p>Drag from the start point to the end point to make a linear gradient between the foreground and background colours. The direction and length of the drag set the ramp. Opacity controls strength and the selection clips the result.</p>
-    <ul>
-        <li>Press <kbd>X</kbd> to swap the two colours and reverse the gradient.</li>
-        <li>A short drag makes tight bands. A long drag makes a gentle fade.</li>
-    </ul>
-
-    <h3>Paint Bucket</h3>
-    <p><strong>Shortcut:</strong> <kbd>K</kbd></p>
-    <p>The Paint Bucket flood-fills the connected region you click with the foreground colour. <strong>Tolerance</strong> decides how different a neighbouring pixel can be and still be filled. Low tolerance respects hard edges. High tolerance crosses soft gradients and scanned line art.</p>
-    <div class="tip">
-        <strong>Line art</strong>
-        Put the colour on its own layer below the line art, then use the bucket on that colour layer. The lines stay clean and editable.
-    </div>
-
-    <h2 id="sample">Eyedropper</h2>
-    <p><strong>Shortcut:</strong> <kbd>I</kbd></p>
-    <p>Click any visible pixel to make its colour the new foreground colour. The eyedropper samples the composite, which means it sees the final result of all visible layers, not just the active one. The status bar shows the picked hex value.</p>
-
-    <h2 id="colour-panel">The Colour panel</h2>
-    <p>The <strong>Colour</strong> tab on the right is where you choose colours precisely. It edits the colour that matches the current focus.</p>
-    <ul>
-        <li>The large spectrum sets saturation and brightness. Click or drag inside it to pick a colour.</li>
-        <li>The vertical hue strip changes the base hue.</li>
-        <li>The hex value and the R, G, and B numbers show the exact colour. You can read them for matching a brand colour.</li>
-        <li>The three sliders edit the red, green, and blue channels directly.</li>
-        <li>The target buttons switch between the text <strong>Fill</strong>, <strong>Outline</strong>, and <strong>Shadow</strong> colours when the Text tool is active.</li>
-        <li><strong>Swap</strong> exchanges the foreground and background colours. <strong>Reset</strong> returns to black and white.</li>
-    </ul>
-    <p>The foreground colour is the one used by the brush, bucket, shapes, and text. The background colour is used by the gradient and by the eraser on the background layer.</p>
-
-    <h2 id="text">Text</h2>
-    <p><strong>Shortcut:</strong> <kbd>T</kbd></p>
-    <p>The Text tool places live text. You can type a line, choose a font, set the size, alignment, bold or italic, and add outlines and shadows.</p>
-    <ol>
-        <li>Click on the canvas where the text baseline should start.</li>
-        <li>Type in the text field in the options bar.</li>
-        <li>Use the font picker, size field, alignment buttons, and <strong>FX</strong> panel to style the text.</li>
-        <li>Drag the text handles to move, scale, or rotate the line.</li>
-        <li>Press <strong>Place</strong> to commit the text, or <strong>Cancel</strong> to discard it.</li>
+    <h2 id="text">Add text</h2>
+    <p><strong>Use it when:</strong> you need a title, caption, label, or sign. Shortcut: <kbd>T</kbd>.</p>
+    <ol class="steps">
+        <li><strong>Choose the Text tool</strong> and click on the canvas where the text baseline should start.</li>
+        <li><strong>Type in the field</strong> at the top of the options bar.</li>
+        <li><strong>Style it.</strong> Pick a font and size, use <strong>B</strong> and <strong>I</strong>, and choose left, centre, or right alignment.</li>
+        <li><strong>Add effects.</strong> Click <strong>FX</strong> for outlines, shadows, glows, and presets.</li>
+        <li><strong>Keep it editable.</strong> Turn on <strong>Text layer</strong> before placing. You can reopen it later with <strong>Layer → Edit Text…</strong>.</li>
+        <li><strong>Press Place</strong> to commit the text, or <strong>Cancel</strong> to discard it.</li>
     </ol>
-    <p>Turn on <strong>Text layer</strong> before placing the text if you want to keep it editable. A text layer can be reopened later with <strong>Layer &gt; Edit Text...</strong>. Text can also follow a path, which is covered in <a href="layers.html#vector">Shapes, paths and text</a>.</p>
-    <p>The <strong>FX</strong> panel adds outlines and shadows. Presets set several effects at once, and the sliders refine them. For a neon look, turn on Outer Glow with a bright colour and a wide blur. For a retro look, use a warm fill with a dark, slightly offset shadow.</p>
-    <p>The <strong>+</strong> button next to the font picker downloads a font from cdnfonts. Paste a font URL or family name and press Add. The family appears in the picker for the rest of the session.</p>
+    <p>The <strong>+</strong> button next to the font picker downloads a font from cdnfonts. Paste a font URL or family name and press <strong>Add</strong>. The family appears in the picker for the rest of the session. This is the only optional online action in PixelDotNet.</p>
 
     <figure>
-        <img src="screenshots/text.png" alt="The Edit Text dialog with content, font, size, rotation, and colour controls">
-        <figcaption>The text layer editor. Change the content, font, size, rotation, alignment, spacing, and fill colour, then press Done.</figcaption>
+        <img src="screenshots/textfx.png" alt="The Text FX panel with outline, shadow, and glow presets">
+        <figcaption>The FX panel. Presets set several effects at once; the sliders let you refine the outline, shadow, and glow.</figcaption>
     </figure>
+    <p>For curved text, see <a href="recipes.html#curved-text">text on a curve</a> or <a href="layers.html#path-text">Text on a path</a>.</p>
 
-    <h2 id="zoom">Zoom</h2>
-    <p><strong>Shortcut:</strong> <kbd>Z</kbd></p>
-    <p>Click the canvas to zoom in. Right-click to zoom out. Zooming changes only the view, never the image pixels.</p>
+    <h2 id="zoom">Zoom and pan</h2>
+    <p><strong>Use it when:</strong> you need to inspect a detail or see the whole composition. Shortcut: <kbd>Z</kbd>.</p>
     <ul>
+        <li><strong>Click</strong> with the Zoom tool to zoom in; <strong>right-click</strong> to zoom out.</li>
         <li><kbd>Ctrl</kbd>+scroll zooms around the pointer.</li>
-        <li><kbd>Ctrl</kbd>+<kbd>+</kbd> and <kbd>Ctrl</kbd>+<kbd>-</kbd> step through the zoom stops.</li>
-        <li><kbd>Ctrl</kbd>+<kbd>0</kbd> returns to 100 percent, one document pixel per screen pixel.</li>
-        <li>Hold the space bar or middle mouse button and drag to pan when you are zoomed in.</li>
+        <li><kbd>Ctrl</kbd>+<kbd>+</kbd> and <kbd>Ctrl</kbd>+<kbd>-</kbd> step through the zoom levels.</li>
+        <li><kbd>Ctrl</kbd>+<kbd>0</kbd> returns to 100%, where one picture pixel equals one screen pixel.</li>
+        <li>Hold the space bar or middle mouse button and drag to pan while zoomed in.</li>
     </ul>
+    <p>Zooming changes only the view, never the picture. It is safe to zoom in and out as often as you like.</p>
+
+    <h2 id="cheat-sheet">Every tool at a glance</h2>
+    <table>
+        <tr><th>Tool</th><th>Key</th><th>What it is for</th></tr>
+        <tr><td>Move</td><td><kbd>V</kbd></td><td>Move selected pixels or the active layer; resize a selection.</td></tr>
+        <tr><td>Marquee</td><td><kbd>M</kbd></td><td>Select a rectangle.</td></tr>
+        <tr><td>Elliptical Select</td><td><kbd>Q</kbd></td><td>Select an ellipse or circle.</td></tr>
+        <tr><td>Lasso</td><td><kbd>F</kbd></td><td>Draw a freehand selection around a subject.</td></tr>
+        <tr><td>Magic Wand</td><td><kbd>W</kbd></td><td>Select similar colours with one click.</td></tr>
+        <tr><td>Quick Selection</td><td><kbd>A</kbd></td><td>Paint over a subject to grow a selection.</td></tr>
+        <tr><td>Brush</td><td><kbd>B</kbd></td><td>Paint with the foreground colour.</td></tr>
+        <tr><td>Eraser</td><td><kbd>E</kbd></td><td>Remove paint from the active layer.</td></tr>
+        <tr><td>Clone Stamp</td><td><kbd>C</kbd></td><td>Copy pixels from one place to another.</td></tr>
+        <tr><td>Healing Brush</td><td><kbd>H</kbd></td><td>Repair a blemish and blend it into the surrounding tone.</td></tr>
+        <tr><td>Dodge / Burn</td><td><kbd>J</kbd></td><td>Lighten or darken with brush strokes.</td></tr>
+        <tr><td>Line</td><td><kbd>L</kbd></td><td>Draw a straight line.</td></tr>
+        <tr><td>Rectangle</td><td><kbd>R</kbd></td><td>Draw a filled or outlined rectangle.</td></tr>
+        <tr><td>Ellipse</td><td><kbd>O</kbd></td><td>Draw a filled or outlined ellipse.</td></tr>
+        <tr><td>Pen</td><td><kbd>P</kbd></td><td>Draw an editable path with curves.</td></tr>
+        <tr><td>Gradient</td><td><kbd>G</kbd></td><td>Drag a fade between two colours.</td></tr>
+        <tr><td>Paint Bucket</td><td><kbd>K</kbd></td><td>Flood-fill a connected area.</td></tr>
+        <tr><td>Eyedropper</td><td><kbd>I</kbd></td><td>Pick a colour from the picture.</td></tr>
+        <tr><td>Text</td><td><kbd>T</kbd></td><td>Place live text with effects.</td></tr>
+        <tr><td>Zoom</td><td><kbd>Z</kbd></td><td>Zoom the view in or out.</td></tr>
+    </table>
 
     <div class="pager">
-        <a href="index.html">&lt; Previous: Home</a>
-        <a href="selections.html">Next: Selections &gt;</a>
+        <a href="recipes.html">&lt; Previous: Recipes</a>
+        <a href="selections.html">Next: Cutting out &gt;</a>
     </div>
 </main>
 
-<footer>PixelDotNet User Guide. Use the navigation above to move between chapters.</footer>
+<footer>PixelDotNet User Guide · Painting, drawing, and retouching.</footer>
 </body>
 </html>

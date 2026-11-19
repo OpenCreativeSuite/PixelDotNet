@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Recipes - PixelDotNet User Guide</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="index.html">
+            <span class="brand-mark"><span></span><span></span><span></span><span></span></span>
+            PixelDotNet Guide
+        </a>
+        <nav class="mainnav">
+            <a href="index.html">Home</a>
+            <a class="active" href="recipes.html">Recipes</a>
+            <a href="tools.html">Painting</a>
+            <a href="selections.html">Cutting out</a>
+            <a href="layers.html">Layers &amp; text</a>
+            <a href="adjustments.html">Colour &amp; effects</a>
+            <a href="files.html">Save &amp; share</a>
+            <a href="shortcuts.html">Shortcuts</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <div class="pagehead">
+        <h1>Recipes</h1>
+        <p>Short jobs with clear steps. Each recipe uses tools you already have and tells you where to read more. Start with the one closest to what you want to make.</p>
+    </div>
+
+    <div class="toc">
+        <strong>Pick a job</strong>
+        <ol>
+            <li><a href="#remove">Remove something from a photo</a></li>
+            <li><a href="#retouch">Clean up a blemish or dust spot</a></li>
+            <li><a href="#cutout">Cut a subject out of its background</a></li>
+            <li><a href="#text">Add text to a picture</a></li>
+            <li><a href="#curved-text">Make text follow a curve</a></li>
+            <li><a href="#sticker">Turn a cut-out into a sticker</a></li>
+            <li><a href="#black-white">Make a black-and-white or duotone image</a></li>
+            <li><a href="#batch">Resize and convert a folder of images</a></li>
+            <li><a href="#svg">Bring in an SVG logo</a></li>
+            <li><a href="#paint">Start a painting from a blank canvas</a></li>
+        </ol>
+    </div>
+
+    <div class="tip">
+        <strong>Before any recipe</strong>
+        Work on a copy. Use <strong>File → Save Project…</strong> before a big change, or duplicate the layer with <kbd>Ctrl</kbd>+<kbd>J</kbd> and hide the original. If something goes wrong, <kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes the last step.
+    </div>
+
+    <h2 id="remove">Remove something from a photo</h2>
+    <p><strong>Use when:</strong> a person, sign, wire, or litter is spoiling an otherwise good picture. Content-Aware Fill rebuilds the area from the pixels around it.</p>
+    <ol class="steps">
+        <li><strong>Make a selection around the object.</strong> Press <kbd>F</kbd> for the Lasso and draw a loose outline, or press <kbd>M</kbd> for a rectangle. Leave a small ring of clean background around the object so the fill has something to sample.</li>
+        <li><strong>Fine-tune the edges.</strong> Hold <kbd>Alt</kbd> while drawing to subtract from the selection, or use the Add and Subtract buttons in the options bar.</li>
+        <li><strong>Choose Edit → Content-Aware Fill.</strong> The selected area is replaced with reconstructed texture and colour.</li>
+        <li><strong>Check the result at 100%.</strong> Press <kbd>Ctrl</kbd>+<kbd>0</kbd>, then <kbd>Ctrl</kbd>+<kbd>+</kbd> to zoom in. If it looks wrong, press <kbd>Ctrl</kbd>+<kbd>Z</kbd> and try a tighter selection.</li>
+        <li><strong>Blend if needed.</strong> A small amount of <strong>Healing Brush</strong> or <strong>Clone Stamp</strong> around the edge hides the join.</li>
+    </ol>
+    <div class="note">
+        <strong>Best results</strong>
+        Content-Aware Fill works best on small objects against fairly even backgrounds: a bird in the sky, a sign on a wall, a spot on sand. Very large selections or busy patterns may need several smaller passes.
+    </div>
+    <p>More detail: <a href="selections.html">Cutting out</a> and <a href="adjustments.html#smart-tools">Content-Aware Fill</a>.</p>
+
+    <h2 id="retouch">Clean up a blemish or dust spot</h2>
+    <p><strong>Use when:</strong> a face has a spot, a scan has dust, or a clean surface has a small distraction. The Healing Brush copies texture and matches the surrounding tone, so repairs blend in.</p>
+    <ol class="steps">
+        <li><strong>Duplicate the layer</strong> with <kbd>Ctrl</kbd>+<kbd>J</kbd>. Do repairs on the copy so the original is always available.</li>
+        <li><strong>Pick the Healing Brush</strong> with <kbd>H</kbd>. Choose a soft brush and a size just larger than the blemish.</li>
+        <li><strong>Set a source.</strong> Hold <kbd>Ctrl</kbd> and click a clean area near the blemish with similar colour.</li>
+        <li><strong>Paint over the blemish.</strong> Short strokes work better than one long smear. Set a fresh source whenever the texture starts to repeat.</li>
+        <li><strong>Use the Clone Stamp</strong> (<kbd>C</kbd>) when you need an exact copy of nearby texture instead of a blended repair.</li>
+    </ol>
+    <div class="tip">
+        <strong>Keep it subtle</strong>
+        Repair at 100% zoom, then step back to normal size. A repair that looks invisible up close is usually invisible in the final picture too.
+    </div>
+    <p>More detail: <a href="tools.html#repair">Clone, Heal and Dodge / Burn</a>.</p>
+
+    <h2 id="cutout">Cut a subject out of its background</h2>
+    <p><strong>Use when:</strong> you need a person or object on a transparent background for a poster, thumbnail, or another picture.</p>
+    <ol class="steps">
+        <li><strong>Choose Quick Selection</strong> with <kbd>A</kbd>.</li>
+        <li><strong>Paint over the subject.</strong> The selection grows through connected, similar pixels. Start with a small brush on a clear edge.</li>
+        <li><strong>Take areas back.</strong> Hold <kbd>Alt</kbd>, or turn on <strong>Subtract</strong> in the options bar, and paint over background that was caught by mistake.</li>
+        <li><strong>Copy and paste the subject.</strong> Press <kbd>Ctrl</kbd>+<kbd>C</kbd>, then <kbd>Ctrl</kbd>+<kbd>V</kbd>. The selected pixels become a new layer.</li>
+        <li><strong>Hide the original layer.</strong> Click its eye in the Layers panel. The cut-out now sits on transparency.</li>
+        <li><strong>Refine the edge.</strong> Add a mask to the new layer, click the mask thumbnail, and paint black to hide stray background or white to bring areas back. Use a soft brush for hair and fur.</li>
+    </ol>
+    <div class="note">
+        <strong>Why paste instead of masking straight away?</strong>
+        Pasting gives you an independent cut-out immediately, while the original stays untouched below. The mask then becomes a gentle way to refine the edge rather than the only way to make the cut.
+    </div>
+    <p>More detail: <a href="selections.html">Cutting out</a> and <a href="selections.html#masks">Layer masks</a>.</p>
+
+    <h2 id="text">Add text to a picture</h2>
+    <p><strong>Use when:</strong> you need a title, a caption, a price, or a short message on an image.</p>
+    <ol class="steps">
+        <li><strong>Press <kbd>T</kbd></strong> for the Text tool.</li>
+        <li><strong>Turn on Text layer</strong> in the options bar if you may want to edit the words later. A text layer stays editable until you rasterize it.</li>
+        <li><strong>Click on the canvas</strong> where the text should start, then type in the field in the options bar.</li>
+        <li><strong>Choose the font, size, and alignment.</strong> Use <strong>B</strong> and <strong>I</strong> for bold and italic, and the alignment buttons to position the line.</li>
+        <li><strong>Add an outline or shadow.</strong> Click <strong>FX</strong> and choose a preset, or adjust the outline and shadow sliders yourself.</li>
+        <li><strong>Press Place</strong> to commit the text. To change it later, select the text layer and choose <strong>Layer → Edit Text…</strong>.</li>
+    </ol>
+    <div class="tip">
+        <strong>Text on a busy background</strong>
+        A thin white outline with a soft dark shadow lifts text off almost any photo. Both are in the FX panel.
+    </div>
+    <figure>
+        <img src="screenshots/text.png" alt="The Edit Text dialog with the text content, font, size, rotation, and fill controls">
+        <figcaption>The text editor. When <strong>Text layer</strong> is on, you can reopen this dialog and change the words, font, size, rotation, and colour at any time.</figcaption>
+    </figure>
+    <p>More detail: <a href="layers.html#text-layers">Text layers</a> and <a href="tools.html#text">Text tool</a>.</p>
+
+    <h2 id="curved-text">Make text follow a curve</h2>
+    <p><strong>Use when:</strong> you are making a badge, a seal, a ribbon, or a title that should arc around artwork.</p>
+    <ol class="steps">
+        <li><strong>Draw a path with the Pen</strong> (<kbd>P</kbd>). Click to place points along the curve. Drag while placing a point to pull out curved handles.</li>
+        <li><strong>Finish the path</strong> by clicking the first point or pressing <kbd>Enter</kbd>.</li>
+        <li><strong>Select the path layer</strong> in the Layers panel.</li>
+        <li><strong>Choose Layer → Text on Path…</strong></li>
+        <li><strong>Type your text</strong>, then use <strong>Path offset</strong> to slide it along the path and <strong>Spacing</strong> to open the letters. Press <strong>Done</strong>.</li>
+        <li><strong>Restyle it.</strong> The result is a text layer, so you can change its font, size, colour, and FX like any other text.</li>
+    </ol>
+    <p>The text stays linked to the path. If you edit the path nodes later with <strong>Layer → Edit Path Nodes</strong>, the text follows the new curve.</p>
+    <p>More detail: <a href="layers.html#path-text">Text on a path</a>.</p>
+
+    <h2 id="sticker">Turn a cut-out into a sticker</h2>
+    <p><strong>Use when:</strong> you want an image with a bold outline and a drop shadow, ready to drop onto another design.</p>
+    <ol class="steps">
+        <li><strong>Cut out the subject</strong> using the recipe above.</li>
+        <li><strong>Select the cut-out layer.</strong></li>
+        <li><strong>Open Layer → Layer Style…</strong> Or click the sparkle button on the layer row.</li>
+        <li><strong>Turn on Stroke</strong>, set the width to a chunky size, pick white, and turn <strong>Inside</strong> off for an outside outline.</li>
+        <li><strong>Turn on Drop Shadow</strong>, then lower the opacity, set a small distance, and add a little blur.</li>
+        <li><strong>Press Done</strong>, hide the original layer, and save a PNG so the transparent background is kept.</li>
+    </ol>
+    <div class="tip">
+        <strong>Why use a layer style?</strong>
+        The outline and shadow are redrawn automatically if you paint on the layer or change its mask. You can also switch them off later without undoing your cut-out.
+    </div>
+    <p>More detail: <a href="layers.html#style">Layer styles</a>.</p>
+
+    <h2 id="black-white">Make a black-and-white or duotone image</h2>
+    <p><strong>Use when:</strong> you want a timeless photo, a strong poster, or a two-colour look.</p>
+    <h3>Black and white</h3>
+    <ol class="steps">
+        <li><strong>Select the layer</strong> you want to change.</li>
+        <li><strong>Choose Image → Desaturate</strong> or press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd>. Colour is removed while brightness stays.</li>
+        <li><strong>Add contrast.</strong> Open the <strong>Adjust</strong> tab and use the <strong>Contrast</strong> slider, or add a <strong>Curves</strong> adjustment layer.</li>
+    </ol>
+    <h3>Two-colour duotone</h3>
+    <ol class="steps">
+        <li><strong>Choose Image → Colour Tools…</strong>.</li>
+        <li><strong>Scroll to Gradient Map.</strong> Set a dark colour and a light colour.</li>
+        <li><strong>Press Apply.</strong> Dark pixels take the dark colour; bright pixels take the light colour.</li>
+    </ol>
+    <p>More detail: <a href="adjustments.html#colour-tools">Colour Tools</a>.</p>
+
+    <h2 id="batch">Resize and convert a folder of images</h2>
+    <p><strong>Use when:</strong> a folder of photos needs to be smaller for a website, or a set of PNGs needs to become JPEGs. No files are opened in tabs.</p>
+    <ol class="steps">
+        <li><strong>Choose File → Batch Process…</strong>.</li>
+        <li><strong>Set the Source folder</strong> that contains the images, then press <strong>Scan</strong> to count them.</li>
+        <li><strong>Set the Output folder.</strong> Use a separate folder the first time so you can check the results safely.</li>
+        <li><strong>Choose a Scale percentage.</strong> 100 keeps the original size; 50 makes each image half as wide and half as tall.</li>
+        <li><strong>Add a Suffix</strong> such as <code>-web</code>, and choose <strong>PNG</strong>, <strong>JPEG</strong>, <strong>BMP</strong>, or <strong>TGA</strong>.</li>
+        <li><strong>Press Run.</strong> The status line reports how many files were written.</li>
+    </ol>
+    <div class="warning">
+        <strong>Overwrite is off by default</strong>
+        Leave it off until you have checked the output. When it is on, files with the same name are replaced.
+    </div>
+    <p>More detail: <a href="files.html#batch">Batch processing</a>.</p>
+
+    <h2 id="svg">Bring in an SVG logo</h2>
+    <p><strong>Use when:</strong> you have a logo or icon as an SVG and want to place it on a photo or design.</p>
+    <ol class="steps">
+        <li><strong>Choose File → Import SVG…</strong>, or open the SVG through <strong>File → Open…</strong>.</li>
+        <li><strong>Each shape becomes its own layer.</strong> Rectangles and ellipses stay editable shapes; rotated artwork becomes editable paths; text becomes a text layer.</li>
+        <li><strong>Move and scale the layers</strong> with the Move tool, or edit a shape from <strong>Layer → Edit Shape…</strong>.</li>
+        <li><strong>Recolour it</strong> by selecting a shape layer and choosing a new fill colour in the shape editor, or use the Adjust tab.</li>
+        <li><strong>Export it again</strong> with <strong>File → Export SVG…</strong> if the design should stay vector.</li>
+    </ol>
+    <figure>
+        <img src="screenshots/svgimport.png" alt="The Import SVG file browser showing SVG files">
+        <figcaption>Import SVG. Each shape arrives as an editable layer instead of one flat picture.</figcaption>
+    </figure>
+    <p>More detail: <a href="files.html#svg">SVG import and export</a>.</p>
+
+    <h2 id="paint">Start a painting from a blank canvas</h2>
+    <p><strong>Use when:</strong> you want to draw or paint something new rather than edit a photo.</p>
+    <ol class="steps">
+        <li><strong>Choose File → New Document</strong> (<kbd>Ctrl</kbd>+<kbd>N</kbd>) for a 768 by 576 canvas. Use <strong>New Small Document</strong> for a 480 by 360 test canvas.</li>
+        <li><strong>Sketch on a layer.</strong> Press <kbd>B</kbd>, pick a dark colour, and block in the main shapes. Keep the sketch loose.</li>
+        <li><strong>Lower the sketch opacity</strong> in the Layers panel, then add a new layer above it for colour. The sketch shows through the gaps while you block in colour.</li>
+        <li><strong>Paint the colour.</strong> Use a large soft brush for backgrounds and a smaller hard brush for details. Lower <strong>Opacity</strong> to build colour gradually.</li>
+        <li><strong>Add clean line art or text</strong> on a layer above the colour. For a crisp line, turn on <strong>Shape layer</strong> with the Pen tool.</li>
+        <li><strong>Save a project</strong> with <strong>File → Save Project…</strong> so the layers survive, then save a PNG for sharing.</li>
+    </ol>
+    <div class="tip">
+        <strong>Three layers are enough to start</strong>
+        Background, colour, and line art. Add more only when a new kind of work needs its own space.
+    </div>
+    <p>More detail: <a href="tools.html">Painting</a> and <a href="layers.html">Layers &amp; text</a>.</p>
+
+    <div class="pager">
+        <a href="index.html">&lt; Previous: Home</a>
+        <a href="tools.html">Next: Painting &gt;</a>
+    </div>
+</main>
+
+<footer>PixelDotNet User Guide · Recipes for everyday editing jobs.</footer>
+</body>
+</html>
