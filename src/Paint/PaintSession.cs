@@ -2661,7 +2661,18 @@ public sealed class PaintSession
         CommitPreviews();
         Document.ActiveIndex = Math.Clamp(index, 0, Document.Layers.Count - 1);
         MaskEditing = false;
-        Status = Document.Active.Name;
+
+        // A layer click during mesh warp retargets the editor to the new layer
+        // and clears the grid so it starts from that layer's own pixels.
+        if (IsMeshWarpOpen)
+        {
+            RetargetMeshWarp();
+        }
+        else
+        {
+            Status = Document.Active.Name;
+        }
+
         Changed();
     }
 
@@ -5188,6 +5199,9 @@ public sealed class PaintSession
             ? Document.Layers[MeshWarpIndex]
             : null;
 
+    /// <summary>Gets whether the layer being mesh-warped has no pixels to move.</summary>
+    public bool MeshWarpLayerEmpty { get; private set; }
+
     /// <summary>Gets the document-space position of a mesh control point.</summary>
     public (float X, float Y) MeshNodePosition(int node)
     {
@@ -5452,6 +5466,7 @@ public sealed class PaintSession
         FinishInteraction();
         MeshWarpIndex = Document.ActiveIndex;
         _meshBase = layer.CapturePixels();
+        MeshWarpLayerEmpty = !HasPixels(_meshBase);
         _meshSelection = Selection;
         Array.Clear(_mesh);
         MeshWarpActiveNode = -1;
@@ -5459,6 +5474,34 @@ public sealed class PaintSession
         PushUndo("Mesh Warp");
         Status = "Drag the mesh points";
         Changed();
+    }
+
+    /// <summary>
+    /// Moves an open mesh warp onto the newly active layer and resets the grid.
+    /// The previous layer keeps the pixels it already showed.
+    /// </summary>
+    private void RetargetMeshWarp()
+    {
+        PaintLayer layer = Document.Active;
+        if (layer.IsAdjustment)
+        {
+            Status = "Adjustment layers cannot be warped";
+            return;
+        }
+
+        if (layer.Locked)
+        {
+            Status = "Layer is locked";
+            return;
+        }
+
+        MeshWarpIndex = Document.ActiveIndex;
+        _meshBase = layer.CapturePixels();
+        MeshWarpLayerEmpty = !HasPixels(_meshBase);
+        _meshSelection = Selection;
+        Array.Clear(_mesh);
+        MeshWarpActiveNode = -1;
+        Status = "Mesh warping " + layer.Name;
     }
 
     /// <summary>Starts dragging a control point near a document position.</summary>
@@ -5532,6 +5575,7 @@ public sealed class PaintSession
         IsMeshWarpOpen = false;
         MeshWarpIndex = -1;
         MeshWarpActiveNode = -1;
+        MeshWarpLayerEmpty = false;
         _meshBase = null;
         _meshSelection = null;
         Status = "Mesh warp applied";
@@ -5554,11 +5598,26 @@ public sealed class PaintSession
         IsMeshWarpOpen = false;
         MeshWarpIndex = -1;
         MeshWarpActiveNode = -1;
+        MeshWarpLayerEmpty = false;
         _meshBase = null;
         _meshSelection = null;
         Document.MarkDirty();
         Status = "Mesh warp cancelled";
         Changed();
+    }
+
+    /// <summary>Checks whether a captured pixel buffer contains anything visible.</summary>
+    private static bool HasPixels(uint[] pixels)
+    {
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            if (Rgba.A(pixels[i]) != 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>Rebuilds the mesh-warp preview from the captured pixels.</summary>

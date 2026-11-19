@@ -337,7 +337,14 @@ public sealed class LayersPanel : Component
             OnDraw = context => DrawMaskThumbnail(context, layer),
         })),
         Div(new() { ClassName = "layer-main" },
-            Span(new() { ClassName = "layer-name" }, Text(layer.Name)),
+            Div(new() { ClassName = "layer-name-row" },
+                Span(new() { ClassName = "layer-name" }, Text(layer.Name)),
+                Show(editor.IsMeshWarpOpen && index == editor.MeshWarpIndex,
+                    Span(new()
+                    {
+                        ClassName = "layer-badge",
+                        Title = "This layer is being mesh-warped",
+                    }, Text("Mesh")))),
             Span(new() { ClassName = "layer-meta" },
                 Text(layer.IsShapeLayer
                     ? $"{layer.Shape?.Kind} shape | {Ui.Format(layer.Opacity * 100f)}%"

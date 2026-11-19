@@ -20,8 +20,19 @@ public sealed class MeshWarpBar : Component
 
         return Div(new() { ClassName = "mesh-warp-bar" },
             Span(new() { ClassName = "mesh-warp-title" }, Text("Mesh Warp")),
-            Span(new() { ClassName = "mesh-warp-note" },
-                Text("Drag the nine points on the canvas.")),
+            Span(new() { ClassName = "mesh-warp-layer", Title = "Layer being mesh-warped" },
+                Ui.Icon(Icons.Flatten, "mesh-warp-layer-icon"),
+                Span(new() { ClassName = "mesh-warp-layer-name" },
+                    Text(editor.MeshWarpLayer?.Name ?? "None"))),
+            Span(new()
+            {
+                ClassName = editor.MeshWarpLayerEmpty
+                    ? "mesh-warp-note is-warning"
+                    : "mesh-warp-note",
+            },
+                Text(editor.MeshWarpLayerEmpty
+                    ? "This layer is empty. Pick one with pixels."
+                    : "Drag the nine points on the canvas.")),
             Ui.Button("Reset", "Clear every point offset", () =>
             {
                 editor.ResetMeshWarp();

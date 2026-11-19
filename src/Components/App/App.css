@@ -1306,8 +1306,9 @@ canvas {
     position: absolute;
     left: 50%;
     top: 80px;
-    width: 430px;
-    margin-left: -215px;
+    width: 520px;
+    max-width: calc(100% - 24px);
+    margin-left: -260px;
     z-index: 60;
     display: flex;
     align-items: center;
@@ -1319,6 +1320,34 @@ canvas {
     box-shadow:
         0 0 0 1px #454a54 inset,
         0 14px 34px rgba(0, 0, 0, 0.55);
+}
+
+.mesh-warp-layer {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 120px;
+    flex-shrink: 0;
+    padding: 1px 7px;
+    border-radius: 9px;
+    background-color: #343941;
+    color: #dfe4ea;
+    font-size: 10.5px;
+}
+
+.mesh-warp-layer-icon {
+    font-size: 9px;
+    color: #8b929c;
+}
+
+.mesh-warp-layer-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mesh-warp-note.is-warning {
+    color: #e8b15a;
 }
 
 .mesh-warp-title {
