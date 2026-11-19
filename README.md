@@ -73,6 +73,12 @@ PixelDotNet is free to use and will stay free. There is no paid tier, no subscri
 
 Your images are opened and saved on your own computer. The only optional online action is adding a font from [cdnfonts](https://www.cdnfonts.com/) when you choose to use **Add Font** in the Text tool. Nothing is uploaded.
 
+## Licence
+
+PixelDotNet is free for personal and commercial use, including internal business use. The source is available under the **Apache License 2.0 with the Commons Clause**: you can use, modify and share it, but you may not sell the software itself or a product whose value derives substantially from it. The images you make are yours.
+
+See [LICENSE.md](LICENSE.md) for the full terms and a plain-English summary.
+
 ## Learn the app
 
 The illustrated user guide is the friendliest place to start:
