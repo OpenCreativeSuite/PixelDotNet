@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>PixelDotNet.Tests</RootNamespace>
+    <AssemblyName>PixelDotNet.Tests</AssemblyName>
+    <!-- The harness stylesheets are loaded from the application assembly, so the
+         test runner must load it even when a test only uses a Paint type. -->
+    <DonkehVersion Condition="'$(DonkehVersion)' == ''">1.0.44</DonkehVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Donkeh.Testing" Version="$(DonkehVersion)" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\PixelDotNet.csproj" />
+  </ItemGroup>
+
+</Project>

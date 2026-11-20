@@ -105,6 +105,15 @@ dotnet run
 
 Or start the built `PixelDotNet.exe` from `bin/`.
 
+Run the unit tests with:
+
+```sh
+dotnet test tests/PixelDotNet.Tests/PixelDotNet.Tests.csproj
+```
+
+The suite covers the paint engine, document/file formats, the editor session,
+and every component through the headless `Donkeh.Testing` harness.
+
 ## Project links
 
 - [Latest release](https://github.com/OpenCreativeSuite/PixelDotNet/releases/latest)

@@ -120,9 +120,13 @@ public static class EffectOps
 
         Premultiply(source, alpha, red, green, blue);
         BoxBlurHorizontal(alpha, scratch, width, height, distance);
+        Array.Copy(scratch, alpha, alpha.Length);
         BoxBlurHorizontal(red, scratch, width, height, distance);
+        Array.Copy(scratch, red, red.Length);
         BoxBlurHorizontal(green, scratch, width, height, distance);
+        Array.Copy(scratch, green, green.Length);
         BoxBlurHorizontal(blue, scratch, width, height, distance);
+        Array.Copy(scratch, blue, blue.Length);
 
         for (int y = 0; y < height; y++)
         {

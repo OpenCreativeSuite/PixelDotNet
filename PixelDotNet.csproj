@@ -7,7 +7,7 @@
     <RootNamespace>PixelDotNet</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <DefaultItemExcludes>$(DefaultItemExcludes);builds/**</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);builds/**;tests/**</DefaultItemExcludes>
     <DonkehVersion Condition="'$(DonkehVersion)' == ''">1.0.44</DonkehVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- The HTML builders drop null children at runtime (that is what makes

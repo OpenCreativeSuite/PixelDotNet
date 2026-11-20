@@ -2018,9 +2018,12 @@ public sealed class PaintSession
         }
 
         int spacing = Math.Max(3, (int)(BrushSize * 0.5f));
-        int dx = x - _quickLastX;
-        int dy = y - _quickLastY;
-        if ((dx * dx) + (dy * dy) < spacing * spacing)
+        // The first dab compares against a distant sentinel, so the subtraction
+        // must happen in 64 bits: an int square would overflow and reject the
+        // seed that starts the selection.
+        long dx = (long)x - _quickLastX;
+        long dy = (long)y - _quickLastY;
+        if ((dx * dx) + (dy * dy) < (long)spacing * spacing)
         {
             return;
         }
