@@ -19,7 +19,7 @@ namespace PixelDotNet;
     Width = 1440,
     Height = 900,
     Title = "PixelDotNet",
-    ClearColor = 0xFF17181B,
+    ClearColor = 0xFF0B0C10,
     MinWidth = 420,
     MinHeight = 560)]
 public sealed class App : Component

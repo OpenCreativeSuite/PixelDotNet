@@ -30,7 +30,7 @@ button {
     gap: 1px;
     padding: 0 8px;
     box-sizing: border-box;
-    background-color: #212429;
+    background-color: #14151b;
     border-bottom: 1px solid var(--line-deep);
     /* No overflow here: a scroll container clips descendant hit-testing to its
        own box, which made the drop-downs paint (they are promoted by z-index)
@@ -64,25 +64,25 @@ button {
 .brand-px-a {
     left: 0;
     top: 0;
-    background-color: #9ecbff;
+    background-color: #ff8ec0;
 }
 
 .brand-px-b {
     right: 0;
     top: 0;
-    background-color: #2f8df0;
+    background-color: #ff2d87;
 }
 
 .brand-px-c {
     left: 0;
     bottom: 0;
-    background-color: #1f6fd0;
+    background-color: #c2185b;
 }
 
 .brand-px-d {
     right: 0;
     bottom: 0;
-    background-color: #14508f;
+    background-color: #7a123a;
 }
 
 .brand-name {
@@ -119,7 +119,7 @@ button {
 }
 
 .menu-title.is-open {
-    background-color: #3a4048;
+    background-color: #2c303a;
     color: #ffffff;
 }
 
@@ -130,7 +130,7 @@ button {
     z-index: 60;
     min-width: 218px;
     padding: 5px;
-    background-color: #26292e;
+    background-color: #1a1c23;
     border-radius: 6px;
     box-shadow:
         0 0 0 1px rgba(0, 0, 0, 0.7),
@@ -170,22 +170,22 @@ button {
 
 .menu-item:hover {
     background-color: var(--accent);
-    color: #ffffff;
+    color: var(--on-accent);
 }
 
 .menu-item:disabled {
     background-color: transparent;
-    color: #616873;
+    color: #5c6373;
     cursor: default;
 }
 
 .menu-item-key {
     font-size: 10px;
-    color: #7f8792;
+    color: #8b919f;
 }
 
 .menu-item:hover .menu-item-key {
-    color: #dceaff;
+    color: rgba(20, 6, 12, 0.68);
 }
 
 .menu-sep {
@@ -219,7 +219,7 @@ button {
 }
 
 .quick .quick-btn.is-primary {
-    color: #6fb2f7;
+    color: #ff6aa9;
 }
 
 /* ---- tool options ---- */
@@ -243,14 +243,14 @@ button {
     height: 28px;
     padding: 0 10px 0 9px;
     border-radius: 6px;
-    background-color: #2a2e35;
+    background-color: #1d2028;
     box-shadow: inset 0 0 0 1px var(--line);
     flex-shrink: 0;
 }
 
 .tool-badge-icon {
     font-size: 13px;
-    color: #6fb2f7;
+    color: #ff6aa9;
 }
 
 .tool-badge-name {
@@ -263,8 +263,8 @@ button {
 .tool-badge-key {
     padding: 0 4px;
     border-radius: 3px;
-    background-color: #1a1c20;
-    color: #7f8792;
+    background-color: #101116;
+    color: #8b919f;
     font-size: 9.5px;
 }
 
@@ -288,7 +288,7 @@ button {
 
 .options-note {
     font-size: 11px;
-    color: #8b929c;
+    color: #8b919f;
     white-space: nowrap;
 }
 
@@ -308,7 +308,7 @@ button {
     padding: 0 8px;
     border: 1px solid var(--line);
     border-radius: 5px;
-    background-color: #17191d;
+    background-color: #0e0f13;
     color: var(--text-strong);
     font-family: inherit;
     font-size: 12px;
@@ -317,7 +317,7 @@ button {
 
 .text-field:focus {
     border-color: var(--accent);
-    background-color: #1a1c20;
+    background-color: #101116;
 }
 
 /* Font family chooser and text colour chip for the text tool. */
@@ -344,7 +344,7 @@ button {
 
 .font-picker-arrow {
     font-size: 8px;
-    color: #8b929c;
+    color: #8b919f;
 }
 
 .font-picker:hover .font-picker-arrow,
@@ -371,11 +371,11 @@ button {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid #0b0c0e;
+    border: 1px solid #05060a;
     border-radius: 4px;
-    background-color: #26292e;
+    background-color: #1a1c23;
     box-shadow:
-        0 0 0 1px #3a3f47 inset,
+        0 0 0 1px #3a3f4d inset,
         0 18px 42px rgba(0, 0, 0, 0.58);
 }
 
@@ -385,8 +385,8 @@ button {
     gap: 7px;
     padding: 7px 8px;
     flex-shrink: 0;
-    background-color: #1f2227;
-    border-bottom: 1px solid #3a3f47;
+    background-color: #14161c;
+    border-bottom: 1px solid #3a3f4d;
 }
 
 .font-popup-search-icon {
@@ -394,7 +394,7 @@ button {
     flex-shrink: 0;
     text-align: center;
     font-size: 11px;
-    color: #8b929c;
+    color: #8b919f;
 }
 
 .font-search {
@@ -402,28 +402,28 @@ button {
     min-width: 0;
     height: 26px;
     padding: 0 8px;
-    border: 1px solid #3a3f47;
+    border: 1px solid #3a3f4d;
     border-radius: 3px;
-    background-color: #1b1e23;
+    background-color: #121318;
     color: #e6eaf0;
     font-size: 12px;
     outline: none;
 }
 
 .font-search:focus {
-    border-color: #2f8df0;
-    background-color: #181b20;
+    border-color: #ff2d87;
+    background-color: #0e0f13;
     box-shadow: 0 0 0 2px rgba(47, 141, 240, 0.25);
 }
 
 .font-search::placeholder {
-    color: #7f8792;
+    color: #8b919f;
 }
 
 .font-popup-count {
     flex-shrink: 0;
     font-size: 10.5px;
-    color: #8b929c;
+    color: #8b919f;
 }
 
 .font-popup-count.is-empty {
@@ -437,7 +437,7 @@ button {
     overflow-x: hidden;
     overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: #5a616c #1c1f24;
+    scrollbar-color: #4b5261 #101116;
 }
 
 .font-row {
@@ -451,11 +451,11 @@ button {
 }
 
 .font-row:hover {
-    background-color: #2f333a;
+    background-color: #282c36;
 }
 
 .font-row.is-selected {
-    background-color: #2b3a4e;
+    background-color: #351126;
 }
 
 .font-row-name {
@@ -482,7 +482,7 @@ button {
 }
 
 .font-row.is-selected .font-row-preview {
-    color: #dceaff;
+    color: #ffd0e4;
 }
 
 .font-row-preview-slot {
@@ -500,7 +500,7 @@ button {
 
 .font-popup-empty {
     padding: 16px 12px;
-    color: #8b929c;
+    color: #8b919f;
 }
 
 .font-popup-footer {
@@ -511,27 +511,27 @@ button {
     height: 34px;
     padding: 0 10px;
     flex-shrink: 0;
-    border-top: 1px solid #3a3f47;
+    border-top: 1px solid #3a3f4d;
 }
 
 .font-popup-add {
     padding: 0;
     border: 0;
     background: none;
-    color: #8fb8e8;
+    color: #ff8ec0;
     font-size: 12px;
     cursor: pointer;
 }
 
 .font-popup-add:hover {
-    color: #c3dcff;
+    color: #ffd0e4;
     text-decoration: underline;
 }
 
 .font-popup-hint {
     white-space: nowrap;
     font-size: 9.5px;
-    color: #7f8792;
+    color: #8b919f;
 }
 
 /* Text effects popup: parked to the left of the inspector so the colour panel
@@ -545,11 +545,11 @@ button {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid #0b0c0e;
+    border: 1px solid #05060a;
     border-radius: 4px;
-    background-color: #26292e;
+    background-color: #1a1c23;
     box-shadow:
-        0 0 0 1px #3a3f47 inset,
+        0 0 0 1px #3a3f4d inset,
         0 18px 42px rgba(0, 0, 0, 0.58);
 }
 
@@ -560,8 +560,8 @@ button {
     gap: 10px;
     padding: 8px 10px;
     flex-shrink: 0;
-    background-color: #1f2227;
-    border-bottom: 1px solid #3a3f47;
+    background-color: #14161c;
+    border-bottom: 1px solid #3a3f4d;
 }
 
 .text-fx-title {
@@ -570,12 +570,12 @@ button {
     gap: 7px;
     font-size: 12px;
     font-weight: 600;
-    color: #eef1f5;
+    color: #f2f3f7;
 }
 
 .text-fx-title-icon {
     font-size: 12px;
-    color: #6fb2f7;
+    color: #ff6aa9;
 }
 
 .text-fx-body {
@@ -634,29 +634,29 @@ button {
 .fx-swatch {
     border-radius: 3px;
     box-shadow:
-        0 0 0 1px #0d0f12,
+        0 0 0 1px #05060a,
         0 0 0 2px #5f6672;
     cursor: pointer;
 }
 
 .fx-swatch:hover {
     box-shadow:
-        0 0 0 1px #0d0f12,
-        0 0 0 2px #2f8df0;
+        0 0 0 1px #05060a,
+        0 0 0 2px #ff2d87;
 }
 
 .text-fx-note {
     font-size: 10.5px;
     line-height: 1.4;
-    color: #7f8792;
+    color: #8b919f;
 }
 
 .text-fx-tip {
     padding-top: 9px;
-    border-top: 1px solid #33373e;
+    border-top: 1px solid #2b2f3a;
     font-size: 10.5px;
     line-height: 1.45;
-    color: #7f8792;
+    color: #8b919f;
 }
 
 @media (max-width: 900px) {
@@ -678,12 +678,12 @@ button {
     white-space: nowrap;
     text-overflow: ellipsis;
     font-size: 11px;
-    color: #8b929c;
+    color: #8b919f;
     flex-shrink: 0;
 }
 
 .font-import-status.is-busy {
-    color: #6fb2f7;
+    color: #ff6aa9;
 }
 
 .font-import-status.is-error {
@@ -699,15 +699,15 @@ button {
     height: 22px;
     border-radius: 4px;
     box-shadow:
-        0 0 0 1px #0d0f12,
-        0 0 0 2px #5a616c;
+        0 0 0 1px #05060a,
+        0 0 0 2px #4b5261;
     cursor: pointer;
     flex-shrink: 0;
 }
 
 .text-color-chip:hover {
     box-shadow:
-        0 0 0 1px #0d0f12,
+        0 0 0 1px #05060a,
         0 0 0 2px var(--accent);
 }
 
@@ -764,8 +764,8 @@ button {
     height: 22px;
     border-radius: 3px;
     box-shadow:
-        0 0 0 1px #0d0f12,
-        0 0 0 2px #5a616c;
+        0 0 0 1px #05060a,
+        0 0 0 2px #4b5261;
     cursor: pointer;
 }
 
@@ -782,8 +782,8 @@ button {
 .color-chip-front:hover,
 .color-chip-back:hover {
     box-shadow:
-        0 0 0 1px #0d0f12,
-        0 0 0 2px #2f8df0;
+        0 0 0 1px #05060a,
+        0 0 0 2px #ff2d87;
 }
 
 .color-actions {
@@ -806,7 +806,7 @@ button {
     width: 8px;
     height: 8px;
     border-radius: 1.5px;
-    box-shadow: 0 0 0 1px #0d0f12;
+    box-shadow: 0 0 0 1px #05060a;
 }
 
 .defaults-dot.is-dark {
@@ -818,7 +818,7 @@ button {
 .defaults-dot.is-light {
     right: 0;
     bottom: 0;
-    background-color: #eef1f5;
+    background-color: #f2f3f7;
 }
 
 /* ---- tool rail ---- */
@@ -830,7 +830,7 @@ button {
     gap: 4px;
     padding: 6px 0;
     box-sizing: border-box;
-    background-color: #1d1f23;
+    background-color: #121318;
     border-right: 1px solid var(--line-deep);
     overflow-y: auto;
 }
@@ -858,25 +858,25 @@ button {
     border: 0;
     border-radius: 5px;
     background-color: transparent;
-    color: #99a0aa;
+    color: #8b919f;
     cursor: pointer;
 }
 
 .tool:hover {
-    background-color: #2c3037;
+    background-color: #23262f;
     color: #e8ebf0;
 }
 
 .tool.is-active {
-    background-color: #2b3a4e;
-    color: #7fb6ff;
+    background-color: #351126;
+    color: #ff6aa9;
     box-shadow:
-        inset 0 0 0 1px #3b618d,
+        inset 0 0 0 1px #7a1b45,
         0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .tool.is-active:hover {
-    background-color: #32445c;
+    background-color: #45152e;
 }
 
 .tool-glyph {
@@ -894,7 +894,7 @@ button {
     padding: 0 10px;
     border: 1px solid var(--line-strong);
     border-radius: 5px;
-    background-color: #30343b;
+    background-color: #23262f;
     color: #d5dae2;
     font-family: inherit;
     font-size: 11px;
@@ -904,26 +904,26 @@ button {
 }
 
 .btn:hover {
-    background-color: #3a3f48;
+    background-color: #343a48;
     border-color: #4d535e;
     color: #ffffff;
 }
 
 .btn:disabled {
-    background-color: #26292e;
-    border-color: #33373e;
-    color: #676e78;
+    background-color: #1a1c23;
+    border-color: #2b2f3a;
+    color: #5c6373;
     cursor: default;
 }
 
 .btn.is-on {
-    background-color: #2f8df0;
-    border-color: #1f6ec6;
-    color: #ffffff;
+    background-color: var(--accent);
+    border-color: var(--accent-deep);
+    color: var(--on-accent);
 }
 
 .btn.is-on:hover {
-    background-color: #3d98f5;
+    background-color: var(--accent-bright);
 }
 
 .btn-icon {
@@ -932,13 +932,13 @@ button {
 
 .btn-ghost {
     background-color: transparent;
-    border-color: #3a3f47;
+    border-color: #3a3f4d;
     color: #c3c8d1;
 }
 
 .btn-ghost:hover {
-    background-color: #2e3238;
-    border-color: #4a505a;
+    background-color: #23262f;
+    border-color: #3f4552;
     color: #ffffff;
 }
 
@@ -961,13 +961,13 @@ button {
 }
 
 .icon-btn:hover {
-    background-color: #343941;
-    color: #eef1f5;
+    background-color: #2c303a;
+    color: #f2f3f7;
 }
 
 .icon-btn:disabled {
     background-color: transparent;
-    color: #565d67;
+    color: #545b69;
     cursor: default;
 }
 
@@ -983,7 +983,7 @@ button {
     gap: 2px;
     padding: 2px;
     border-radius: 6px;
-    background-color: #1a1c20;
+    background-color: #101116;
     box-shadow: inset 0 0 0 1px var(--line);
     flex-shrink: 0;
 }
@@ -999,13 +999,13 @@ button {
 }
 
 .segmented .btn:hover {
-    background-color: #2b2f36;
-    color: #eef1f5;
+    background-color: #23262f;
+    color: #f2f3f7;
 }
 
 .segmented .btn.is-on {
-    background-color: #2f8df0;
-    color: #ffffff;
+    background-color: var(--accent);
+    color: var(--on-accent);
 }
 
 @media (max-width: 900px) {

@@ -280,7 +280,7 @@ public sealed class AdjustPanel : Component
     /// <summary>Draws the curve editor grid, identity line and control points.</summary>
     private static void DrawCurve(CanvasContext context, PaintSession editor)
     {
-        context.Clear(0xFF1A1C20);
+        context.Clear(0xFF101116);
 
         for (int i = 1; i < 4; i++)
         {
@@ -301,14 +301,14 @@ public sealed class AdjustPanel : Component
                 (1f - points[index].Y) * CurveHeight,
                 points[index + 1].X * CurveWidth,
                 (1f - points[index + 1].Y) * CurveHeight,
-                0xFF7FB6FF);
+                0xFFFF2D87);
         }
 
         foreach ((float x, float y) in points)
         {
             float px = (x * CurveWidth) - 4f;
             float py = ((1f - y) * CurveHeight) - 4f;
-            context.FillRect(px, py, 9f, 9f, 0xFF0B0C0E);
+            context.FillRect(px, py, 9f, 9f, 0xFF05060A);
             context.FillRect(px + 1f, py + 1f, 7f, 7f, 0xFFFFFFFF);
         }
     }
@@ -333,7 +333,7 @@ public sealed class AdjustPanel : Component
         const float Width = HistogramWidth;
         const float Height = HistogramHeight;
 
-        context.Clear(0xFF1A1C20);
+        context.Clear(0xFF101116);
         int[] counts = editor.Histogram;
 
         int peak = 1;

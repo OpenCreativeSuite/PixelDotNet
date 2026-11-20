@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <DefaultItemExcludes>$(DefaultItemExcludes);builds/**</DefaultItemExcludes>
-    <DonkehVersion Condition="'$(DonkehVersion)' == ''">1.0.43</DonkehVersion>
+    <DonkehVersion Condition="'$(DonkehVersion)' == ''">1.0.44</DonkehVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- The HTML builders drop null children at runtime (that is what makes
          Show(...) composable), but their parameters are annotated as Node[] rather

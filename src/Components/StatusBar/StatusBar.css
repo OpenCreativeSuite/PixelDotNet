@@ -6,10 +6,10 @@
     gap: 8px;
     padding: 0 10px;
     box-sizing: border-box;
-    background-color: #1e2024;
+    background-color: #14151b;
     border-top: 1px solid var(--line-deep);
     font-size: 10.5px;
-    color: #8b929c;
+    color: #8b919f;
     overflow: hidden;
 }
 
@@ -32,7 +32,7 @@
 
 .status-item.is-strong {
     min-width: 34px;
-    color: #eef1f5;
+    color: #f2f3f7;
     text-align: center;
 }
 
@@ -43,7 +43,7 @@
     padding: 0 5px;
     border-radius: 3px;
     background-color: transparent;
-    color: #eef1f5;
+    color: #f2f3f7;
     font-family: inherit;
     font-size: 10.5px;
     font-weight: 600;
@@ -51,12 +51,12 @@
 }
 
 .status-zoom-reset:hover {
-    background-color: #343941;
+    background-color: #2c303a;
     color: #ffffff;
 }
 
 .status-item.is-muted {
-    color: #7f8792;
+    color: #8b919f;
 }
 
 .status-sep {

@@ -236,6 +236,7 @@ main {
 
 .hero img {
     width: 100%;
+    height: auto;
     border: 1px solid var(--line);
     border-radius: 10px;
     display: block;
@@ -364,6 +365,7 @@ figure {
 
 figure img {
     width: 100%;
+    height: auto;
     display: block;
     border: 1px solid var(--line);
     border-radius: 9px;

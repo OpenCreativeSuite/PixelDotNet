@@ -50,7 +50,7 @@ public sealed class CanvasSurface : Component
                 {
                     ClassName = "ruler-corner",
                     Attributes = Ui.Size((int)RulerSize, (int)RulerSize),
-                    OnDraw = context => context.Clear(0xFF1B1E23),
+                    OnDraw = context => context.Clear(0xFF121318),
                 }),
                 Canvas(new CanvasProps
                 {
@@ -232,7 +232,7 @@ public sealed class CanvasSurface : Component
                 flat[i].Y * zoom,
                 flat[i + 1].X * zoom,
                 flat[i + 1].Y * zoom,
-                0x99FFC24D);
+                0x99FF2D87);
         }
 
         for (int i = 0; i < points.Count; i++)
@@ -243,24 +243,24 @@ public sealed class CanvasSurface : Component
 
             if (node.HasHandles)
             {
-                DrawLine(context, x, y, node.InX * zoom, node.InY * zoom, 0xCCFFC24D);
-                DrawLine(context, x, y, node.OutX * zoom, node.OutY * zoom, 0xCCFFC24D);
+                DrawLine(context, x, y, node.InX * zoom, node.InY * zoom, 0xCCFF2D87);
+                DrawLine(context, x, y, node.OutX * zoom, node.OutY * zoom, 0xCCFF2D87);
                 context.FillEllipse(
                     new Rect((node.InX * zoom) - 3f, (node.InY * zoom) - 3f, 6f, 6f),
-                    0xFFFFC24D);
+                    0xFFFF2D87);
                 context.FillEllipse(
                     new Rect((node.OutX * zoom) - 3f, (node.OutY * zoom) - 3f, 6f, 6f),
-                    0xFFFFC24D);
+                    0xFFFF2D87);
             }
 
             bool selected = i == editor.SelectedPathNode;
             float size = selected ? 13f : 9f;
             context.FillEllipse(
                 new Rect(x - (size * 0.5f), y - (size * 0.5f), size, size),
-                selected ? 0xFFFFC24D : 0xFFFFFFFF);
+                selected ? 0xFFFF2D87 : 0xFFFFFFFF);
             context.FillEllipse(
                 new Rect(x - 2.5f, y - 2.5f, 5f, 5f),
-                0xFF101215);
+                0xFF06070A);
         }
     }
 
@@ -273,7 +273,7 @@ public sealed class CanvasSurface : Component
         }
 
         IReadOnlyList<PathNode> points = editor.PenPoints;
-        const uint Line = 0xCCFFC24D;
+        const uint Line = 0xCCFF2D87;
 
         for (int i = 0; i + 1 < points.Count; i++)
         {
@@ -293,7 +293,7 @@ public sealed class CanvasSurface : Component
             last.Y * zoom,
             editor.PenPreviewX * zoom,
             editor.PenPreviewY * zoom,
-            0x992F8DF0);
+            0x99FF2D87);
 
         for (int i = 0; i < points.Count; i++)
         {
@@ -304,22 +304,22 @@ public sealed class CanvasSurface : Component
 
             if (node.HasHandles)
             {
-                DrawLine(context, x, y, node.InX * zoom, node.InY * zoom, 0x99FFC24D);
-                DrawLine(context, x, y, node.OutX * zoom, node.OutY * zoom, 0x99FFC24D);
+                DrawLine(context, x, y, node.InX * zoom, node.InY * zoom, 0x99FF2D87);
+                DrawLine(context, x, y, node.OutX * zoom, node.OutY * zoom, 0x99FF2D87);
                 context.FillEllipse(
                     new Rect((node.InX * zoom) - 2f, (node.InY * zoom) - 2f, 4f, 4f),
-                    0xFFFFC24D);
+                    0xFFFF2D87);
                 context.FillEllipse(
                     new Rect((node.OutX * zoom) - 2f, (node.OutY * zoom) - 2f, 4f, 4f),
-                    0xFFFFC24D);
+                    0xFFFF2D87);
             }
 
             context.FillEllipse(
                 new Rect(x - 4.5f, y - 4.5f, 9f, 9f),
-                first ? 0xFFFFC24D : 0xFFFFFFFF);
+                first ? 0xFFFF2D87 : 0xFFFFFFFF);
             context.FillEllipse(
                 new Rect(x - 2.5f, y - 2.5f, 5f, 5f),
-                0xFF101215);
+                0xFF06070A);
         }
     }
 
@@ -332,9 +332,9 @@ public sealed class CanvasSurface : Component
         }
 
         int points = MeshWarpOps.Points;
-        const uint Line = 0xCC2F8DF0;
+        const uint Line = 0xCCFF2D87;
         const uint Node = 0xFFFFFFFF;
-        const uint ActiveNode = 0xFFFFC24D;
+        const uint ActiveNode = 0xFFFF2D87;
 
         for (int row = 0; row < points; row++)
         {
@@ -413,7 +413,7 @@ public sealed class CanvasSurface : Component
         float radians = editor.TextRotation * MathF.PI / 180f;
         float cos = MathF.Cos(radians);
         float sin = MathF.Sin(radians);
-        const uint Accent = 0xFF2F8DF0;
+        const uint Accent = 0xFFFF2D87;
 
         (float X, float Y) Point(float localX, float localY) => (
             (centerX + (localX * cos) - (localY * sin)) * zoom,
@@ -461,7 +461,7 @@ public sealed class CanvasSurface : Component
     /// <summary>Draws one white transform handle with a dark rim.</summary>
     private static void Handle(CanvasContext context, (float X, float Y) point)
     {
-        context.FillRect(point.X - 4.5f, point.Y - 4.5f, 9f, 9f, 0xFF0B0C0E);
+        context.FillRect(point.X - 4.5f, point.Y - 4.5f, 9f, 9f, 0xFF05060A);
         context.FillRect(point.X - 3f, point.Y - 3f, 6f, 6f, 0xFFFFFFFF);
     }
 
@@ -531,12 +531,12 @@ public sealed class CanvasSurface : Component
             if (guide.Horizontal)
             {
                 float y = guide.Position * zoom;
-                context.FillRect(0f, y, width, 1.5f, 0xCC37C6FF);
+                context.FillRect(0f, y, width, 1.5f, 0xCCFF2D87);
             }
             else
             {
                 float x = guide.Position * zoom;
-                context.FillRect(x, 0f, 1.5f, height, 0xCC37C6FF);
+                context.FillRect(x, 0f, 1.5f, height, 0xCCFF2D87);
             }
         }
     }
@@ -548,7 +548,7 @@ public sealed class CanvasSurface : Component
         bool horizontal,
         float length)
     {
-        context.Clear(0xFF1B1E23);
+        context.Clear(0xFF121318);
         float zoom = MathF.Max(editor.Zoom, 0.05f);
 
         // Pick a step whose on-screen spacing leaves room for a label.
@@ -569,7 +569,7 @@ public sealed class CanvasSurface : Component
             9.5f,
             400,
             false,
-            0xFF9AA3AD,
+            0xFF9CA3B1,
             0f,
             1.1f,
             Donkeh.LayoutLab.TextAlign.Left,
@@ -592,7 +592,7 @@ public sealed class CanvasSurface : Component
 
             if (horizontal)
             {
-                context.FillRect(offset, RulerSize - TickLength, 1f, TickLength, 0xFF7F8792);
+                context.FillRect(offset, RulerSize - TickLength, 1f, TickLength, 0xFF8B919F);
                 context.DrawText(
                     new Rect(
                         offset + LabelInset,
@@ -604,7 +604,7 @@ public sealed class CanvasSurface : Component
             }
             else
             {
-                context.FillRect(RulerSize - TickLength, offset, TickLength, 1f, 0xFF7F8792);
+                context.FillRect(RulerSize - TickLength, offset, TickLength, 1f, 0xFF8B919F);
                 context.DrawText(
                     new Rect(LabelInset, offset + 3f, RulerSize - LabelInset - 2f, 12f),
                     position.ToString(CultureInfo.InvariantCulture),
@@ -614,15 +614,15 @@ public sealed class CanvasSurface : Component
 
         if (horizontal)
         {
-            context.FillRect(0f, RulerSize - 1f, length, 1f, 0xFF101215);
+            context.FillRect(0f, RulerSize - 1f, length, 1f, 0xFF06070A);
         }
         else
         {
-            context.FillRect(RulerSize - 1f, 0f, 1f, length, 0xFF101215);
+            context.FillRect(RulerSize - 1f, 0f, 1f, length, 0xFF06070A);
         }
     }
 
-    /// <summary>Draws the soft blue selection tint.</summary>
+    /// <summary>Draws the soft pink selection tint.</summary>
     private static void DrawSelectionOverlay(CanvasContext context, PaintSession editor, float zoom)
     {
         if (editor.Selection is not { } selection || selection.IsEmpty)
@@ -630,7 +630,7 @@ public sealed class CanvasSurface : Component
             return;
         }
 
-        const uint Tint = 0x332F8DF0;
+        const uint Tint = 0x33FF2D87;
 
         if (selection.Shape == SelectionShape.Mask && selection.Mask is { } mask)
         {
@@ -835,7 +835,7 @@ public sealed class CanvasSurface : Component
 
         if (points.Count > 3)
         {
-            Stroke(context, previous, (points[0].X * zoom, points[0].Y * zoom), 0xFF9AA3AD);
+            Stroke(context, previous, (points[0].X * zoom, points[0].Y * zoom), 0xFF9CA3B1);
         }
     }
 
@@ -858,7 +858,7 @@ public sealed class CanvasSurface : Component
 
         foreach ((float x, float y) in anchors)
         {
-            context.FillRect(x - 4.5f, y - 4.5f, 9f, 9f, 0xFF0B0C0E);
+            context.FillRect(x - 4.5f, y - 4.5f, 9f, 9f, 0xFF05060A);
             context.FillRect(x - 3f, y - 3f, 6f, 6f, 0xFFFFFFFF);
         }
     }
@@ -909,14 +909,14 @@ public sealed class CanvasSurface : Component
 
         float x = ((editor.CloneMarkerX >= 0 ? editor.CloneMarkerX : editor.CloneSourceX) + 0.5f) * zoom;
         float y = ((editor.CloneMarkerY >= 0 ? editor.CloneMarkerY : editor.CloneSourceY) + 0.5f) * zoom;
-        const uint Dark = 0xFF0B0C0E;
+        const uint Dark = 0xFF05060A;
         const uint Light = 0xFFFFFFFF;
 
         context.FillRect(x - 8f, y - 1f, 16f, 2f, Dark);
         context.FillRect(x - 1f, y - 8f, 2f, 16f, Dark);
         context.FillRect(x - 7f, y - 0.5f, 14f, 1f, Light);
         context.FillRect(x - 0.5f, y - 7f, 1f, 14f, Light);
-        context.FillRect(x - 1.5f, y - 1.5f, 3f, 3f, 0xFF2F8DF0);
+        context.FillRect(x - 1.5f, y - 1.5f, 3f, 3f, 0xFFFF2D87);
     }
 
     /// <summary>Projects the window pointer into a canvas's local coordinates.</summary>
