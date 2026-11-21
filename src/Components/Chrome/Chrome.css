@@ -8,11 +8,14 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
+    height: auto;
     padding: 0;
     border-width: 0;
     border-style: solid;
     border-color: transparent;
     background-color: transparent;
+    background-image: none;
+    box-shadow: none;
     color: inherit;
     font-family: inherit;
     font-size: 12px;
@@ -20,6 +23,17 @@ button {
     line-height: 1.2;
     text-align: center;
     cursor: pointer;
+}
+
+/* The native hover/active rules are more specific than the reset above, so
+   clear their paint with an equal-specificity rule. Only the UA-only chrome
+   (gradient + inset shadow) is stripped here; background-color and border-color
+   are left to the UA and to the component hover rules, which are boosted to
+   button.<class>:hover so they beat the UA rule. */
+button:enabled:hover,
+button:enabled:active {
+    background-image: none;
+    box-shadow: none;
 }
 
 /* ---- menu bar ---- */
@@ -113,8 +127,8 @@ button {
     cursor: pointer;
 }
 
-.menu-title:hover {
-    background-color: var(--bg-hover);
+button.menu-title:hover {
+    background-color: var(--bg-hover) !important;
     color: var(--text-strong);
 }
 
@@ -168,7 +182,7 @@ button {
     flex: 1;
 }
 
-.menu-item:hover {
+button.menu-item:hover {
     background-color: var(--accent);
     color: var(--on-accent);
 }
@@ -523,7 +537,7 @@ button {
     cursor: pointer;
 }
 
-.font-popup-add:hover {
+button.font-popup-add:hover {
     color: #ffd0e4;
     text-decoration: underline;
 }
@@ -723,7 +737,7 @@ button {
     width: 92px;
 }
 
-.field-input {
+input.field-input {
     width: 92px;
     height: 18px;
     min-height: 18px;
@@ -862,7 +876,7 @@ button {
     cursor: pointer;
 }
 
-.tool:hover {
+button.tool:hover {
     background-color: #23262f;
     color: #e8ebf0;
 }
@@ -903,7 +917,7 @@ button {
     flex-shrink: 0;
 }
 
-.btn:hover {
+button.btn:hover {
     background-color: #343a48;
     border-color: #4d535e;
     color: #ffffff;
@@ -936,7 +950,7 @@ button {
     color: #c3c8d1;
 }
 
-.btn-ghost:hover {
+button.btn-ghost:hover {
     background-color: #23262f;
     border-color: #3f4552;
     color: #ffffff;
@@ -960,7 +974,7 @@ button {
     flex-shrink: 0;
 }
 
-.icon-btn:hover {
+button.icon-btn:hover {
     background-color: #2c303a;
     color: #f2f3f7;
 }
@@ -998,7 +1012,7 @@ button {
     font-size: 10.5px;
 }
 
-.segmented .btn:hover {
+.segmented button.btn:hover {
     background-color: #23262f;
     color: #f2f3f7;
 }
@@ -1048,7 +1062,7 @@ button {
         width: 76px;
     }
 
-    .field-input {
+    input.field-input {
         width: 76px;
     }
 

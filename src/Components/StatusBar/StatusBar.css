@@ -50,7 +50,7 @@
     cursor: pointer;
 }
 
-.status-zoom-reset:hover {
+button.status-zoom-reset:hover {
     background-color: #2c303a;
     color: #ffffff;
 }
