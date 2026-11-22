@@ -121,14 +121,13 @@ public sealed class OptionsBar : Component
 
     /// <summary>Builds the normal text-tool controls.</summary>
     private static Node TextOptions(PaintSession editor) => F(
-        Ui.TextField(
-            editor.TextContent,
-            "Type your text",
-            editor.SetText,
-            editor.BeginTyping,
-            editor.EndTyping,
-            null,
-            "text-" + editor.TextGeneration),
+        <TextField
+            Value={editor.TextContent}
+            Placeholder="Type your text"
+            onInput={editor.SetText}
+            onFocus={editor.BeginTyping}
+            onBlur={editor.EndTyping}
+            key={"text-" + editor.TextGeneration} />,
         <div className="text-font">
             <button className={editor.IsFontMenuOpen ? "btn font-picker is-on" : "btn font-picker"}
                 Title="Choose a font"
@@ -201,18 +200,15 @@ public sealed class OptionsBar : Component
     /// <summary>Builds the compact font-import row shown in place of the text options.</summary>
     private static Node ImportOptions(PaintSession editor) => F(
         <span className="options-note">{Text("Import a font from cdnfonts")}</span>,
-        Ui.TextField(
-            editor.FontUrl,
-            "cdnfonts URL or font name",
-            editor.SetFontUrl,
-            editor.BeginTyping,
-            editor.EndTyping,
-            _ =>
-            {
-                StartFontImport(editor);
-            },
-            "font-url-" + editor.FontAddGeneration,
-            "font-url"),
+        <TextField
+            Value={editor.FontUrl}
+            Placeholder="cdnfonts URL or font name"
+            onInput={editor.SetFontUrl}
+            onFocus={editor.BeginTyping}
+            onBlur={editor.EndTyping}
+            onCommit={_ => StartFontImport(editor)}
+            key={"font-url-" + editor.FontAddGeneration}
+            ClassName="font-url" />,
         Ui.Button("Add", "Download and cache this font", () => StartFontImport(editor), !editor.IsFontDownloading),
         Ui.Button("Cancel", "Close the font import row", editor.CancelFontAdd, !editor.IsFontDownloading),
         Show(editor.FontImportMessage.Length > 0,

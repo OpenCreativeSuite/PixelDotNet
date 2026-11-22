@@ -192,12 +192,12 @@ public sealed class LayerStyleDialog : Component
                 () => pick(color),
                 18,
                 18))}
-            {Ui.Swatch(
-                "style-swatch is-foreground",
-                editor.Foreground,
-                "Use the foreground colour",
-                () => pick(editor.Foreground),
-                18,
-                18)}
+            <Swatch
+                ClassName="style-swatch is-foreground"
+                Color={editor.Foreground}
+                title="Use the foreground colour"
+                onClick={() => pick(editor.Foreground)}
+                Width={18}
+                Height={18} />
         </div>;
 }

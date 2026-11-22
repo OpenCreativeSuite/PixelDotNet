@@ -154,19 +154,19 @@ public sealed class ShapeEditDialog : Component
                 () => pick(color),
                 18,
                 18))}
-            {Ui.Swatch(
-                current == editor.Foreground ? "style-swatch is-on" : "style-swatch",
-                editor.Foreground,
-                "Use the foreground colour",
-                () => pick(editor.Foreground),
-                18,
-                18)}
-            {Ui.Swatch(
-                current == editor.Background ? "style-swatch is-on" : "style-swatch",
-                editor.Background,
-                "Use the background colour",
-                () => pick(editor.Background),
-                18,
-                18)}
+            <Swatch
+                ClassName={current == editor.Foreground ? "style-swatch is-on" : "style-swatch"}
+                Color={editor.Foreground}
+                title="Use the foreground colour"
+                onClick={() => pick(editor.Foreground)}
+                Width={18}
+                Height={18} />
+            <Swatch
+                ClassName={current == editor.Background ? "style-swatch is-on" : "style-swatch"}
+                Color={editor.Background}
+                title="Use the background colour"
+                onClick={() => pick(editor.Background)}
+                Width={18}
+                Height={18} />
         </div>;
 }

@@ -56,14 +56,14 @@ public sealed class LayersPanel : Component
             <div className="layer-props">
                 <div className="prop-row">
                     <span className="prop-label">{Text("Blend")}</span>
-                    {<Stepper Value={LabelOf(active.Blend)} title="Blend mode of the active layer"
+                    <Stepper Value={LabelOf(active.Blend)} title="Blend mode of the active layer"
                         Previous={() => Cycle(editor, -1)}
-                        Next={() => Cycle(editor, 1)} />}
+                        Next={() => Cycle(editor, 1)} />
                 </div>
                 <div className="prop-row">
                     <span className="prop-label">{Text("Clip")}</span>
-                    {<Toggle Label="Below" title="Clip this layer to the visible content below it" Active={active.ClipToBelow}
-                        onClick={editor.ToggleClipToBelow} />}
+                    <Toggle Label="Below" title="Clip this layer to the visible content below it" Active={active.ClipToBelow}
+                        onClick={editor.ToggleClipToBelow} />
                 </div>
                 <div className="prop-row">
                     <span className="prop-label">{Text("Opacity")}</span>

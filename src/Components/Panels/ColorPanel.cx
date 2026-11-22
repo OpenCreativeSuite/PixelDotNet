@@ -63,8 +63,8 @@ public sealed class ColorPanel : Component
         return F(
             <div className="color-head">
                 <div className="pair">
-                    {<Swatch ClassName="pair-back" Color={editor.Background} title="Background colour — click to swap" onClick={editor.SwapColors} Width={30} Height={30} />}
-                    {<Swatch ClassName="pair-front" Color={editor.Foreground} title="Foreground colour — click to reset" onClick={editor.ResetColors} Width={30} Height={30} />}
+                    <Swatch ClassName="pair-back" Color={editor.Background} title="Background colour — click to swap" onClick={editor.SwapColors} Width={30} Height={30} />
+                    <Swatch ClassName="pair-front" Color={editor.Foreground} title="Foreground colour — click to reset" onClick={editor.ResetColors} Width={30} Height={30} />
                 </div>
                 <div className="color-info">
                     <span className={editor.ColorTarget == TextColorTarget.Fill ? "color-target is-fill" : "color-target"}>

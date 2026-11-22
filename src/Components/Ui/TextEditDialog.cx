@@ -51,19 +51,19 @@ public sealed class TextEditDialog : Component
                             null,
                             "text-edit-" + editor.TextEditIndex)}
                         <div className="text-font">
-                            {Ui.Button("<", "Previous font", () =>
+                            <Button Label="<" title="Previous font" onClick={() =>
                             {
                                 text.FontIndex = WrapFont(text.FontIndex - 1);
                                 editor.TouchTextLayer();
                                 editor.Refresh?.Invoke();
-                            })}
+                            }} />
                             <span className="resize-note">{Text(TextFonts.At(text.FontIndex).Name)}</span>
-                            {Ui.Button(">", "Next font", () =>
+                            <Button Label=">" title="Next font" onClick={() =>
                             {
                                 text.FontIndex = WrapFont(text.FontIndex + 1);
                                 editor.TouchTextLayer();
                                 editor.Refresh?.Invoke();
-                            })}
+                            }} />
                         </div>
                         {Slider("Size", text.Size, 8f, 400f, 1f, " px", editor, value =>
                         {
@@ -182,19 +182,19 @@ public sealed class TextEditDialog : Component
                 () => pick(color),
                 18,
                 18))}
-            {Ui.Swatch(
-                current == editor.Foreground ? "style-swatch is-on" : "style-swatch",
-                editor.Foreground,
-                "Use the foreground colour",
-                () => pick(editor.Foreground),
-                18,
-                18)}
-            {Ui.Swatch(
-                current == editor.Background ? "style-swatch is-on" : "style-swatch",
-                editor.Background,
-                "Use the background colour",
-                () => pick(editor.Background),
-                18,
-                18)}
+            <Swatch
+                ClassName={current == editor.Foreground ? "style-swatch is-on" : "style-swatch"}
+                Color={editor.Foreground}
+                title="Use the foreground colour"
+                onClick={() => pick(editor.Foreground)}
+                Width={18}
+                Height={18} />
+            <Swatch
+                ClassName={current == editor.Background ? "style-swatch is-on" : "style-swatch"}
+                Color={editor.Background}
+                title="Use the background colour"
+                onClick={() => pick(editor.Background)}
+                Width={18}
+                Height={18} />
         </div>;
 }

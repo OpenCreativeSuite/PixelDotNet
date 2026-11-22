@@ -38,8 +38,8 @@ public sealed class HelpModal : Component
                         Icons.Close, "Close Help", "")}
                 </div>
                 <div className="help-body">
-                    {Ui.Section("How it works", [.. Lines(topic.HowItWorks)])}
-                    {Ui.Section("Tips", [.. Tips(topic.Tips)])}
+                    <Section Title="How it works" Children={Lines(topic.HowItWorks)} />
+                    <Section Title="Tips" Children={Tips(topic.Tips)} />
                 </div>
                 <div className="help-foot">
                     <span className="help-foot-note">{Text("Hover any icon to see it again.")}</span>

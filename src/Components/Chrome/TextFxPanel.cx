@@ -46,9 +46,10 @@ public sealed class TextFxPanel : Component
                     Icons.Close, "Close Effects", "")}
             </div>
             <div className="text-fx-body">
-                {Ui.Section("Presets",
+                <Section Title="Presets" Children={new Node[] {
                     <div className="text-fx-presets">{PresetButtons(editor)}</div>,
-                    <span className="text-fx-note">{Text("Presets set the effects below; tweak any slider afterwards.")}</span>)}
+                    <span className="text-fx-note">{Text("Presets set the effects below; tweak any slider afterwards.")}</span>
+                }} />
                 {Ui.Section("Outline",
                     <div className="text-fx-switch">
                         {Ui.Toggle(
