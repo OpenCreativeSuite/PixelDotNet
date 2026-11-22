@@ -94,7 +94,7 @@ public sealed class ColorPanel : Component
                 </button>
             </div>,
 
-            Ui.Section("Spectrum",
+            <Section Title="Spectrum" Children={new Node[] {
                 <div className="spectrum">
                     {Canvas(new CanvasProps
                     {
@@ -110,15 +110,17 @@ public sealed class ColorPanel : Component
                         OnPointerDown = (x, _) => PickHue(editor, x),
                         OnDraw = context => DrawHue(context, editor),
                     })}
-                </div>),
+                </div>
+            }} />,
 
-            Ui.Section("Channels",
-                Ui.Slider("Red", red, 0f, 255f, 1f, string.Empty,
-                    value => editor.SetActiveColor((int)Ui.Parse(value, 0f, 255f), green, blue)),
-                Ui.Slider("Green", green, 0f, 255f, 1f, string.Empty,
-                    value => editor.SetActiveColor(red, (int)Ui.Parse(value, 0f, 255f), blue)),
-                Ui.Slider("Blue", blue, 0f, 255f, 1f, string.Empty,
-                    value => editor.SetActiveColor(red, green, (int)Ui.Parse(value, 0f, 255f)))),
+            <Section Title="Channels" Children={new Node[] {
+                <Slider Label="Red" Value={red} Min={0f} Max={255f} Step={1f} Suffix={string.Empty}
+                    onInput={value => editor.SetActiveColor((int)Ui.Parse(value, 0f, 255f), green, blue)} />,
+                <Slider Label="Green" Value={green} Min={0f} Max={255f} Step={1f} Suffix={string.Empty}
+                    onInput={value => editor.SetActiveColor(red, (int)Ui.Parse(value, 0f, 255f), blue)} />,
+                <Slider Label="Blue" Value={blue} Min={0f} Max={255f} Step={1f} Suffix={string.Empty}
+                    onInput={value => editor.SetActiveColor(red, green, (int)Ui.Parse(value, 0f, 255f))} />
+            }} />,
 
             <Section Title="Swatches" Children={new Node[] { <div className="swatches">{rows.ToArray()}</div> }} />);
     }
