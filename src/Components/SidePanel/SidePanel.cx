@@ -6,10 +6,13 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>The right-hand inspector: one tab bar, one visible panel.</summary>
+/// <summary>
+/// The right-hand inspector: a tab bar (Layers, Colour, Adjust, History, Effects)
+/// and the visible panel for the active tab.
+/// </summary>
 /// <remarks>
 /// The active tab lives in the session rather than in local hook state so other
-/// chrome (the colour chips, the Image menu) can jump to a tab.
+/// chrome (colour chips, Image menu) can jump to a tab.
 /// </remarks>
 public sealed class SidePanel : Component
 {

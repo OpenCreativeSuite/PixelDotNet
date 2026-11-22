@@ -124,8 +124,8 @@ public sealed class FileDialog : Component
                 <div className="file-error">{Text(editor.FileDialogError)}</div>)}
             <div className="file-actions">
                 <span className="file-hint">{Text("Right-click a row for file actions")}</span>
-                {<Button Label="Cancel" title="Close the file browser" onClick={() => { editor.CloseFileDialog(); editor.Refresh?.Invoke(); }} />}
-                {<Button Label={saving ? "Save" : "Open"} title={title} onClick={() => { editor.ConfirmFileDialog(); editor.Refresh?.Invoke(); }} />}
+                <Button Label="Cancel" title="Close the file browser" onClick={() => { editor.CloseFileDialog(); editor.Refresh?.Invoke(); }} />
+                <Button Label={saving ? "Save" : "Open"} title={title} onClick={() => { editor.ConfirmFileDialog(); editor.Refresh?.Invoke(); }} />
             </div>
         </div>;
 
@@ -231,8 +231,8 @@ public sealed class FileDialog : Component
                     Placeholder="Name"
                     OnInput={editor.FilePromptSetValue} />
                 <div className="file-prompt-actions">
-                    {<Button Label="Cancel" title="Close without applying" onClick={() => { editor.FilePromptCancel(); editor.Refresh?.Invoke(); }} />}
-                    {<Button Label="Apply" title="Apply the name" onClick={() => { editor.FilePromptConfirm(); editor.Refresh?.Invoke(); }} />}
+                    <Button Label="Cancel" title="Close without applying" onClick={() => { editor.FilePromptCancel(); editor.Refresh?.Invoke(); }} />
+                    <Button Label="Apply" title="Apply the name" onClick={() => { editor.FilePromptConfirm(); editor.Refresh?.Invoke(); }} />
                 </div>
             </div>
         </div>;

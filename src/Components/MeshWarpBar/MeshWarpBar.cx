@@ -6,7 +6,13 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Floating controls for the interactive mesh warp.</summary>
+/// <summary>
+/// Floating control bar for the interactive mesh warp: title, target layer, status
+/// note, and Reset/Cancel/Done actions.
+/// </summary>
+/// <remarks>
+/// Renders nothing when <see cref="PaintSession.IsMeshWarpOpen"/> is false.
+/// </remarks>
 public sealed class MeshWarpBar : Component
 {
     /// <inheritdoc/>
@@ -20,7 +26,7 @@ public sealed class MeshWarpBar : Component
 
         return <div className="mesh-warp-bar">
             <span className="mesh-warp-title">{Text("Mesh Warp")}</span>
-            <span className="mesh-warp-layer" Title="Layer being mesh-warped">
+            <span className="mesh-warp-layer" title="Layer being mesh-warped">
                 {Ui.Icon(Icons.Flatten, "mesh-warp-layer-icon")}
                 <span className="mesh-warp-layer-name">{Text(editor.MeshWarpLayer?.Name ?? "None")}</span>
             </span>

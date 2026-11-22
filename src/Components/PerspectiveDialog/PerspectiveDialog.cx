@@ -6,7 +6,14 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Four-corner perspective transform with a live canvas preview.</summary>
+/// <summary>
+/// Modal dialog for a four-corner perspective transform with a live canvas preview
+/// and per-corner offset sliders.
+/// </summary>
+/// <remarks>
+/// Renders nothing when <see cref="PaintSession.IsPerspectiveOpen"/> is false or no
+/// layer is being transformed.
+/// </remarks>
 public sealed class PerspectiveDialog : Component
 {
     private static readonly string[] Labels =

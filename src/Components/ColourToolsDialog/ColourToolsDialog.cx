@@ -112,7 +112,7 @@ public sealed class ColourToolsDialog : Component
                     <div className="style-section">
                         <div className="style-section-head">
                             <span className="style-section-title">{Text("Split Channels")}</span>
-                            {<Button Label="Split" title="Create red, green and blue layers" onClick={() => { editor.ApplySplitChannels(); editor.Refresh?.Invoke(); }} />}
+                            <Button Label="Split" title="Create red, green and blue layers" onClick={() => { editor.ApplySplitChannels(); editor.Refresh?.Invoke(); }} />
                         </div>
                         <span className="resize-note">{Text("Adds three grayscale layers above the active layer.")}</span>
                     </div>
@@ -120,7 +120,7 @@ public sealed class ColourToolsDialog : Component
                 <div className="resize-foot">
                     <span className="resize-note">{Text("Each action is undoable and respects the selection.")}</span>
                     <div className="resize-actions">
-                        {<Button Label="Done" title="Close the colour tools" onClick={() => { editor.CloseColourToolsDialog(); editor.Refresh?.Invoke(); }} />}
+                        <Button Label="Done" title="Close the colour tools" onClick={() => { editor.CloseColourToolsDialog(); editor.Refresh?.Invoke(); }} />
                     </div>
                 </div>
             </div>

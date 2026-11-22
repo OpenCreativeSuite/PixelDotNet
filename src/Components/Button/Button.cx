@@ -5,17 +5,52 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Props for a reusable button.</summary>
+/// <summary>
+/// A reusable button component that renders a native <c>&lt;button&gt;</c> element
+/// with a label, optional title tooltip, click handler, and enabled state.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Use this component for simple text buttons. For icon-only buttons, prefer
+/// <see cref="IconButton"/>. For toggle buttons, prefer <see cref="Toggle"/>.
+/// </para>
+/// <para>
+/// The component does not attach a hover tooltip by itself; wrap it in
+/// <c>Ui.Tip</c> when a floating tooltip is required (the tip needs an
+/// <see cref="Donkeh.UILab.ElementNode"/>, which this component renders).
+/// </para>
+/// </remarks>
+/// <example>
+/// <code>
+/// &lt;Button Label="Save" title="Save the document" onClick={editor.Save} Enabled={editor.CanSave} /&gt;
+/// </code>
+/// </example>
 public class ButtonProps : Props
 {
+    /// <summary>Gets or sets the text label rendered inside the button.</summary>
+    /// <value>The button label. Defaults to an empty string.</value>
     public string Label { get; set; } = "";
+
+    /// <summary>Gets or sets the native <c>title</c> attribute (browser tooltip).</summary>
+    /// <value>The title text. Defaults to an empty string.</value>
     public string title { get; set; } = "";
+
+    /// <summary>Gets or sets the click handler invoked when the button is activated.</summary>
+    /// <value>An action, or <see langword="null"/> to render a non-interactive button.</value>
     public Action? onClick { get; set; }
+
+    /// <summary>Gets or sets whether the button is enabled.</summary>
+    /// <value><see langword="true"/> (default) enables the button; <see langword="false"/> disables it and adds the <c>is-disabled</c> class.</value>
     public bool Enabled { get; set; } = true;
+
+    /// <summary>Gets or sets the CSS class applied to the button element.</summary>
+    /// <value>The class name. Defaults to <c>"btn"</c>.</value>
     public string ClassName { get; set; } = "btn";
 }
 
-/// <summary>A reusable button with a hover tooltip handled by the caller.</summary>
+/// <summary>
+/// A reusable button component. See <see cref="ButtonProps"/> for the available props.
+/// </summary>
 public sealed class Button : Component<ButtonProps>
 {
     /// <inheritdoc/>

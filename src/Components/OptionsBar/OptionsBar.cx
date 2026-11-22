@@ -46,7 +46,7 @@ public sealed class OptionsBar : Component
                         <button className="icon-btn is-tiny"
                             Title="Default black and white (D)"
                             OnClick={editor.ResetColors}>
-                            {<DefaultsGlyph />}
+                            <DefaultsGlyph />
                         </button>,
                         Icons.Invert, "Default Colours", "", "D")}
                 </div>
@@ -271,8 +271,8 @@ public sealed class OptionsBar : Component
 
         PaintTool.Rectangle or PaintTool.Ellipse => F(
             <div className="segmented">
-                {<Toggle Label="Fill" title="Fill the shape" Active={editor.FillShapes} onClick={() => { editor.FillShapes = true; editor.Refresh?.Invoke(); }} />}
-                {<Toggle Label="Stroke" title="Outline the shape" Active={!editor.FillShapes} onClick={() => { editor.FillShapes = false; editor.Refresh?.Invoke(); }} />}
+                <Toggle Label="Fill" title="Fill the shape" Active={editor.FillShapes} onClick={() => { editor.FillShapes = true; editor.Refresh?.Invoke(); }} />
+                <Toggle Label="Stroke" title="Outline the shape" Active={!editor.FillShapes} onClick={() => { editor.FillShapes = false; editor.Refresh?.Invoke(); }} />
             </div>,
             <Field Label="Width" Value={editor.StrokeWidth} Min={1f} Max={40f} Step={1f} Suffix=" px"
                 onInput={value => { editor.StrokeWidth = Ui.Parse(value, 1f, 40f); editor.Refresh?.Invoke(); }} />,
@@ -329,8 +329,8 @@ public sealed class OptionsBar : Component
 
         PaintTool.Pen => F(
             <div className="segmented">
-                {<Toggle Label="Fill" title="Fill the path" Active={editor.FillShapes} onClick={() => { editor.FillShapes = true; editor.Refresh?.Invoke(); }} />}
-                {<Toggle Label="Stroke" title="Outline the path" Active={!editor.FillShapes} onClick={() => { editor.FillShapes = false; editor.Refresh?.Invoke(); }} />}
+                <Toggle Label="Fill" title="Fill the path" Active={editor.FillShapes} onClick={() => { editor.FillShapes = true; editor.Refresh?.Invoke(); }} />
+                <Toggle Label="Stroke" title="Outline the path" Active={!editor.FillShapes} onClick={() => { editor.FillShapes = false; editor.Refresh?.Invoke(); }} />
             </div>,
             <Field Label="Width" Value={editor.StrokeWidth} Min={1f} Max={40f} Step={1f} Suffix=" px"
                 onInput={value => { editor.StrokeWidth = Ui.Parse(value, 1f, 40f); editor.Refresh?.Invoke(); }} />,

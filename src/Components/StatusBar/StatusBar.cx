@@ -7,7 +7,10 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Bottom bar: zoom, document facts, tool state and the last message.</summary>
+/// <summary>
+/// The bottom status bar: zoom controls, document dimensions, colour mode, tool
+/// name, cursor position, selection info, and the last status message.
+/// </summary>
 public sealed class StatusBar : Component
 {
     /// <inheritdoc/>
@@ -36,12 +39,11 @@ public sealed class StatusBar : Component
             <span className="status-item is-muted">{Text(editor.ColorMode)}</span>
             <span className="status-sep" />
             <span className="status-item">{Text($"{PaintSession.NameOf(editor.Tool)} | {position}")}</span>
-            {Show(editor.Selection is not null, <fragment>
-                <span className="status-sep" />
+            {Show(editor.Selection is not null, F(
+                <span className="status-sep" />,
                 <span className="status-item is-muted">
                     {Text($"Selection {editor.Selection?.Width ?? 0} × {editor.Selection?.Height ?? 0}")}
-                </span>
-            </fragment>)}
+                </span>))}
             <div className="status-spacer" />
             <span className="status-message">{Text(editor.Status)}</span>
         </div>;

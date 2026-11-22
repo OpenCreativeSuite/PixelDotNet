@@ -5,16 +5,36 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Props for a labelled stepper control.</summary>
+/// <summary>
+/// A labelled value control with previous/next buttons for stepping through a fixed list.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;Stepper Value={LabelOf(active.Blend)} title="Blend mode of the active layer" Previous={() => Cycle(editor, -1)} Next={() => Cycle(editor, 1)} /&gt;
+/// </code>
+/// </example>
 public class StepperProps : Props
 {
+    /// <summary>Gets or sets the displayed value text.</summary>
+    /// <value>The value. Defaults to an empty string.</value>
     public string Value { get; set; } = "";
+
+    /// <summary>Gets or sets the native <c>title</c> attribute.</summary>
+    /// <value>The title text. Defaults to an empty string.</value>
     public string title { get; set; } = "";
+
+    /// <summary>Gets or sets the previous-step handler.</summary>
+    /// <value>An action, or <see langword="null"/>.</value>
     public Action? Previous { get; set; }
+
+    /// <summary>Gets or sets the next-step handler.</summary>
+    /// <value>An action, or <see langword="null"/>.</value>
     public Action? Next { get; set; }
 }
 
-/// <summary>A labelled value that steps through a fixed list.</summary>
+/// <summary>
+/// A stepper component. See <see cref="StepperProps"/> for the available props.
+/// </summary>
 public sealed class Stepper : Component<StepperProps>
 {
     /// <inheritdoc/>

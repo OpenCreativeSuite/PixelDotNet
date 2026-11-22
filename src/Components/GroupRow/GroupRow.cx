@@ -7,13 +7,20 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Props for a layer group header row.</summary>
+/// <summary>
+/// Props for a layer group header row.
+/// </summary>
 public class GroupRowProps : Props
 {
+    /// <summary>Gets or sets the layer group to render.</summary>
+    /// <value>The group, or <see langword="null"/> to render nothing.</value>
     public LayerGroup? Group { get; set; }
 }
 
-/// <summary>Builds the header row for a layer group.</summary>
+/// <summary>
+/// Builds the header row for a layer group: chevron, icon, name, opacity, and
+/// visibility toggle. Handles drag-and-drop into the group.
+/// </summary>
 public sealed class GroupRow : Component<GroupRowProps>
 {
     private const string LayerDragFormat = "application/x-pixeldotnet-layer";

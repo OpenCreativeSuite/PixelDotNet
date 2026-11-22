@@ -89,8 +89,8 @@ public sealed class BatchDialog : Component
                 <div className="resize-foot">
                     <span className="resize-note">{Text("Name = original + suffix. Format sets the extension.")}</span>
                     <div className="resize-actions">
-                        {<Button Label="Close" title="Close the batch dialog" onClick={() => { editor.CloseBatchDialog(); editor.Refresh?.Invoke(); }} />}
-                        {<Button Label="Run" title="Process the folder" onClick={() => { editor.RunBatch(); editor.Refresh?.Invoke(); }} />}
+                        <Button Label="Close" title="Close the batch dialog" onClick={() => { editor.CloseBatchDialog(); editor.Refresh?.Invoke(); }} />
+                        <Button Label="Run" title="Process the folder" onClick={() => { editor.RunBatch(); editor.Refresh?.Invoke(); }} />
                     </div>
                 </div>
             </div>

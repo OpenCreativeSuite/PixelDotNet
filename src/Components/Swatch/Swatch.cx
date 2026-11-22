@@ -7,18 +7,44 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Props for a small square colour swatch.</summary>
+/// <summary>
+/// A small square colour swatch rendered as a canvas painted with a single colour.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;Swatch ClassName="swatch" Color={color} title="Use this colour" onClick={() => pick(color)} Width={18} Height={18} /&gt;
+/// </code>
+/// </example>
 public class SwatchProps : Props
 {
+    /// <summary>Gets or sets the CSS class applied to the canvas element.</summary>
+    /// <value>The class name. Defaults to <c>"swatch"</c>.</value>
     public string ClassName { get; set; } = "swatch";
+
+    /// <summary>Gets or sets the colour to paint (packed ARGB).</summary>
+    /// <value>The colour value.</value>
     public uint Color { get; set; }
+
+    /// <summary>Gets or sets the native <c>title</c> attribute.</summary>
+    /// <value>The title text. Defaults to an empty string.</value>
     public string title { get; set; } = "";
+
+    /// <summary>Gets or sets the click handler invoked when the swatch is clicked.</summary>
+    /// <value>An action, or <see langword="null"/>.</value>
     public Action? onClick { get; set; }
+
+    /// <summary>Gets or sets the swatch width in pixels.</summary>
+    /// <value>The width. Defaults to 24.</value>
     public int Width { get; set; } = 24;
+
+    /// <summary>Gets or sets the swatch height in pixels.</summary>
+    /// <value>The height. Defaults to 18.</value>
     public int Height { get; set; } = 18;
 }
 
-/// <summary>A small square swatch painted by a canvas.</summary>
+/// <summary>
+/// A colour swatch component. See <see cref="SwatchProps"/> for the available props.
+/// </summary>
 public sealed class Swatch : Component<SwatchProps>
 {
     /// <inheritdoc/>

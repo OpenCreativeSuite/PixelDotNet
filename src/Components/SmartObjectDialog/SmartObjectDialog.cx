@@ -6,7 +6,13 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Position, scale, rotation and mirroring for a smart object.</summary>
+/// <summary>
+/// Modal dialog for position, scale, rotation, and mirroring of a smart object.
+/// </summary>
+/// <remarks>
+/// Renders nothing when <see cref="PaintSession.IsSmartTransformOpen"/> is false or
+/// no smart object layer is selected.
+/// </remarks>
 public sealed class SmartObjectDialog : Component
 {
     private static readonly string[] Labels =

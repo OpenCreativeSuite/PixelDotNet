@@ -10,10 +10,13 @@ using static Donkeh.UILab._;
 namespace PixelDotNet.Components;
 
 /// <summary>
-/// The floating tooltip rendered at the application root. It is positioned from
-/// the hovered node's bounding box, so it is never clipped by the tool rail or
-/// options bar scroll containers.
+/// The floating tooltip rendered at the application root. Positioned from the
+/// hovered node's bounding box so it is never clipped by scroll containers.
 /// </summary>
+/// <remarks>
+/// Renders nothing when <see cref="PaintSession.Tip"/> is null. The tooltip is
+/// placed according to <see cref="TipState.Placement"/> and clamped to the viewport.
+/// </remarks>
 public sealed class TooltipOverlay : Component
 {
     private const float Width = 200f;
@@ -34,8 +37,6 @@ public sealed class TooltipOverlay : Component
         float viewportHeight = MathF.Max(240f, editor.ViewportHeight);
         float width = tip.ShowChevron ? Width : 140f;
 
-        // Menu headers and most option controls read better under the text.
-        // The tool rail explicitly asks for the right side.
         bool placeRight = tip.Placement switch
         {
             TipPlacement.Right => true,
@@ -84,15 +85,15 @@ public sealed class TooltipOverlay : Component
             + "height:" + Ui.Number(Height) + "px;";
 
         return <div className="tip-float"
-            Attributes={new() { ["style"] = style }}
-            OnMouseOver={() => editor.TipHovered = true}
-            OnMouseOut={() => ScheduleHide(editor)}>
+            attributes={new() { ["style"] = style }}
+            onMouseOver={() => editor.TipHovered = true}
+            onMouseOut={() => ScheduleHide(editor)}>
             <span className="tip-icon">{Ui.Icon(tip.Icon)}</span>
             <span className="tip-title">{Text(tip.Title)}</span>
             {Show(tip.ShowChevron && tip.Hint.Length > 0, <span className="tip-key">{Text(tip.Hint)}</span>)}
             {Show(tip.ShowChevron, <button className="tip-more"
-                Title={"More about " + tip.Title}
-                OnClick={() =>
+                title={"More about " + tip.Title}
+                onClick={() =>
                 {
                     editor.ShowHelp(HelpCatalog.Find(tip.HelpId));
                     editor.Refresh?.Invoke();
@@ -103,6 +104,7 @@ public sealed class TooltipOverlay : Component
     }
 
     /// <summary>Hides the bubble after a short grace period.</summary>
+    /// <param name="editor">The paint session.</param>
     private static void ScheduleHide(PaintSession editor)
     {
         editor.TipHovered = false;

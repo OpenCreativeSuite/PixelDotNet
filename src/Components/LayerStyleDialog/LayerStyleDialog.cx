@@ -140,7 +140,7 @@ public sealed class LayerStyleDialog : Component
                 <div className="resize-foot">
                     <span className="resize-note">{Text("Styles redraw from the layer's pixels.")}</span>
                     <div className="resize-actions">
-                        {<Button Label="Done" title="Close the style editor" onClick={() => { editor.CloseLayerStyleDialog(); editor.Refresh?.Invoke(); }} />}
+                        <Button Label="Done" title="Close the style editor" onClick={() => { editor.CloseLayerStyleDialog(); editor.Refresh?.Invoke(); }} />
                     </div>
                 </div>
             </div>

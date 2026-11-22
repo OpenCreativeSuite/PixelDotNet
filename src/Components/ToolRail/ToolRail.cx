@@ -7,7 +7,10 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>The tool rail. A column on desktop, a scrolling strip on phones.</summary>
+/// <summary>
+/// The tool rail: a column of tool buttons on desktop, a scrolling strip on phones.
+/// Tools are grouped, with separators between groups.
+/// </summary>
 public sealed class ToolRail : Component
 {
     private static readonly PaintTool[][] Groups =

@@ -12,7 +12,12 @@ namespace PixelDotNet.Components;
 /// <summary>Props for a single layer row.</summary>
 public class LayerRowProps : Props
 {
+    /// <summary>Gets or sets the layer index in the document.</summary>
+    /// <value>The layer index.</value>
     public int Index { get; set; }
+
+    /// <summary>Gets or sets whether the row is a child of a group.</summary>
+    /// <value><see langword="true"/> for grouped (indented) rows.</value>
     public bool Child { get; set; }
 }
 

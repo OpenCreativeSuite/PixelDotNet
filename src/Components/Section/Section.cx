@@ -4,13 +4,29 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Props for a titled section block.</summary>
+/// <summary>
+/// A titled section block used inside panels: a header row (title + rule) followed
+/// by a body container for child content.
+/// </summary>
+/// <remarks>
+/// Children are passed via the <see cref="SectionProps.Children"/> prop because the
+/// CSX transformer does not append trailing child arguments to component nodes.
+/// </remarks>
+/// <example>
+/// <code>
+/// &lt;Section Title="Channels" Children={new Node[] { ... }} /&gt;
+/// </code>
+/// </example>
 public class SectionProps : PropsWithChildren
 {
+    /// <summary>Gets or sets the section title displayed in the header.</summary>
+    /// <value>The title text. Defaults to an empty string.</value>
     public string Title { get; set; } = "";
 }
 
-/// <summary>A titled block inside a panel.</summary>
+/// <summary>
+/// A titled section component. See <see cref="SectionProps"/> for the available props.
+/// </summary>
 public sealed class Section : Component<SectionProps>
 {
     /// <inheritdoc/>

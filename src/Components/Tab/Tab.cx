@@ -6,25 +6,51 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Props for a single inspector tab.</summary>
+/// <summary>
+/// A single inspector tab button with an icon, label, active state, and hover tooltip.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;Tab Label="Layers" Icon={Icons.Flatten} Active={tab == 0} Title="Layers" HelpId="tab.layers" OnSelect={() => editor.OpenSideTab(0)} /&gt;
+/// </code>
+/// </example>
 public class TabProps : Props
 {
+    /// <summary>Gets or sets the tab label text.</summary>
+    /// <value>The label. Defaults to an empty string.</value>
     public string Label { get; set; } = "";
+
+    /// <summary>Gets or sets the Font Awesome icon class for the tooltip.</summary>
+    /// <value>The icon class. Defaults to an empty string.</value>
     public string Icon { get; set; } = "";
+
+    /// <summary>Gets or sets whether the tab is the active (selected) tab.</summary>
+    /// <value><see langword="true"/> when active; applies the <c>is-active</c> class.</value>
     public bool Active { get; set; }
+
+    /// <summary>Gets or sets the tooltip title.</summary>
+    /// <value>The title text. Defaults to an empty string.</value>
     public string Title { get; set; } = "";
+
+    /// <summary>Gets or sets the help topic id for the tooltip chevron.</summary>
+    /// <value>The help id. Defaults to an empty string.</value>
     public string HelpId { get; set; } = "";
+
+    /// <summary>Gets or sets the selection handler invoked on click.</summary>
+    /// <value>An action, or <see langword="null"/>.</value>
     public Action? OnSelect { get; set; }
 }
 
-/// <summary>A single tab button with a hover tooltip.</summary>
+/// <summary>
+/// An inspector tab component. See <see cref="TabProps"/> for the available props.
+/// </summary>
 public sealed class Tab : Component<TabProps>
 {
     /// <inheritdoc/>
     public override Node Render()
     {
-        PaintSession editor = UseContext(EditorContext.Value);
         TabProps props = Props;
+        PaintSession editor = UseContext(EditorContext.Value);
 
         return Ui.Tip(editor,
             <button className={props.Active ? "panel-tab is-active" : "panel-tab"}

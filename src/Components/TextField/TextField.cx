@@ -5,20 +5,52 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Props for a single-line text field.</summary>
+/// <summary>
+/// A single-line text field sized for the options bar.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;TextField Value={editor.TextContent} Placeholder="Type your text" onInput={editor.SetText} onFocus={editor.BeginTyping} onBlur={editor.EndTyping} key={"text-" + editor.TextGeneration} /&gt;
+/// </code>
+/// </example>
 public class TextFieldProps : Props
 {
+    /// <summary>Gets or sets the current text value.</summary>
+    /// <value>The value. Defaults to an empty string.</value>
     public string Value { get; set; } = "";
+
+    /// <summary>Gets or sets the placeholder text.</summary>
+    /// <value>The placeholder. Defaults to an empty string.</value>
     public string Placeholder { get; set; } = "";
+
+    /// <summary>Gets or sets the input handler invoked with the new value.</summary>
+    /// <value>An action, or <see langword="null"/>.</value>
     public Action<string>? onInput { get; set; }
+
+    /// <summary>Gets or sets the focus handler.</summary>
+    /// <value>An action, or <see langword="null"/>.</value>
     public Action? onFocus { get; set; }
+
+    /// <summary>Gets or sets the blur handler.</summary>
+    /// <value>An action, or <see langword="null"/>.</value>
     public Action? onBlur { get; set; }
+
+    /// <summary>Gets or sets the commit (change) handler.</summary>
+    /// <value>An action, or <see langword="null"/>.</value>
     public Action<string>? onCommit { get; set; }
+
+    /// <summary>Gets or sets the element key for reconciliation.</summary>
+    /// <value>The key, or <see langword="null"/>.</value>
     public string? key { get; set; }
+
+    /// <summary>Gets or sets the CSS class applied to the input.</summary>
+    /// <value>The class name. Defaults to <c>"text-field"</c>.</value>
     public string ClassName { get; set; } = "text-field";
 }
 
-/// <summary>A single-line text field sized for the options bar.</summary>
+/// <summary>
+/// A text field component. See <see cref="TextFieldProps"/> for the available props.
+/// </summary>
 public sealed class TextField : Component<TextFieldProps>
 {
     /// <inheritdoc/>

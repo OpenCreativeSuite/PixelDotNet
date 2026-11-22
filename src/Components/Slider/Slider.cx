@@ -6,19 +6,48 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Props for a stacked slider.</summary>
+/// <summary>
+/// A stacked slider (label, value readout, and range input) used in panels.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;Slider Label="Brightness" Value={editor.AdjustBrightness} Min={-100f} Max={100f} Step={1f} Suffix="" onInput={value => editor.AdjustBrightness = Ui.Parse(value, -100f, 100f)} /&gt;
+/// </code>
+/// </example>
 public class SliderProps : Props
 {
+    /// <summary>Gets or sets the slider label.</summary>
+    /// <value>The label. Defaults to an empty string.</value>
     public string Label { get; set; } = "";
+
+    /// <summary>Gets or sets the current value.</summary>
+    /// <value>The value.</value>
     public float Value { get; set; }
+
+    /// <summary>Gets or sets the minimum value.</summary>
+    /// <value>The minimum.</value>
     public float Min { get; set; }
+
+    /// <summary>Gets or sets the maximum value.</summary>
+    /// <value>The maximum.</value>
     public float Max { get; set; }
+
+    /// <summary>Gets or sets the step increment.</summary>
+    /// <value>The step. Defaults to 1.</value>
     public float Step { get; set; } = 1f;
+
+    /// <summary>Gets or sets the suffix appended to the displayed value.</summary>
+    /// <value>The suffix. Defaults to an empty string.</value>
     public string Suffix { get; set; } = "";
+
+    /// <summary>Gets or sets the input handler invoked with the new value string.</summary>
+    /// <value>An action, or <see langword="null"/>.</value>
     public Action<string>? onInput { get; set; }
 }
 
-/// <summary>A stacked slider for a panel.</summary>
+/// <summary>
+/// A slider component. See <see cref="SliderProps"/> for the available props.
+/// </summary>
 public sealed class Slider : Component<SliderProps>
 {
     /// <inheritdoc/>

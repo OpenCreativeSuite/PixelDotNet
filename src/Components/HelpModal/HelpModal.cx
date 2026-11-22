@@ -6,7 +6,14 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>The centred help modal opened by a tooltip's chevron.</summary>
+/// <summary>
+/// The centred help modal opened by a tooltip's chevron. Displays a help topic
+/// with icon, title, shortcut, summary, "How it works" lines, and tips.
+/// </summary>
+/// <remarks>
+/// Renders nothing when <see cref="PaintSession.OpenHelp"/> is null. The modal is
+/// positioned at the application root so it overlays all other content.
+/// </remarks>
 public sealed class HelpModal : Component
 {
     /// <inheritdoc/>
@@ -38,8 +45,8 @@ public sealed class HelpModal : Component
                         Icons.Close, "Close Help", "")}
                 </div>
                 <div className="help-body">
-                    <Section Title="How it works" Children={Lines(topic.HowItWorks)} />
-                    <Section Title="Tips" Children={Tips(topic.Tips)} />
+                    {<Section Title="How it works" Children={Lines(topic.HowItWorks)} />}
+                    {<Section Title="Tips" Children={Tips(topic.Tips)} />}
                 </div>
                 <div className="help-foot">
                     <span className="help-foot-note">{Text("Hover any icon to see it again.")}</span>
@@ -49,6 +56,9 @@ public sealed class HelpModal : Component
         </div>;
     }
 
+    /// <summary>Builds the "How it works" line nodes.</summary>
+    /// <param name="lines">The help lines to render.</param>
+    /// <returns>An array of line nodes.</returns>
     private static Node[] Lines(string[] lines)
     {
         Node[] nodes = new Node[lines.Length];
@@ -63,6 +73,9 @@ public sealed class HelpModal : Component
         return nodes;
     }
 
+    /// <summary>Builds the tips nodes.</summary>
+    /// <param name="tips">The tips to render.</param>
+    /// <returns>An array of tip nodes.</returns>
     private static Node[] Tips(string[] tips)
     {
         Node[] nodes = new Node[tips.Length];

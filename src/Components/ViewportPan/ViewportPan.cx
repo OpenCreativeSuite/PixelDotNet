@@ -5,7 +5,10 @@ using Donkeh.Windowing;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Middle-button panning for the document viewport.</summary>
+/// <summary>
+/// Middle-button panning service for the document viewport. Owns the drag state
+/// and translates window-space pointer deltas into scroll offsets.
+/// </summary>
 /// <remarks>
 /// <para>
 /// The framework exposes button state, the window-space pointer position and

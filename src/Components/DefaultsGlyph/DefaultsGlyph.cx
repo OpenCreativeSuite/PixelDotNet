@@ -4,7 +4,9 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>The black-over-white mark used by the default-colours button.</summary>
+/// <summary>
+/// The black-over-white mark used by the default-colours button.
+/// </summary>
 public sealed class DefaultsGlyph : Component
 {
     /// <inheritdoc/>

@@ -5,15 +5,36 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Props for a Font Awesome glyph.</summary>
+/// <summary>
+/// Renders a Font Awesome glyph as an <c>&lt;i&gt;</c> element.
+/// </summary>
+/// <remarks>
+/// The component composes the Font Awesome class string from the <see cref="IconProps.Name"/>,
+/// <see cref="IconProps.Extra"/>, and <see cref="IconProps.Regular"/> props.
+/// </remarks>
+/// <example>
+/// <code>
+/// &lt;Icon Name={Icons.Save} Extra="btn-icon" /&gt;
+/// </code>
+/// </example>
 public class IconProps : Props
 {
+    /// <summary>Gets or sets the Font Awesome class name, e.g. <c>"fa-floppy-disk"</c>.</summary>
+    /// <value>The glyph class. Defaults to an empty string.</value>
     public string Name { get; set; } = "";
+
+    /// <summary>Gets or sets additional CSS classes appended after the glyph class.</summary>
+    /// <value>Extra classes. Defaults to an empty string.</value>
     public string Extra { get; set; } = "";
+
+    /// <summary>Gets or sets whether to use the regular (outline) weight.</summary>
+    /// <value><see langword="true"/> for regular weight; <see langword="false"/> (default) for solid.</value>
     public bool Regular { get; set; }
 }
 
-/// <summary>A Font Awesome glyph.</summary>
+/// <summary>
+/// A Font Awesome glyph component. See <see cref="IconProps"/> for the available props.
+/// </summary>
 public sealed class Icon : Component<IconProps>
 {
     /// <inheritdoc/>

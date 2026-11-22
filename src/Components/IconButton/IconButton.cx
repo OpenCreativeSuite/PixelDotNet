@@ -5,18 +5,44 @@ using static Donkeh.UILab._;
 
 namespace PixelDotNet.Components;
 
-/// <summary>Props for a square icon-only button.</summary>
+/// <summary>
+/// A square icon-only button rendering a Font Awesome glyph.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;IconButton Icon={Icons.Save} title="Save" onClick={editor.Save} Enabled={editor.CanSave} ClassName="quick-btn" /&gt;
+/// </code>
+/// </example>
 public class IconButtonProps : Props
 {
+    /// <summary>Gets or sets the Font Awesome icon class.</summary>
+    /// <value>The icon class. Defaults to an empty string.</value>
     public string Icon { get; set; } = "";
+
+    /// <summary>Gets or sets the native <c>title</c> attribute.</summary>
+    /// <value>The title text. Defaults to an empty string.</value>
     public string title { get; set; } = "";
+
+    /// <summary>Gets or sets the click handler.</summary>
+    /// <value>An action, or <see langword="null"/>.</value>
     public Action? onClick { get; set; }
+
+    /// <summary>Gets or sets whether the button is enabled.</summary>
+    /// <value><see langword="true"/> (default) enables the button.</value>
     public bool Enabled { get; set; } = true;
+
+    /// <summary>Gets or sets the CSS class applied to the button.</summary>
+    /// <value>The class name. Defaults to <c>"icon-btn"</c>.</value>
     public string ClassName { get; set; } = "icon-btn";
+
+    /// <summary>Gets or sets whether to use the regular (outline) weight for the glyph.</summary>
+    /// <value><see langword="true"/> for regular weight.</value>
     public bool Regular { get; set; }
 }
 
-/// <summary>A square icon-only button.</summary>
+/// <summary>
+/// An icon button component. See <see cref="IconButtonProps"/> for the available props.
+/// </summary>
 public sealed class IconButton : Component<IconButtonProps>
 {
     /// <inheritdoc/>

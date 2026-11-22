@@ -46,10 +46,10 @@ public sealed class EffectsPanel : Component
             Show(editor.LastEffect != EffectKind.None, F(
                 <div className="section-split" />,
                 <div className="row">
-                    {<Button Label={"Repeat " + Effects.NameOf(editor.LastEffect)}
+                    <Button Label={"Repeat " + Effects.NameOf(editor.LastEffect)}
                         title="Apply the last effect again to the active layer"
                         onClick={() => { editor.RepeatLastEffect(); editor.Refresh?.Invoke(); }}
-                        Enabled={!locked} />}
+                        Enabled={!locked} />
                 </div>)),
             <span className="panel-note">
                 {Text(locked
@@ -71,8 +71,8 @@ public sealed class EffectsPanel : Component
                 editor.Refresh?.Invoke();
             }),
             <div className="row">
-                {<Button Label="Apply" title="Keep the previewed pixels" onClick={() => { editor.ApplyEffect(); editor.Refresh?.Invoke(); }} Enabled={previewing} />}
-                {<Button Label="Cancel" title="Restore the pixels from before the preview" onClick={() => { editor.ResetEffect(); editor.Refresh?.Invoke(); }} Enabled={previewing} />}
+                <Button Label="Apply" title="Keep the previewed pixels" onClick={() => { editor.ApplyEffect(); editor.Refresh?.Invoke(); }} Enabled={previewing} />
+                <Button Label="Cancel" title="Restore the pixels from before the preview" onClick={() => { editor.ResetEffect(); editor.Refresh?.Invoke(); }} Enabled={previewing} />
             </div>);
     }
 }
