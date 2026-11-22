@@ -1,0 +1,255 @@
+using System;
+using Donkeh.UILab;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>The in-app file browser used by File &gt; Open and File &gt; Save.</summary>
+public sealed class FileDialog : Component
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        PaintSession editor = UseContext(EditorContext.Value);
+        if (!editor.IsFileDialogOpen)
+        {
+            return <span />;
+        }
+
+        bool saving = editor.FileDialogMode == FileDialogMode.Save;
+        bool project = editor.FileDialogProject;
+        bool svg = editor.FileDialogSvg;
+        string title = svg
+            ? saving ? "Export SVG" : "Import SVG"
+            : project
+                ? saving ? "Save Project" : "Open Project"
+                : saving ? "Save Image" : "Open Image";
+        string summary = svg
+            ? saving
+                ? "Shapes and text stay vector; other layers are embedded as a PNG."
+                : "Choose an SVG to import as editable shape and text layers."
+            : project
+                ? saving
+                    ? "Keep layers, masks, groups and guides in a .pxd file."
+                    : "Open a .pxd project with all of its layers and masks."
+                : saving
+                    ? "Choose a folder, a file name and a format."
+                    : "Choose an image to open in a new tab.";
+
+        return <div ClassName="file-layer">
+            <div ClassName="file-panel">
+                {Head(editor, saving, title, summary)}
+                {Tools(editor)}
+                <div ClassName="file-list"
+                    OnContextMenu={menu => editor.OpenFileContextMenu(
+                        null,
+                        menu.WindowX,
+                        menu.WindowY)}>
+                    {editor.FileDialogEntries.Count == 0
+                        ? <div ClassName="file-empty">{Text("No folders or supported images here.")}</div>
+                        : Each(editor.FileDialogEntries, entry => (Node)Row(editor, entry))}
+                </div>
+                {Foot(editor, saving, project, svg, title)}
+            </div>
+            {Show(editor.IsFileMenuOpen, <div ClassName="file-menu-backdrop"
+                OnClick={() => editor.CloseFileContextMenu()} />)}
+            {Show(editor.IsFileMenuOpen, ContextMenu(editor))}
+            {Show(editor.IsFilePromptOpen, Prompt(editor))}
+        </div>;
+    }
+
+    /// <summary>Builds the dialog header.</summary>
+    private static Node Head(PaintSession editor, bool saving, string title, string summary) =>
+        <div ClassName="file-head">
+            <span ClassName="file-head-icon">{Ui.Icon(saving ? Icons.Save : Icons.FolderOpen)}</span>
+            <div ClassName="file-head-titles">
+                <span ClassName="file-title">{Text(title)}</span>
+                <span ClassName="file-sub">{Text(summary)}</span>
+            </div>
+            {Ui.Tip(editor,
+                Ui.IconButton(Icons.Close, "Close the file browser", () =>
+                {
+                    editor.CloseFileDialog();
+                    editor.Refresh?.Invoke();
+                }, className: "icon-btn file-close"),
+                Icons.Close, "Close Browser", "")}
+        </div>;
+
+    /// <summary>Builds the folder path and shortcut toolbar.</summary>
+    private static Node Tools(PaintSession editor) =>
+        <div ClassName="file-tools">
+            <div ClassName="file-path-row">
+                {Ui.ButtonIcon(Icons.Up, "Up", "Parent folder", editor.FileDialogGoUp)}
+                <input ClassName="text-field file-path"
+                    Type="text"
+                    Value={editor.FileDialogFolder}
+                    Placeholder="Folder path; press Enter to go"
+                    OnChange={editor.FileDialogNavigate} />
+            </div>
+            <div ClassName="file-places">
+                {Each(editor.FileDialogPlaces, place => (Node)Button(new()
+                {
+                    ClassName = "file-place",
+                    Title = place.Path,
+                    OnClick = () => editor.FileDialogUsePlace(place),
+                }, Text(place.Label)))}
+            </div>
+        </div>;
+
+    /// <summary>Builds the name, format, status and action footer.</summary>
+    private static Node Foot(
+        PaintSession editor,
+        bool saving,
+        bool project,
+        bool svg,
+        string title) =>
+        <div ClassName="file-foot">
+            <div ClassName="file-name-row">
+                <span ClassName="file-label">{Text("File name")}</span>
+                <input ClassName="text-field file-name"
+                    Type="text"
+                    Value={editor.FileDialogName}
+                    Placeholder={saving
+                        ? svg
+                            ? "drawing.svg"
+                            : project ? "project-name.pxd" : "image-name.ext"
+                        : "Choose a file above"}
+                    OnInput={editor.FileDialogSetName} />
+            </div>
+            {Show(saving && !project && !svg, Formats(editor))}
+            <div ClassName="file-target">{Text(editor.FileDialogTarget)}</div>
+            {Show(editor.FileDialogError.Length > 0,
+                <div ClassName="file-error">{Text(editor.FileDialogError)}</div>)}
+            <div ClassName="file-actions">
+                <span ClassName="file-hint">{Text("Right-click a row for file actions")}</span>
+                {Ui.Button("Cancel", "Close the file browser", () =>
+                {
+                    editor.CloseFileDialog();
+                    editor.Refresh?.Invoke();
+                })}
+                {Ui.Button(saving ? "Save" : "Open", title, () =>
+                {
+                    editor.ConfirmFileDialog();
+                    editor.Refresh?.Invoke();
+                })}
+            </div>
+        </div>;
+
+    /// <summary>Builds one folder or file row.</summary>
+    private static Node Row(PaintSession editor, FileEntry entry)
+    {
+        bool selected = !entry.IsDirectory
+            && string.Equals(editor.FileDialogSelected, entry.FullPath, StringComparison.OrdinalIgnoreCase);
+
+        string classes = "file-row";
+        if (entry.IsDirectory)
+        {
+            classes += " is-dir";
+        }
+
+        if (selected)
+        {
+            classes += " is-selected";
+        }
+
+        return <button ClassName={classes}
+            Title={entry.FullPath}
+            OnClick={() => editor.FileDialogActivate(entry)}
+            OnContextMenu={menu => editor.OpenFileContextMenu(
+                entry,
+                menu.WindowX,
+                menu.WindowY)}>
+            {Ui.Icon(entry.IsDirectory ? Icons.Folder : Icons.Document, "file-row-icon")}
+            <span ClassName="file-row-name">{Text(entry.Name)}</span>
+        </button>;
+    }
+
+    /// <summary>Builds the save-format selector.</summary>
+    private static Node Formats(PaintSession editor) =>
+        <div ClassName="file-formats">
+            <span ClassName="file-label">{Text("Format")}</span>
+            {Each(new[]
+            {
+                ImageFormat.Png,
+                ImageFormat.Jpeg,
+                ImageFormat.Bmp,
+                ImageFormat.Tga,
+            }, format => (Node)Button(new()
+            {
+                ClassName = editor.FileDialogFormat == format ? "btn is-on" : "btn",
+                Title = "Save as " + ImageExporter.NameOf(format),
+                OnClick = () => editor.FileDialogSetFormat(format),
+            }, Text(ImageExporter.NameOf(format))))}
+        </div>;
+
+    /// <summary>Builds the row context menu.</summary>
+    private static Node ContextMenu(PaintSession editor)
+    {
+        bool target = editor.FileMenuHasTarget;
+        bool clipboard = editor.HasFileClipboard;
+
+        return <div ClassName="file-menu"
+            Attributes={new()
+            {
+                ["style"] =
+                    $"left:{Ui.Number(editor.FileMenuX)}px;"
+                    + $"top:{Ui.Number(editor.FileMenuY)}px;",
+            }}>
+            {Show(target, MenuItem(
+                editor.FileMenuIsDirectory ? Icons.FolderOpen : Icons.Document,
+                editor.FileMenuIsDirectory ? "Open folder" : "Open",
+                editor.FileMenuOpen))}
+            {Show(target, <div ClassName="file-menu-sep" />)}
+            {Show(target, MenuItem(Icons.Scissors, "Cut", editor.FileMenuCut))}
+            {Show(target, MenuItem(Icons.Duplicate, "Copy", editor.FileMenuCopy))}
+            {MenuItem(Icons.Paste, "Paste", editor.FileMenuPaste, clipboard)}
+            {Show(target, <div ClassName="file-menu-sep" />)}
+            {Show(target, MenuItem(Icons.Pen, "Rename", editor.FileMenuRename))}
+            {Show(target, MenuItem(Icons.Delete, "Delete", editor.FileMenuDelete, className: "is-danger"))}
+            {Show(target, <div ClassName="file-menu-sep" />)}
+            {MenuItem(Icons.FolderPlus, "New folder", editor.FileMenuNewFolder)}
+            {MenuItem(Icons.Redo, "Refresh", editor.FileMenuRefresh)}
+        </div>;
+    }
+
+    /// <summary>Builds one context-menu action.</summary>
+    private static Node MenuItem(
+        string icon,
+        string label,
+        Action onClick,
+        bool enabled = true,
+        string className = "") =>
+        <button ClassName={className.Length == 0 ? "file-menu-item" : "file-menu-item " + className}
+            Disabled={!enabled}
+            OnClick={onClick}>
+            {Ui.Icon(icon, "file-menu-icon")}
+            <span ClassName="file-menu-label">{Text(label)}</span>
+        </button>;
+
+    /// <summary>Builds the rename / new-folder prompt.</summary>
+    private static Node Prompt(PaintSession editor) =>
+        <div ClassName="file-prompt-layer">
+            <div ClassName="file-prompt">
+                <span ClassName="file-prompt-title">{Text(editor.FilePromptTitle)}</span>
+                <input ClassName="text-field file-prompt-input"
+                    Type="text"
+                    Value={editor.FilePromptValue}
+                    Placeholder="Name"
+                    OnInput={editor.FilePromptSetValue} />
+                <div ClassName="file-prompt-actions">
+                    {Ui.Button("Cancel", "Close without applying", () =>
+                    {
+                        editor.FilePromptCancel();
+                        editor.Refresh?.Invoke();
+                    })}
+                    {Ui.Button("Apply", "Apply the name", () =>
+                    {
+                        editor.FilePromptConfirm();
+                        editor.Refresh?.Invoke();
+                    })}
+                </div>
+            </div>
+        </div>;
+}

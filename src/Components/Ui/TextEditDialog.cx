@@ -1,0 +1,200 @@
+using System;
+using Donkeh.UILab;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Editing controls for an editable text layer.</summary>
+public sealed class TextEditDialog : Component
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        PaintSession editor = UseContext(EditorContext.Value);
+        if (!editor.IsTextEditOpen
+            || editor.TextEditLayer is not { } layer
+            || layer.Text is not { } text)
+        {
+            return <span />;
+        }
+
+        return <div ClassName="resize-layer">
+            <div ClassName="resize-panel style-panel perspective-panel">
+                <div ClassName="resize-head">
+                    <span ClassName="resize-head-icon">{Ui.Icon(Icons.Text)}</span>
+                    <div ClassName="resize-head-titles">
+                        <span ClassName="resize-title">{Text("Edit Text")}</span>
+                        <span ClassName="resize-sub">{Text(layer.Name)}</span>
+                    </div>
+                    {Ui.Tip(editor,
+                        Ui.IconButton(Icons.Close, "Cancel", () =>
+                        {
+                            editor.CancelTextEdit();
+                            editor.Refresh?.Invoke();
+                        }, className: "icon-btn"),
+                        Icons.Close, "Cancel", "")}
+                </div>
+                <div ClassName="style-body">
+                    <div ClassName="style-rows">
+                        {Ui.TextField(
+                            text.Content,
+                            "Text",
+                            value =>
+                            {
+                                text.Content = value;
+                                editor.TouchTextLayer();
+                            },
+                            editor.BeginTyping,
+                            editor.EndTyping,
+                            null,
+                            "text-edit-" + editor.TextEditIndex)}
+                        <div ClassName="text-font">
+                            {Ui.Button("<", "Previous font", () =>
+                            {
+                                text.FontIndex = WrapFont(text.FontIndex - 1);
+                                editor.TouchTextLayer();
+                                editor.Refresh?.Invoke();
+                            })}
+                            <span ClassName="resize-note">{Text(TextFonts.At(text.FontIndex).Name)}</span>
+                            {Ui.Button(">", "Next font", () =>
+                            {
+                                text.FontIndex = WrapFont(text.FontIndex + 1);
+                                editor.TouchTextLayer();
+                                editor.Refresh?.Invoke();
+                            })}
+                        </div>
+                        {Slider("Size", text.Size, 8f, 400f, 1f, " px", editor, value =>
+                        {
+                            text.Size = value;
+                        })}
+                        {Slider("Rotation", text.Rotation, -180f, 180f, 1f, " deg", editor, value =>
+                        {
+                            text.Rotation = value;
+                        })}
+                        {Show(!text.HasPath,
+                            Slider("X", text.X, -4000f, 8000f, 1f, " px", editor, value =>
+                            {
+                                text.X = value;
+                            }))}
+                        {Show(!text.HasPath,
+                            Slider("Y", text.Y, -4000f, 8000f, 1f, " px", editor, value =>
+                            {
+                                text.Y = value;
+                            }))}
+                        {Show(text.HasPath,
+                            Slider("Path offset", text.PathOffset * 100f, 0f, 100f, 1f, " %", editor, value =>
+                            {
+                                text.PathOffset = value / 100f;
+                            }))}
+                        {Show(text.HasPath,
+                            Slider("Spacing", text.LetterSpacing, -10f, 40f, 1f, " px", editor, value =>
+                            {
+                                text.LetterSpacing = value;
+                            }))}
+                        <div ClassName="style-options">
+                            {Ui.Toggle("Bold", "Bold text", text.Bold, () =>
+                            {
+                                text.Bold = !text.Bold;
+                                editor.TouchTextLayer();
+                                editor.Refresh?.Invoke();
+                            })}
+                            {Ui.Toggle("Italic", "Italic text", text.Italic, () =>
+                            {
+                                text.Italic = !text.Italic;
+                                editor.TouchTextLayer();
+                                editor.Refresh?.Invoke();
+                            })}
+                        </div>
+                        {Show(text.HasPath && !string.IsNullOrEmpty(text.PathLayer),
+                            <span ClassName="resize-note">{Text("Follows path: " + text.PathLayer)}</span>)}
+                        {Colors(editor, "Fill", text.Color, color =>
+                        {
+                            text.Color = color;
+                            editor.TouchTextLayer();
+                        })}
+                    </div>
+                </div>
+                <div ClassName="resize-foot">
+                    <span ClassName="resize-note">{Text("Text stays editable until rasterized.")}</span>
+                    <div ClassName="resize-actions">
+                        {Ui.Button("Cancel", "Restore the text", () =>
+                        {
+                            editor.CancelTextEdit();
+                            editor.Refresh?.Invoke();
+                        })}
+                        {Ui.Button("Done", "Keep the text", () =>
+                        {
+                            editor.CommitTextEdit();
+                            editor.Refresh?.Invoke();
+                        })}
+                    </div>
+                </div>
+            </div>
+        </div>;
+    }
+
+    /// <summary>Wraps a font index around the available family list.</summary>
+    private static int WrapFont(int index)
+    {
+        int count = TextFonts.All.Length;
+        return ((index % count) + count) % count;
+    }
+
+    /// <summary>Builds one text property slider.</summary>
+    private static Node Slider(
+        string label,
+        float value,
+        float min,
+        float max,
+        float step,
+        string suffix,
+        PaintSession editor,
+        Action<float> apply) =>
+        Ui.Slider(label, value, min, max, step, suffix, text =>
+        {
+            apply(Ui.Parse(text, min, max));
+            editor.TouchTextLayer();
+            editor.Refresh?.Invoke();
+        });
+
+    /// <summary>Builds a row of preset colour swatches.</summary>
+    private static Node Colors(
+        PaintSession editor,
+        string label,
+        uint current,
+        Action<uint> pick) =>
+        <div ClassName="style-swatches">
+            <span ClassName="resize-label">{Text(label)}</span>
+            {Each(new uint[]
+            {
+                0xFF000000,
+                0xFFFFFFFF,
+                0xFFE05454,
+                0xFF4CBB6C,
+                0xFF3D7BE0,
+                0xFFFFD84D,
+            }, color => (Node)Ui.Swatch(
+                current == color ? "style-swatch is-on" : "style-swatch",
+                color,
+                "Use this colour",
+                () => pick(color),
+                18,
+                18))}
+            {Ui.Swatch(
+                current == editor.Foreground ? "style-swatch is-on" : "style-swatch",
+                editor.Foreground,
+                "Use the foreground colour",
+                () => pick(editor.Foreground),
+                18,
+                18)}
+            {Ui.Swatch(
+                current == editor.Background ? "style-swatch is-on" : "style-swatch",
+                editor.Background,
+                "Use the background colour",
+                () => pick(editor.Background),
+                18,
+                18)}
+        </div>;
+}

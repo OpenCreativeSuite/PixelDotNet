@@ -1,0 +1,117 @@
+using System;
+using Donkeh.UILab;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Position, scale, rotation and mirroring for a smart object.</summary>
+public sealed class SmartObjectDialog : Component
+{
+    private static readonly string[] Labels =
+    [
+        "X",
+        "Y",
+        "Scale X",
+        "Scale Y",
+        "Rotation",
+    ];
+
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        PaintSession editor = UseContext(EditorContext.Value);
+        if (!editor.IsSmartTransformOpen || editor.SmartTransformLayer is not { } layer)
+        {
+            return <span />;
+        }
+
+        Node[] sliders = new Node[Labels.Length];
+        for (int i = 0; i < sliders.Length; i++)
+        {
+            int index = i;
+            float min = index switch
+            {
+                2 or 3 => 1f,
+                4 => -180f,
+                _ => -4000f,
+            };
+            float max = index switch
+            {
+                2 or 3 => 800f,
+                4 => 180f,
+                _ => 4000f,
+            };
+            string suffix = index is 2 or 3 ? " %" : index == 4 ? " deg" : " px";
+
+            sliders[i] = Ui.Slider(
+                Labels[i],
+                editor.SmartValue(index),
+                min,
+                max,
+                1f,
+                suffix,
+                value =>
+                {
+                    editor.SetSmartValue(index, Ui.Parse(value, min, max));
+                    editor.Refresh?.Invoke();
+                });
+        }
+
+        return <div ClassName="resize-layer">
+            <div ClassName="resize-panel style-panel perspective-panel">
+                <div ClassName="resize-head">
+                    <span ClassName="resize-head-icon">{Ui.Icon(Icons.SmartObject)}</span>
+                    <div ClassName="resize-head-titles">
+                        <span ClassName="resize-title">{Text("Smart Object")}</span>
+                        <span ClassName="resize-sub">{Text(layer.Name)}</span>
+                    </div>
+                    {Ui.Tip(editor,
+                        Ui.IconButton(Icons.Close, "Cancel", () =>
+                        {
+                            editor.CancelSmartTransform();
+                            editor.Refresh?.Invoke();
+                        }, className: "icon-btn"),
+                        Icons.Close, "Cancel", "")}
+                </div>
+                <div ClassName="style-body">
+                    <span ClassName="resize-note">{Text("Repeated transforms reuse the original source pixels.")}</span>
+                    <div ClassName="style-rows">{sliders}</div>
+                    <div ClassName="style-options">
+                        {Ui.Toggle("Flip X", "Mirror horizontally", editor.SmartFlipX, () =>
+                        {
+                            editor.ToggleSmartFlipX();
+                            editor.Refresh?.Invoke();
+                        })}
+                        {Ui.Toggle("Flip Y", "Mirror vertically", editor.SmartFlipY, () =>
+                        {
+                            editor.ToggleSmartFlipY();
+                            editor.Refresh?.Invoke();
+                        })}
+                    </div>
+                </div>
+                <div ClassName="resize-foot">
+                    <span ClassName="resize-note">{Text("Only .pxd projects keep smart objects.")}</span>
+                    <div ClassName="resize-actions">
+                        {Ui.Button("Reset", "Return to the identity transform", () =>
+                        {
+                            editor.ResetSmartTransform();
+                            editor.Refresh?.Invoke();
+                        })}
+                        {Ui.Button("Cancel", "Restore the previous transform", () =>
+                        {
+                            editor.CancelSmartTransform();
+                            editor.Refresh?.Invoke();
+                        })}
+                        {Ui.Button("Done", "Keep the transform", () =>
+                        {
+                            editor.CommitSmartTransform();
+                            editor.Refresh?.Invoke();
+                        })}
+                    </div>
+                </div>
+            </div>
+        </div>;
+    }
+}
