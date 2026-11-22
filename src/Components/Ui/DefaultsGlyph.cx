@@ -1,0 +1,16 @@
+using Donkeh.UILab;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>The black-over-white mark used by the default-colours button.</summary>
+public sealed class DefaultsGlyph : Component
+{
+    /// <inheritdoc/>
+    public override Node Render() =>
+        <span className="defaults-glyph">
+            <span className="defaults-dot is-dark" />
+            <span className="defaults-dot is-light" />
+        </span>;
+}

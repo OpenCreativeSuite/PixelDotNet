@@ -46,7 +46,7 @@ public sealed class OptionsBar : Component
                         <button className="icon-btn is-tiny"
                             Title="Default black and white (D)"
                             OnClick={editor.ResetColors}>
-                            {Ui.DefaultsGlyph()}
+                            {<DefaultsGlyph />}
                         </button>,
                         Icons.Invert, "Default Colours", "", "D")}
                 </div>
@@ -224,21 +224,12 @@ public sealed class OptionsBar : Component
     private static Node Options(PaintSession editor) => editor.Tool switch
     {
         PaintTool.Brush or PaintTool.Eraser => F(
-            Ui.Field("Size", editor.BrushSize, 1f, 120f, 1f, " px", value =>
-            {
-                editor.BrushSize = Ui.Parse(value, 1f, 120f);
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Field("Hardness", editor.Hardness * 100f, 0f, 100f, 1f, " %", value =>
-            {
-                editor.Hardness = Ui.Parse(value, 0f, 100f) / 100f;
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Field("Opacity", editor.Opacity * 100f, 5f, 100f, 1f, " %", value =>
-            {
-                editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
-                editor.Refresh?.Invoke();
-            })),
+            <Field Label="Size" Value={editor.BrushSize} Min={1f} Max={120f} Step={1f} Suffix=" px"
+                onInput={value => { editor.BrushSize = Ui.Parse(value, 1f, 120f); editor.Refresh?.Invoke(); }} />,
+            <Field Label="Hardness" Value={editor.Hardness * 100f} Min={0f} Max={100f} Step={1f} Suffix=" %"
+                onInput={value => { editor.Hardness = Ui.Parse(value, 0f, 100f) / 100f; editor.Refresh?.Invoke(); }} />,
+            <Field Label="Opacity" Value={editor.Opacity * 100f} Min={5f} Max={100f} Step={1f} Suffix=" %"
+                onInput={value => { editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f; editor.Refresh?.Invoke(); }} />),
 
         PaintTool.CloneStamp or PaintTool.HealingBrush => F(
             Ui.Field("Size", editor.BrushSize, 1f, 120f, 1f, " px", value =>

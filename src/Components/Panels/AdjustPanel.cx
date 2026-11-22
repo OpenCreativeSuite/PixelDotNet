@@ -44,7 +44,7 @@ public sealed class AdjustPanel : Component
         }
 
         return F(
-            Ui.Section("Histogram",
+            <Section Title="Histogram" Children={new Node[] {
                 <div className="histogram-frame">
                     {Canvas(new CanvasProps
                     {
@@ -53,60 +53,39 @@ public sealed class AdjustPanel : Component
                         OnDraw = context => DrawHistogram(context, editor),
                     })}
                     <div className="histogram-ramp" />
-                </div>),
+                </div>
+            }} />,
 
-            Ui.Section("Tone",
-                Ui.Slider("Brightness", editor.AdjustBrightness, -100f, 100f, 1f, string.Empty, value =>
-                {
-                    editor.AdjustBrightness = Ui.Parse(value, -100f, 100f);
-                    Apply(editor);
-                }),
-                Ui.Slider("Contrast", editor.AdjustContrast, -100f, 100f, 1f, string.Empty, value =>
-                {
-                    editor.AdjustContrast = Ui.Parse(value, -100f, 100f);
-                    Apply(editor);
-                }),
+            <Section Title="Tone" Children={new Node[] {
+                <Slider Label="Brightness" Value={editor.AdjustBrightness} Min={-100f} Max={100f} Step={1f} Suffix={string.Empty}
+                    onInput={value => { editor.AdjustBrightness = Ui.Parse(value, -100f, 100f); Apply(editor); }} />,
+                <Slider Label="Contrast" Value={editor.AdjustContrast} Min={-100f} Max={100f} Step={1f} Suffix={string.Empty}
+                    onInput={value => { editor.AdjustContrast = Ui.Parse(value, -100f, 100f); Apply(editor); }} />,
                 <div className="section-split" />,
-                Ui.Slider("Hue", editor.AdjustHue, -180f, 180f, 1f, "°", value =>
-                {
-                    editor.AdjustHue = Ui.Parse(value, -180f, 180f);
-                    Apply(editor);
-                }),
-                Ui.Slider("Saturation", editor.AdjustSaturation, -100f, 100f, 1f, string.Empty, value =>
-                {
-                    editor.AdjustSaturation = Ui.Parse(value, -100f, 100f);
-                    Apply(editor);
-                }),
-                Ui.Slider("Lightness", editor.AdjustLightness, -100f, 100f, 1f, string.Empty, value =>
-                {
-                    editor.AdjustLightness = Ui.Parse(value, -100f, 100f);
-                    Apply(editor);
-                }),
+                <Slider Label="Hue" Value={editor.AdjustHue} Min={-180f} Max={180f} Step={1f} Suffix="°"
+                    onInput={value => { editor.AdjustHue = Ui.Parse(value, -180f, 180f); Apply(editor); }} />,
+                <Slider Label="Saturation" Value={editor.AdjustSaturation} Min={-100f} Max={100f} Step={1f} Suffix={string.Empty}
+                    onInput={value => { editor.AdjustSaturation = Ui.Parse(value, -100f, 100f); Apply(editor); }} />,
+                <Slider Label="Lightness" Value={editor.AdjustLightness} Min={-100f} Max={100f} Step={1f} Suffix={string.Empty}
+                    onInput={value => { editor.AdjustLightness = Ui.Parse(value, -100f, 100f); Apply(editor); }} />,
                 <div className="row">
                     {Ui.Button("Reset", "Return the sliders to neutral", editor.ResetAdjustments, editor.HasAdjustments)}
-                </div>),
+                </div>
+            }} />,
 
-            Ui.Section("Levels",
-                Ui.Slider("Black", editor.LevelsBlack, 0f, 254f, 1f, string.Empty, value =>
-                {
-                    editor.LevelsBlack = Ui.Parse(value, 0f, 254f);
-                    Apply(editor);
-                }),
-                Ui.Slider("White", editor.LevelsWhite, 1f, 255f, 1f, string.Empty, value =>
-                {
-                    editor.LevelsWhite = Ui.Parse(value, 1f, 255f);
-                    Apply(editor);
-                }),
-                Ui.Slider("Midtone", editor.LevelsGamma * 100f, 10f, 500f, 1f, " %", value =>
-                {
-                    editor.LevelsGamma = Ui.Parse(value, 10f, 500f) / 100f;
-                    Apply(editor);
-                }),
+            <Section Title="Levels" Children={new Node[] {
+                <Slider Label="Black" Value={editor.LevelsBlack} Min={0f} Max={254f} Step={1f} Suffix={string.Empty}
+                    onInput={value => { editor.LevelsBlack = Ui.Parse(value, 0f, 254f); Apply(editor); }} />,
+                <Slider Label="White" Value={editor.LevelsWhite} Min={1f} Max={255f} Step={1f} Suffix={string.Empty}
+                    onInput={value => { editor.LevelsWhite = Ui.Parse(value, 1f, 255f); Apply(editor); }} />,
+                <Slider Label="Midtone" Value={editor.LevelsGamma * 100f} Min={10f} Max={500f} Step={1f} Suffix=" %"
+                    onInput={value => { editor.LevelsGamma = Ui.Parse(value, 10f, 500f) / 100f; Apply(editor); }} />,
                 <div className="row">
                     {Ui.Button("Reset Levels", "Return the levels controls to neutral", editor.ResetLevels, editor.HasLevels)}
-                </div>),
+                </div>
+            }} />,
 
-            Ui.Section("Curves",
+            <Section Title="Curves" Children={new Node[] {
                 Canvas(new CanvasProps
                 {
                     className = "curve-editor",
@@ -123,9 +102,10 @@ public sealed class AdjustPanel : Component
                         editor.ResetActiveCurve();
                         ApplyCurveChange(editor);
                     }, editor.HasCurve)}
-                </div>),
+                </div>
+            }} />,
 
-            Ui.Section("Adjustment Layer",
+            <Section Title="Adjustment Layer" Children={new Node[] {
                 <div className="row">
                     {Ui.Button("Levels Layer", "Add a non-destructive Levels adjustment layer", () =>
                     {
@@ -137,16 +117,18 @@ public sealed class AdjustPanel : Component
                         editor.AddAdjustmentLayer(AdjustmentKind.Curves);
                         editor.Refresh?.Invoke();
                     })}
-                </div>),
+                </div>
+            }} />,
 
-            Ui.Section("Colour",
+            <Section Title="Colour" Children={new Node[] {
                 <div className="row">
                     {Ui.ButtonIcon(Icons.Invert, "Invert", "Invert the layer or the marquee", editor.Invert, !locked)}
                     {Ui.ButtonIcon(Icons.Desaturate, "Mono", "Remove colour from the layer or the marquee", editor.Desaturate, !locked)}
                 </div>,
                 <div className="row">
                     {Ui.ButtonIcon(Icons.Flatten, "Flatten Image", "Merge every visible layer into one", editor.FlattenImage)}
-                </div>),
+                </div>
+            }} />,
 
             <span className="panel-note">
                 {Text("Sliders edit the active layer, or only the marquee when there is a selection.")}
@@ -162,7 +144,7 @@ public sealed class AdjustPanel : Component
 
     /// <summary>Draws the shared histogram block.</summary>
     private static Node HistogramSection(PaintSession editor) =>
-        Ui.Section("Histogram",
+        <Section Title="Histogram" Children={new Node[] {
             <div className="histogram-frame">
                 {Canvas(new CanvasProps
                 {
@@ -171,14 +153,15 @@ public sealed class AdjustPanel : Component
                     OnDraw = context => DrawHistogram(context, editor),
                 })}
                 <div className="histogram-ramp" />
-            </div>);
+            </div>
+        }} />;
 
     /// <summary>Builds the editor for the active adjustment layer.</summary>
     private Node AdjustmentControls(PaintSession editor, PaintLayer layer)
     {
         if (layer.Adjustment == AdjustmentKind.Curves)
         {
-            return Ui.Section("Curves Adjustment",
+            return <Section Title="Curves Adjustment" Children={new Node[] {
                 Canvas(new CanvasProps
                 {
                     className = "curve-editor",
@@ -195,32 +178,25 @@ public sealed class AdjustPanel : Component
                         editor.ResetActiveCurve();
                         ApplyCurveChange(editor);
                     })}
-                </div>);
+                </div>
+            }} />;
         }
 
-        return Ui.Section("Levels Adjustment",
-            Ui.Slider("Black", layer.AdjustmentBlack, 0f, 254f, 1f, string.Empty, value =>
-            {
-                editor.SetAdjustmentLevels(Ui.Parse(value, 0f, 254f), layer.AdjustmentWhite, layer.AdjustmentGamma);
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Slider("White", layer.AdjustmentWhite, 1f, 255f, 1f, string.Empty, value =>
-            {
-                editor.SetAdjustmentLevels(layer.AdjustmentBlack, Ui.Parse(value, 1f, 255f), layer.AdjustmentGamma);
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Slider("Midtone", layer.AdjustmentGamma * 100f, 10f, 500f, 1f, " %", value =>
-            {
-                editor.SetAdjustmentLevels(layer.AdjustmentBlack, layer.AdjustmentWhite, Ui.Parse(value, 10f, 500f) / 100f);
-                editor.Refresh?.Invoke();
-            }),
+        return <Section Title="Levels Adjustment" Children={new Node[] {
+            <Slider Label="Black" Value={layer.AdjustmentBlack} Min={0f} Max={254f} Step={1f} Suffix={string.Empty}
+                onInput={value => { editor.SetAdjustmentLevels(Ui.Parse(value, 0f, 254f), layer.AdjustmentWhite, layer.AdjustmentGamma); editor.Refresh?.Invoke(); }} />,
+            <Slider Label="White" Value={layer.AdjustmentWhite} Min={1f} Max={255f} Step={1f} Suffix={string.Empty}
+                onInput={value => { editor.SetAdjustmentLevels(layer.AdjustmentBlack, Ui.Parse(value, 1f, 255f), layer.AdjustmentGamma); editor.Refresh?.Invoke(); }} />,
+            <Slider Label="Midtone" Value={layer.AdjustmentGamma * 100f} Min={10f} Max={500f} Step={1f} Suffix=" %"
+                onInput={value => { editor.SetAdjustmentLevels(layer.AdjustmentBlack, layer.AdjustmentWhite, Ui.Parse(value, 10f, 500f) / 100f); editor.Refresh?.Invoke(); }} />,
             <div className="row">
                 {Ui.Button("Reset Levels", "Return the adjustment to neutral", () =>
                 {
                     editor.ResetAdjustmentLevels();
                     editor.Refresh?.Invoke();
                 })}
-            </div>);
+            </div>
+        }} />;
     }
 
     // DrawCurve, CurveLine, DrawHistogram, CurvePosition, CurveDown/Move/Up/Remove, ApplyCurveChange unchanged

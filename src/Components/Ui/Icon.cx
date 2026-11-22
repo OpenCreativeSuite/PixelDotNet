@@ -1,0 +1,26 @@
+using Donkeh.UILab;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Props for a Font Awesome glyph.</summary>
+public class IconProps : Props
+{
+    public string Name { get; set; } = "";
+    public string Extra { get; set; } = "";
+    public bool Regular { get; set; }
+}
+
+/// <summary>A Font Awesome glyph.</summary>
+public sealed class Icon : Component<IconProps>
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        IconProps props = Props;
+        string classes = $"fa {(props.Regular ? "fa-regular" : "fa-solid")} {props.Name} {props.Extra}".TrimEnd();
+        return <i className={classes} />;
+    }
+}

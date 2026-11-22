@@ -34,7 +34,7 @@ public sealed class TextFxPanel : Component
         return <div className="text-fx-popup">
             <div className="text-fx-head">
                 <span className="text-fx-title">
-                    {Ui.Icon(Icons.Sparkles, "text-fx-title-icon")}
+                    <Icon Name={Icons.Sparkles} Extra="text-fx-title-icon" />
                     {Text("Text effects")}
                 </span>
                 {Ui.Tip(editor,
