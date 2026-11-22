@@ -1,0 +1,38 @@
+using Donkeh.UILab;
+using PixelDotNet.Help;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Props for a single inspector tab.</summary>
+public class TabProps : Props
+{
+    public string Label { get; set; } = "";
+    public string Icon { get; set; } = "";
+    public bool Active { get; set; }
+    public string Title { get; set; } = "";
+    public string HelpId { get; set; } = "";
+    public Action? OnSelect { get; set; }
+}
+
+/// <summary>A single tab button with a hover tooltip.</summary>
+public sealed class Tab : Component<TabProps>
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        PaintSession editor = UseContext(EditorContext.Value);
+        TabProps props = Props;
+
+        return Ui.Tip(editor,
+            <button className={props.Active ? "panel-tab is-active" : "panel-tab"}
+                onClick={() => props.OnSelect?.Invoke()}>
+                {Text(props.Label)}
+            </button>,
+            props.Icon,
+            props.Title,
+            props.HelpId);
+    }
+}

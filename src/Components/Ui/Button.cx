@@ -1,0 +1,32 @@
+using Donkeh.UILab;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Props for a reusable button.</summary>
+public class ButtonProps : Props
+{
+    public string Label { get; set; } = "";
+    public string title { get; set; } = "";
+    public Action? onClick { get; set; }
+    public bool Enabled { get; set; } = true;
+    public string ClassName { get; set; } = "btn";
+}
+
+/// <summary>A reusable button with a hover tooltip handled by the caller.</summary>
+public sealed class Button : Component<ButtonProps>
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        ButtonProps props = Props;
+        return <button className={props.Enabled ? props.ClassName : props.ClassName + " is-disabled"}
+            title={props.title}
+            disabled={!props.Enabled}
+            onClick={() => props.onClick?.Invoke()}>
+            {Text(props.Label)}
+        </button>;
+    }
+}

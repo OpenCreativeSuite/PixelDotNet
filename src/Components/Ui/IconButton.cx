@@ -1,0 +1,35 @@
+using Donkeh.UILab;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Props for a square icon-only button.</summary>
+public class IconButtonProps : Props
+{
+    public string Icon { get; set; } = "";
+    public string title { get; set; } = "";
+    public Action? onClick { get; set; }
+    public bool Enabled { get; set; } = true;
+    public string ClassName { get; set; } = "icon-btn";
+    public bool Regular { get; set; }
+}
+
+/// <summary>A square icon-only button.</summary>
+public sealed class IconButton : Component<IconButtonProps>
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        IconButtonProps props = Props;
+        string baseClass = props.ClassName == "icon-btn" ? "icon-btn" : $"icon-btn {props.ClassName}";
+        string classes = props.Enabled ? baseClass : baseClass + " is-disabled";
+        return <button className={classes}
+            title={props.title}
+            disabled={!props.Enabled}
+            onClick={() => props.onClick?.Invoke()}>
+            {Ui.Icon(props.Icon, regular: props.Regular)}
+        </button>;
+    }
+}

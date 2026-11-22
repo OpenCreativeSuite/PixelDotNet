@@ -1,0 +1,38 @@
+using Donkeh.UILab;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Props for a single-line text field.</summary>
+public class TextFieldProps : Props
+{
+    public string Value { get; set; } = "";
+    public string Placeholder { get; set; } = "";
+    public Action<string>? onInput { get; set; }
+    public Action? onFocus { get; set; }
+    public Action? onBlur { get; set; }
+    public Action<string>? onCommit { get; set; }
+    public string? key { get; set; }
+    public string ClassName { get; set; } = "text-field";
+}
+
+/// <summary>A single-line text field sized for the options bar.</summary>
+public sealed class TextField : Component<TextFieldProps>
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        TextFieldProps props = Props;
+        return <input className={props.ClassName}
+            key={props.key}
+            type="text"
+            value={props.Value}
+            placeholder={props.Placeholder}
+            onInput={props.onInput}
+            onFocus={props.onFocus}
+            onBlur={props.onBlur}
+            onChange={props.onCommit} />;
+    }
+}

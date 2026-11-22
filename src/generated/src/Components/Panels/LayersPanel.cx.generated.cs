@@ -52,10 +52,7 @@ public sealed class LayersPanel : Component
             }
         }
 
-        return _.H("div", new() { className = "layers-body" }, _.H("div", new() { className = "layer-props" }, _.H("div", new() { className = "prop-row" }, _.H("span", new() { className = "prop-label" }, Text("Blend")), Ui.Stepper(LabelOf(active.Blend), "Blend mode of the active layer",
-                        () => Cycle(editor, -1),
-                        () => Cycle(editor, 1))), _.H("div", new() { className = "prop-row" }, _.H("span", new() { className = "prop-label" }, Text("Clip")), Ui.Toggle("Below", "Clip this layer to the visible content below it", active.ClipToBelow,
-                        editor.ToggleClipToBelow)), _.H("div", new() { className = "prop-row" }, _.H("span", new() { className = "prop-label" }, Text("Opacity")), _.H("div", new() { className = "prop-slider" }, _.H("input", new() { className = "prop-range", Type = "range", Value = Ui.Number(active.Opacity * 100f), Attributes = new()
+        return _.H("div", new() { className = "layers-body" }, _.H("div", new() { className = "layer-props" }, _.H("div", new() { className = "prop-row" }, _.H("span", new() { className = "prop-label" }, Text("Blend")), _.C<Stepper, StepperProps>(new() { Value = LabelOf(active.Blend), title = "Blend mode of the active layer", Previous = () => Cycle(editor, -1), Next = () => Cycle(editor, 1) })), _.H("div", new() { className = "prop-row" }, _.H("span", new() { className = "prop-label" }, Text("Clip")), _.C<Toggle, ToggleProps>(new() { Label = "Below", title = "Clip this layer to the visible content below it", Active = active.ClipToBelow, onClick = editor.ToggleClipToBelow })), _.H("div", new() { className = "prop-row" }, _.H("span", new() { className = "prop-label" }, Text("Opacity")), _.H("div", new() { className = "prop-slider" }, _.H("input", new() { className = "prop-range", Type = "range", Value = Ui.Number(active.Opacity * 100f), Attributes = new()
                             {
                                 ["min"] = "0",
                                 ["max"] = "100",

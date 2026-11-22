@@ -1,0 +1,34 @@
+using Donkeh.UILab;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Props for a labelled stepper control.</summary>
+public class StepperProps : Props
+{
+    public string Value { get; set; } = "";
+    public string title { get; set; } = "";
+    public Action? Previous { get; set; }
+    public Action? Next { get; set; }
+}
+
+/// <summary>A labelled value that steps through a fixed list.</summary>
+public sealed class Stepper : Component<StepperProps>
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        StepperProps props = Props;
+        return <div className="stepper" title={props.title}>
+            <button className="stepper-btn" title="Previous" onClick={() => props.Previous?.Invoke()}>
+                {Ui.Icon(Icons.Previous, "stepper-glyph")}
+            </button>
+            <span className="stepper-value">{Text(props.Value)}</span>
+            <button className="stepper-btn" title="Next" onClick={() => props.Next?.Invoke()}>
+                {Ui.Icon(Icons.Next, "stepper-glyph")}
+            </button>
+        </div>;
+    }
+}

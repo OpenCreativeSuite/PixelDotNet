@@ -1,0 +1,37 @@
+using Donkeh.LayoutLab;
+using Donkeh.UILab;
+using Donkeh.Windowing;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Props for a small square colour swatch.</summary>
+public class SwatchProps : Props
+{
+    public string ClassName { get; set; } = "swatch";
+    public uint Color { get; set; }
+    public string title { get; set; } = "";
+    public Action? onClick { get; set; }
+    public int Width { get; set; } = 24;
+    public int Height { get; set; } = 18;
+}
+
+/// <summary>A small square swatch painted by a canvas.</summary>
+public sealed class Swatch : Component<SwatchProps>
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        SwatchProps props = Props;
+        return Canvas(new CanvasProps
+        {
+            ClassName = props.ClassName,
+            Title = props.title,
+            Attributes = Ui.Size(props.Width, props.Height),
+            OnClick = () => props.onClick?.Invoke(),
+            OnDraw = context => context.Clear(Ui.RgbaOpaque(props.Color)),
+        });
+    }
+}

@@ -1,0 +1,29 @@
+using Donkeh.UILab;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Props for a two-state toggle button.</summary>
+public class ToggleProps : Props
+{
+    public string Label { get; set; } = "";
+    public string title { get; set; } = "";
+    public bool Active { get; set; }
+    public Action? onClick { get; set; }
+}
+
+/// <summary>A two-state toggle button.</summary>
+public sealed class Toggle : Component<ToggleProps>
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        ToggleProps props = Props;
+        return <button className={props.Active ? "btn is-on" : "btn"}
+            title={props.title}
+            onClick={() => props.onClick?.Invoke()}>
+            {Text(props.Label)}
+        </button>;
+    }
+}

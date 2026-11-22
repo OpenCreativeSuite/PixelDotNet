@@ -43,10 +43,13 @@ public sealed class SidePanel : Component
         for (int index = 0; index < Tabs.Length; index++)
         {
             int target = index;
-            tabs.Add(Ui.Tip(editor, <button className={target == tab ? "panel-tab is-active" : "panel-tab"}
-                OnClick={() => editor.OpenSideTab(target)}>
-                {Text(Tabs[target])}
-            </button>, TabIcons[index], Tabs[index], TabHelp[index]));
+            tabs.Add(<Tab
+                Label={Tabs[target]}
+                Icon={TabIcons[index]}
+                Active={target == tab}
+                Title={Tabs[index]}
+                HelpId={TabHelp[index]}
+                OnSelect={() => editor.OpenSideTab(target)} />);
         }
 
         return <div className="side">

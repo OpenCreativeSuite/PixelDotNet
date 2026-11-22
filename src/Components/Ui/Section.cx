@@ -1,0 +1,28 @@
+using Donkeh.UILab;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Props for a titled section block.</summary>
+public class SectionProps : PropsWithChildren
+{
+    public string Title { get; set; } = "";
+}
+
+/// <summary>A titled block inside a panel.</summary>
+public sealed class Section : Component<SectionProps>
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        SectionProps props = Props;
+        return <div className="section">
+            <div className="section-head">
+                <span className="section-title">{Text(props.Title)}</span>
+                <span className="section-rule" />
+            </div>
+            <div className="section-body">{props.Children}</div>
+        </div>;
+    }
+}

@@ -1,0 +1,46 @@
+using System.Globalization;
+using Donkeh.UILab;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Props for a labelled inline slider.</summary>
+public class FieldProps : Props
+{
+    public string Label { get; set; } = "";
+    public float Value { get; set; }
+    public float Min { get; set; }
+    public float Max { get; set; }
+    public float Step { get; set; } = 1f;
+    public string Suffix { get; set; } = "";
+    public Action<string>? onInput { get; set; }
+}
+
+/// <summary>A labelled inline slider sized for the options bar.</summary>
+public sealed class Field : Component<FieldProps>
+{
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        FieldProps props = Props;
+        string number = props.Value.ToString("0.###", CultureInfo.InvariantCulture);
+        return <div className="field">
+            <span className="field-label">{Text(props.Label)}</span>
+            <div className="field-track">
+                <input className="field-input"
+                    type="range"
+                    value={number}
+                    attributes={new()
+                    {
+                        ["min"] = props.Min.ToString("0.###", CultureInfo.InvariantCulture),
+                        ["max"] = props.Max.ToString("0.###", CultureInfo.InvariantCulture),
+                        ["step"] = props.Step.ToString("0.###", CultureInfo.InvariantCulture),
+                    }}
+                    onInput={props.onInput} />
+            </div>
+            <span className="field-value">{Text(Ui.Format(props.Value) + props.Suffix)}</span>
+        </div>;
+    }
+}
