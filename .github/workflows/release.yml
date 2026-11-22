@@ -55,6 +55,12 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
+      - name: Install CSX tool
+        run: dotnet tool install --global CSX.CliTool --version 1.0.1
+
+      - name: Transform CSX sources
+        run: csx build --configuration Release
+
       - name: Publish
         # Silk.NET's native loader resolves glfw3.dll from the app base directory
         # and Assembly.Location, both of which break under PublishSingleFile
