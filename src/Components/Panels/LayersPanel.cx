@@ -52,23 +52,23 @@ public sealed class LayersPanel : Component
             }
         }
 
-        return <div ClassName="layers-body">
-            <div ClassName="layer-props">
-                <div ClassName="prop-row">
-                    <span ClassName="prop-label">{Text("Blend")}</span>
+        return <div className="layers-body">
+            <div className="layer-props">
+                <div className="prop-row">
+                    <span className="prop-label">{Text("Blend")}</span>
                     {Ui.Stepper(LabelOf(active.Blend), "Blend mode of the active layer",
                         () => Cycle(editor, -1),
                         () => Cycle(editor, 1))}
                 </div>
-                <div ClassName="prop-row">
-                    <span ClassName="prop-label">{Text("Clip")}</span>
+                <div className="prop-row">
+                    <span className="prop-label">{Text("Clip")}</span>
                     {Ui.Toggle("Below", "Clip this layer to the visible content below it", active.ClipToBelow,
                         editor.ToggleClipToBelow)}
                 </div>
-                <div ClassName="prop-row">
-                    <span ClassName="prop-label">{Text("Opacity")}</span>
-                    <div ClassName="prop-slider">
-                        <input ClassName="prop-range"
+                <div className="prop-row">
+                    <span className="prop-label">{Text("Opacity")}</span>
+                    <div className="prop-slider">
+                        <input className="prop-range"
                             Type="range"
                             Value={Ui.Number(active.Opacity * 100f)}
                             Attributes={new()
@@ -78,13 +78,13 @@ public sealed class LayersPanel : Component
                                 ["step"] = "1",
                             }}
                             OnInput={value => editor.SetLayerOpacity(Ui.Parse(value, 0f, 100f) / 100f)} />
-                        <span ClassName="prop-value">{Text(Ui.Format(active.Opacity * 100f) + "%")}</span>
+                        <span className="prop-value">{Text(Ui.Format(active.Opacity * 100f) + "%")}</span>
                     </div>
                 </div>
-                {Show(activeGroup is not null, <div ClassName="prop-row">
-                    <span ClassName="prop-label">{Text("Group")}</span>
-                    <div ClassName="prop-slider">
-                        <input ClassName="prop-range"
+                {Show(activeGroup is not null, <div className="prop-row">
+                    <span className="prop-label">{Text("Group")}</span>
+                    <div className="prop-slider">
+                        <input className="prop-range"
                             Type="range"
                             Value={Ui.Number((activeGroup?.Opacity ?? 1f) * 100f)}
                             Attributes={new()
@@ -102,11 +102,11 @@ public sealed class LayersPanel : Component
                                         Ui.Parse(value, 0f, 100f) / 100f);
                                 }
                             }} />
-                        <span ClassName="prop-value">{Text(Ui.Format((activeGroup?.Opacity ?? 1f) * 100f) + "%")}</span>
+                        <span className="prop-value">{Text(Ui.Format((activeGroup?.Opacity ?? 1f) * 100f) + "%")}</span>
                     </div>
                 </div>)}
             </div>
-            <div ClassName="layer-list"
+            <div className="layer-list"
                 OnDragOver={drag =>
                 {
                     if (drag.Data.HasData(LayerDragFormat))
@@ -126,7 +126,7 @@ public sealed class LayersPanel : Component
                 OnContextMenu={menu => editor.OpenLayerMenu(-1, null, menu.WindowX, menu.WindowY)}>
                 {rows.ToArray()}
             </div>
-            <div ClassName="layer-actions">
+            <div className="layer-actions">
                 {Ui.Tip(editor, Ui.IconButton(Icons.Plus, "New layer", editor.AddLayer),
                     Icons.Plus, "New Layer", "layer.new", "Ctrl+Shift+N", TipPlacement.Above)}
                 {Ui.Tip(editor, Ui.IconButton(Icons.Duplicate, "Duplicate the active layer", editor.DuplicateLayer, regular: true),
@@ -156,7 +156,7 @@ public sealed class LayersPanel : Component
                     "layer.mask",
                     "",
                     TipPlacement.Above)}
-                <div ClassName="actions-spacer" />
+                <div className="actions-spacer" />
                 {Ui.Tip(editor, Ui.IconButton(Icons.Delete, "Delete the active layer", editor.DeleteActiveLayer, document.Layers.Count > 1, regular: true),
                     Icons.Delete, "Delete Layer", "layer.delete", "", TipPlacement.Above)}
             </div>
@@ -194,7 +194,7 @@ public sealed class LayersPanel : Component
             className += " is-drop-target";
         }
 
-        return <div ClassName={className}
+        return <div className={className}
             Title={group.Name}
             OnClick={() => editor.SelectGroup(group)}
             OnDragEnter={drag =>
@@ -222,18 +222,18 @@ public sealed class LayersPanel : Component
                 }
             }}
             OnContextMenu={menu => editor.OpenLayerMenu(-1, group, menu.WindowX, menu.WindowY)}>
-            {Ui.Tip(editor, <button ClassName="layer-group-chevron"
+            {Ui.Tip(editor, <button className="layer-group-chevron"
                 Title={group.Expanded ? "Collapse the group" : "Expand the group"}
                 OnClick={() => editor.ToggleGroupExpanded(group)}>
                 {Ui.Icon(group.Expanded ? Icons.ChevronDown : Icons.Next)}
             </button>,
                 Icons.ChevronDown, "Expand Group", "layer.expand")}
-            <span ClassName="layer-group-icon">{Ui.Icon(Icons.Folder)}</span>
-            <div ClassName="layer-main">
-                <span ClassName="layer-name">{Text(group.Name)}</span>
-                <span ClassName="layer-meta">{Text($"{count} layer{(count == 1 ? string.Empty : "s")} | " + Ui.Format(group.Opacity * 100f) + "%")}</span>
+            <span className="layer-group-icon">{Ui.Icon(Icons.Folder)}</span>
+            <div className="layer-main">
+                <span className="layer-name">{Text(group.Name)}</span>
+                <span className="layer-meta">{Text($"{count} layer{(count == 1 ? string.Empty : "s")} | " + Ui.Format(group.Opacity * 100f) + "%")}</span>
             </div>
-            {Ui.Tip(editor, <button ClassName={group.Visible ? "layer-btn" : "layer-btn is-dim"}
+            {Ui.Tip(editor, <button className={group.Visible ? "layer-btn" : "layer-btn is-dim"}
                 Title={group.Visible ? "Hide the group" : "Show the group"}
                 OnClick={() => editor.ToggleGroupVisibility(group)}>
                 {Ui.Icon(group.Visible ? Icons.Eye : Icons.EyeOff, regular: true)}
@@ -275,7 +275,7 @@ public sealed class LayersPanel : Component
         bool showAbove = editor.LayerDropTarget == aboveKey;
         bool showBelow = editor.LayerDropTarget == belowKey;
 
-        return <div ClassName={className}
+        return <div className={className}
             Key={index.ToString(CultureInfo.InvariantCulture)}
             Draggable={true}
             OnClick={() => editor.SelectLayer(index)}
@@ -313,29 +313,29 @@ public sealed class LayersPanel : Component
                 }
             }}>
             {layer.IsAdjustment
-                ? <div ClassName="layer-adjust-thumb">{Ui.Icon(Icons.Sliders)}</div>
+                ? <div className="layer-adjust-thumb">{Ui.Icon(Icons.Sliders)}</div>
                 : Canvas(new CanvasProps
                 {
-                    ClassName = "layer-thumb",
+                    className = "layer-thumb",
                     Attributes = Ui.Size(46, 34),
                     OnDraw = context => DrawThumbnail(context, layer),
                 })}
             {Show(layer.HasMask, Canvas(new CanvasProps
             {
-                ClassName = active && editor.MaskEditing ? "layer-mask-thumb is-active" : "layer-mask-thumb",
+                className = active && editor.MaskEditing ? "layer-mask-thumb is-active" : "layer-mask-thumb",
                 Title = "Click to edit the mask, right-click to remove it",
                 Attributes = Ui.Size(30, 34),
                 OnClick = () => editor.ToggleMaskEditing(index),
                 OnContextMenu = _ => editor.ToggleLayerMask(),
                 OnDraw = context => DrawMaskThumbnail(context, layer),
             }))}
-            <div ClassName="layer-main">
-                <div ClassName="layer-name-row">
-                    <span ClassName="layer-name">{Text(layer.Name)}</span>
+            <div className="layer-main">
+                <div className="layer-name-row">
+                    <span className="layer-name">{Text(layer.Name)}</span>
                     {Show(editor.IsMeshWarpOpen && index == editor.MeshWarpIndex,
-                        <span ClassName="layer-badge" Title="This layer is being mesh-warped">{Text("Mesh")}</span>)}
+                        <span className="layer-badge" Title="This layer is being mesh-warped">{Text("Mesh")}</span>)}
                 </div>
-                <span ClassName="layer-meta">
+                <span className="layer-meta">
                     {Text(layer.IsShapeLayer
                         ? $"{layer.Shape?.Kind} shape | {Ui.Format(layer.Opacity * 100f)}%"
                         : layer.IsTextLayer
@@ -347,13 +347,13 @@ public sealed class LayersPanel : Component
                         : $"{LabelOf(layer.Blend)} | {Ui.Format(layer.Opacity * 100f)}%" + (layer.ClipToBelow ? " | clipped" : string.Empty))}
                 </span>
             </div>
-            {Ui.Tip(editor, <button ClassName={layer.Style.HasAny ? "layer-btn is-on" : "layer-btn is-dim"}
+            {Ui.Tip(editor, <button className={layer.Style.HasAny ? "layer-btn is-on" : "layer-btn is-dim"}
                 Title="Layer style"
                 OnClick={() => editor.ShowLayerStyleDialog(index)}>
                 {Ui.Icon(Icons.Sparkles)}
             </button>,
             Icons.Sparkles, "Layer Style", "layer.style")}
-            {Ui.Tip(editor, <button ClassName={layer.Locked ? "layer-btn is-on" : "layer-btn is-dim"}
+            {Ui.Tip(editor, <button className={layer.Locked ? "layer-btn is-on" : "layer-btn is-dim"}
                 Title={layer.Locked ? "Unlock the layer" : "Lock the layer"}
                 OnClick={() => editor.ToggleLock(index)}>
                 {Ui.Icon(layer.Locked ? Icons.Lock : Icons.Unlock)}
@@ -361,7 +361,7 @@ public sealed class LayersPanel : Component
             layer.Locked ? Icons.Lock : Icons.Unlock,
             layer.Locked ? "Unlock Layer" : "Lock Layer",
             "layer.lock")}
-            {Ui.Tip(editor, <button ClassName={layer.Visible ? "layer-btn" : "layer-btn is-dim"}
+            {Ui.Tip(editor, <button className={layer.Visible ? "layer-btn" : "layer-btn is-dim"}
                 Title={layer.Visible ? "Hide the layer" : "Show the layer"}
                 OnClick={() => editor.ToggleLayer(index)}>
                 {Ui.Icon(layer.Visible ? Icons.Eye : Icons.EyeOff, regular: true)}
@@ -369,8 +369,8 @@ public sealed class LayersPanel : Component
             layer.Visible ? Icons.Eye : Icons.EyeOff,
             layer.Visible ? "Hide Layer" : "Show Layer",
             "layer.visible")}
-            {Show(showAbove, <div ClassName="drop-line is-above" />)}
-            {Show(showBelow, <div ClassName="drop-line is-below" />)}
+            {Show(showAbove, <div className="drop-line is-above" />)}
+            {Show(showBelow, <div className="drop-line is-below" />)}
         </div>;
     }
 

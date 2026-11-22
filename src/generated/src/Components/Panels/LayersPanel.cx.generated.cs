@@ -52,15 +52,15 @@ public sealed class LayersPanel : Component
             }
         }
 
-        return _.H("div", new() { ClassName = "layers-body" }, _.H("div", new() { ClassName = "layer-props" }, _.H("div", new() { ClassName = "prop-row" }, _.H("span", new() { ClassName = "prop-label" }, Text("Blend")), Ui.Stepper(LabelOf(active.Blend), "Blend mode of the active layer",
+        return _.H("div", new() { className = "layers-body" }, _.H("div", new() { className = "layer-props" }, _.H("div", new() { className = "prop-row" }, _.H("span", new() { className = "prop-label" }, Text("Blend")), Ui.Stepper(LabelOf(active.Blend), "Blend mode of the active layer",
                         () => Cycle(editor, -1),
-                        () => Cycle(editor, 1))), _.H("div", new() { ClassName = "prop-row" }, _.H("span", new() { ClassName = "prop-label" }, Text("Clip")), Ui.Toggle("Below", "Clip this layer to the visible content below it", active.ClipToBelow,
-                        editor.ToggleClipToBelow)), _.H("div", new() { ClassName = "prop-row" }, _.H("span", new() { ClassName = "prop-label" }, Text("Opacity")), _.H("div", new() { ClassName = "prop-slider" }, _.H("input", new() { ClassName = "prop-range", Type = "range", Value = Ui.Number(active.Opacity * 100f), Attributes = new()
+                        () => Cycle(editor, 1))), _.H("div", new() { className = "prop-row" }, _.H("span", new() { className = "prop-label" }, Text("Clip")), Ui.Toggle("Below", "Clip this layer to the visible content below it", active.ClipToBelow,
+                        editor.ToggleClipToBelow)), _.H("div", new() { className = "prop-row" }, _.H("span", new() { className = "prop-label" }, Text("Opacity")), _.H("div", new() { className = "prop-slider" }, _.H("input", new() { className = "prop-range", Type = "range", Value = Ui.Number(active.Opacity * 100f), Attributes = new()
                             {
                                 ["min"] = "0",
                                 ["max"] = "100",
                                 ["step"] = "1",
-                            }, OnInput = value => editor.SetLayerOpacity(Ui.Parse(value, 0f, 100f) / 100f) }), _.H("span", new() { ClassName = "prop-value" }, Text(Ui.Format(active.Opacity * 100f) + "%")))), Show(activeGroup is not null, _.H("div", new() { ClassName = "prop-row" }, _.H("span", new() { ClassName = "prop-label" }, Text("Group")), _.H("div", new() { ClassName = "prop-slider" }, _.H("input", new() { ClassName = "prop-range", Type = "range", Value = Ui.Number((activeGroup?.Opacity ?? 1f) * 100f), Attributes = new()
+                            }, OnInput = value => editor.SetLayerOpacity(Ui.Parse(value, 0f, 100f) / 100f) }), _.H("span", new() { className = "prop-value" }, Text(Ui.Format(active.Opacity * 100f) + "%")))), Show(activeGroup is not null, _.H("div", new() { className = "prop-row" }, _.H("span", new() { className = "prop-label" }, Text("Group")), _.H("div", new() { className = "prop-slider" }, _.H("input", new() { className = "prop-range", Type = "range", Value = Ui.Number((activeGroup?.Opacity ?? 1f) * 100f), Attributes = new()
                             {
                                 ["min"] = "0",
                                 ["max"] = "100",
@@ -73,7 +73,7 @@ public sealed class LayersPanel : Component
                                         activeGroup,
                                         Ui.Parse(value, 0f, 100f) / 100f);
                                 }
-                            } }), _.H("span", new() { ClassName = "prop-value" }, Text(Ui.Format((activeGroup?.Opacity ?? 1f) * 100f) + "%")))))), _.H("div", new() { ClassName = "layer-list", OnDragOver = drag =>
+                            } }), _.H("span", new() { className = "prop-value" }, Text(Ui.Format((activeGroup?.Opacity ?? 1f) * 100f) + "%")))))), _.H("div", new() { className = "layer-list", OnDragOver = drag =>
                 {
                     if (drag.Data.HasData(LayerDragFormat))
                     {
@@ -87,7 +87,7 @@ public sealed class LayersPanel : Component
                         editor.SetLayerDropTarget(string.Empty);
                         editor.MoveLayerToRoot(source);
                     }
-                }, OnContextMenu = menu => editor.OpenLayerMenu(-1, null, menu.WindowX, menu.WindowY) }, rows.ToArray()), _.H("div", new() { ClassName = "layer-actions" }, Ui.Tip(editor, Ui.IconButton(Icons.Plus, "New layer", editor.AddLayer),
+                }, OnContextMenu = menu => editor.OpenLayerMenu(-1, null, menu.WindowX, menu.WindowY) }, rows.ToArray()), _.H("div", new() { className = "layer-actions" }, Ui.Tip(editor, Ui.IconButton(Icons.Plus, "New layer", editor.AddLayer),
                     Icons.Plus, "New Layer", "layer.new", "Ctrl+Shift+N", TipPlacement.Above), Ui.Tip(editor, Ui.IconButton(Icons.Duplicate, "Duplicate the active layer", editor.DuplicateLayer, regular: true),
                     Icons.Duplicate, "Duplicate Layer", "layer.duplicate", "Ctrl+J", TipPlacement.Above), Ui.Tip(editor, Ui.IconButton(Icons.MergeDown, "Merge the active layer down", editor.MergeDown, document.ActiveIndex > 0),
                     Icons.MergeDown, "Merge Down", "layer.merge", "Ctrl+E", TipPlacement.Above), Ui.Tip(editor, Ui.IconButton(Icons.FolderPlus, "Put the active layer in a new group", editor.GroupActiveLayer, activeGroup is null),
@@ -110,7 +110,7 @@ public sealed class LayersPanel : Component
                     active.HasMask ? "Layer Mask" : "Add Layer Mask",
                     "layer.mask",
                     "",
-                    TipPlacement.Above), _.H("div", new() { ClassName = "actions-spacer" }), Ui.Tip(editor, Ui.IconButton(Icons.Delete, "Delete the active layer", editor.DeleteActiveLayer, document.Layers.Count > 1, regular: true),
+                    TipPlacement.Above), _.H("div", new() { className = "actions-spacer" }), Ui.Tip(editor, Ui.IconButton(Icons.Delete, "Delete the active layer", editor.DeleteActiveLayer, document.Layers.Count > 1, regular: true),
                     Icons.Delete, "Delete Layer", "layer.delete", "", TipPlacement.Above)));
     }
 
@@ -145,7 +145,7 @@ public sealed class LayersPanel : Component
             className += " is-drop-target";
         }
 
-        return _.H("div", new() { ClassName = className, Title = group.Name, OnClick = () => editor.SelectGroup(group), OnDragEnter = drag =>
+        return _.H("div", new() { className = className, Title = group.Name, OnClick = () => editor.SelectGroup(group), OnDragEnter = drag =>
             {
                 if (drag.Data.HasData(LayerDragFormat))
                 {
@@ -165,8 +165,8 @@ public sealed class LayersPanel : Component
                 {
                     editor.MoveLayerIntoGroup(source, group);
                 }
-            }, OnContextMenu = menu => editor.OpenLayerMenu(-1, group, menu.WindowX, menu.WindowY) }, Ui.Tip(editor, _.H("button", new() { ClassName = "layer-group-chevron", Title = group.Expanded ? "Collapse the group" : "Expand the group", OnClick = () => editor.ToggleGroupExpanded(group) }, Ui.Icon(group.Expanded ? Icons.ChevronDown : Icons.Next)),
-                Icons.ChevronDown, "Expand Group", "layer.expand"), _.H("span", new() { ClassName = "layer-group-icon" }, Ui.Icon(Icons.Folder)), _.H("div", new() { ClassName = "layer-main" }, _.H("span", new() { ClassName = "layer-name" }, Text(group.Name)), _.H("span", new() { ClassName = "layer-meta" }, Text($"{count} layer{(count == 1 ? string.Empty : "s")} | " + Ui.Format(group.Opacity * 100f) + "%"))), Ui.Tip(editor, _.H("button", new() { ClassName = group.Visible ? "layer-btn" : "layer-btn is-dim", Title = group.Visible ? "Hide the group" : "Show the group", OnClick = () => editor.ToggleGroupVisibility(group) }, Ui.Icon(group.Visible ? Icons.Eye : Icons.EyeOff, regular: true)),
+            }, OnContextMenu = menu => editor.OpenLayerMenu(-1, group, menu.WindowX, menu.WindowY) }, Ui.Tip(editor, _.H("button", new() { className = "layer-group-chevron", Title = group.Expanded ? "Collapse the group" : "Expand the group", OnClick = () => editor.ToggleGroupExpanded(group) }, Ui.Icon(group.Expanded ? Icons.ChevronDown : Icons.Next)),
+                Icons.ChevronDown, "Expand Group", "layer.expand"), _.H("span", new() { className = "layer-group-icon" }, Ui.Icon(Icons.Folder)), _.H("div", new() { className = "layer-main" }, _.H("span", new() { className = "layer-name" }, Text(group.Name)), _.H("span", new() { className = "layer-meta" }, Text($"{count} layer{(count == 1 ? string.Empty : "s")} | " + Ui.Format(group.Opacity * 100f) + "%"))), Ui.Tip(editor, _.H("button", new() { className = group.Visible ? "layer-btn" : "layer-btn is-dim", Title = group.Visible ? "Hide the group" : "Show the group", OnClick = () => editor.ToggleGroupVisibility(group) }, Ui.Icon(group.Visible ? Icons.Eye : Icons.EyeOff, regular: true)),
                 group.Visible ? Icons.Eye : Icons.EyeOff,
                 group.Visible ? "Hide Group" : "Show Group",
                 "layer.groupVisible"));
@@ -203,7 +203,7 @@ public sealed class LayersPanel : Component
         bool showAbove = editor.LayerDropTarget == aboveKey;
         bool showBelow = editor.LayerDropTarget == belowKey;
 
-        return _.H("div", new() { ClassName = className, Key = index.ToString(CultureInfo.InvariantCulture), Draggable = true, OnClick = () => editor.SelectLayer(index), OnContextMenu = menu => editor.OpenLayerMenu(index, null, menu.WindowX, menu.WindowY), OnDragStart = drag =>
+        return _.H("div", new() { className = className, Key = index.ToString(CultureInfo.InvariantCulture), Draggable = true, OnClick = () => editor.SelectLayer(index), OnContextMenu = menu => editor.OpenLayerMenu(index, null, menu.WindowX, menu.WindowY), OnDragStart = drag =>
             {
                 drag.Data.SetData(LayerDragFormat, index.ToString(CultureInfo.InvariantCulture));
                 drag.Data.EffectAllowed = "move";
@@ -230,22 +230,22 @@ public sealed class LayersPanel : Component
                     editor.MoveLayerTo(source, index, drag.LocalY < 18f);
                 }
             } }, layer.IsAdjustment
-                ? _.H("div", new() { ClassName = "layer-adjust-thumb" }, Ui.Icon(Icons.Sliders))
+                ? _.H("div", new() { className = "layer-adjust-thumb" }, Ui.Icon(Icons.Sliders))
                 : Canvas(new CanvasProps
                 {
-                    ClassName = "layer-thumb",
+                    className = "layer-thumb",
                     Attributes = Ui.Size(46, 34),
                     OnDraw = context => DrawThumbnail(context, layer),
                 }), Show(layer.HasMask, Canvas(new CanvasProps
             {
-                ClassName = active && editor.MaskEditing ? "layer-mask-thumb is-active" : "layer-mask-thumb",
+                className = active && editor.MaskEditing ? "layer-mask-thumb is-active" : "layer-mask-thumb",
                 Title = "Click to edit the mask, right-click to remove it",
                 Attributes = Ui.Size(30, 34),
                 OnClick = () => editor.ToggleMaskEditing(index),
                 OnContextMenu = _ => editor.ToggleLayerMask(),
                 OnDraw = context => DrawMaskThumbnail(context, layer),
-            })), _.H("div", new() { ClassName = "layer-main" }, _.H("div", new() { ClassName = "layer-name-row" }, _.H("span", new() { ClassName = "layer-name" }, Text(layer.Name)), Show(editor.IsMeshWarpOpen && index == editor.MeshWarpIndex,
-                        _.H("span", new() { ClassName = "layer-badge", Title = "This layer is being mesh-warped" }, Text("Mesh")))), _.H("span", new() { ClassName = "layer-meta" }, Text(layer.IsShapeLayer
+            })), _.H("div", new() { className = "layer-main" }, _.H("div", new() { className = "layer-name-row" }, _.H("span", new() { className = "layer-name" }, Text(layer.Name)), Show(editor.IsMeshWarpOpen && index == editor.MeshWarpIndex,
+                        _.H("span", new() { className = "layer-badge", Title = "This layer is being mesh-warped" }, Text("Mesh")))), _.H("span", new() { className = "layer-meta" }, Text(layer.IsShapeLayer
                         ? $"{layer.Shape?.Kind} shape | {Ui.Format(layer.Opacity * 100f)}%"
                         : layer.IsTextLayer
                         ? $"Text | {Ui.Format(layer.Opacity * 100f)}%"
@@ -253,14 +253,14 @@ public sealed class LayersPanel : Component
                         ? $"Smart Object | {Ui.Format(layer.Opacity * 100f)}%"
                         : layer.IsAdjustment
                         ? $"{layer.Adjustment} adjustment | {Ui.Format(layer.Opacity * 100f)}%"
-                        : $"{LabelOf(layer.Blend)} | {Ui.Format(layer.Opacity * 100f)}%" + (layer.ClipToBelow ? " | clipped" : string.Empty)))), Ui.Tip(editor, _.H("button", new() { ClassName = layer.Style.HasAny ? "layer-btn is-on" : "layer-btn is-dim", Title = "Layer style", OnClick = () => editor.ShowLayerStyleDialog(index) }, Ui.Icon(Icons.Sparkles)),
-            Icons.Sparkles, "Layer Style", "layer.style"), Ui.Tip(editor, _.H("button", new() { ClassName = layer.Locked ? "layer-btn is-on" : "layer-btn is-dim", Title = layer.Locked ? "Unlock the layer" : "Lock the layer", OnClick = () => editor.ToggleLock(index) }, Ui.Icon(layer.Locked ? Icons.Lock : Icons.Unlock)),
+                        : $"{LabelOf(layer.Blend)} | {Ui.Format(layer.Opacity * 100f)}%" + (layer.ClipToBelow ? " | clipped" : string.Empty)))), Ui.Tip(editor, _.H("button", new() { className = layer.Style.HasAny ? "layer-btn is-on" : "layer-btn is-dim", Title = "Layer style", OnClick = () => editor.ShowLayerStyleDialog(index) }, Ui.Icon(Icons.Sparkles)),
+            Icons.Sparkles, "Layer Style", "layer.style"), Ui.Tip(editor, _.H("button", new() { className = layer.Locked ? "layer-btn is-on" : "layer-btn is-dim", Title = layer.Locked ? "Unlock the layer" : "Lock the layer", OnClick = () => editor.ToggleLock(index) }, Ui.Icon(layer.Locked ? Icons.Lock : Icons.Unlock)),
             layer.Locked ? Icons.Lock : Icons.Unlock,
             layer.Locked ? "Unlock Layer" : "Lock Layer",
-            "layer.lock"), Ui.Tip(editor, _.H("button", new() { ClassName = layer.Visible ? "layer-btn" : "layer-btn is-dim", Title = layer.Visible ? "Hide the layer" : "Show the layer", OnClick = () => editor.ToggleLayer(index) }, Ui.Icon(layer.Visible ? Icons.Eye : Icons.EyeOff, regular: true)),
+            "layer.lock"), Ui.Tip(editor, _.H("button", new() { className = layer.Visible ? "layer-btn" : "layer-btn is-dim", Title = layer.Visible ? "Hide the layer" : "Show the layer", OnClick = () => editor.ToggleLayer(index) }, Ui.Icon(layer.Visible ? Icons.Eye : Icons.EyeOff, regular: true)),
             layer.Visible ? Icons.Eye : Icons.EyeOff,
             layer.Visible ? "Hide Layer" : "Show Layer",
-            "layer.visible"), Show(showAbove, _.H("div", new() { ClassName = "drop-line is-above" })), Show(showBelow, _.H("div", new() { ClassName = "drop-line is-below" })));
+            "layer.visible"), Show(showAbove, _.H("div", new() { className = "drop-line is-above" })), Show(showBelow, _.H("div", new() { className = "drop-line is-below" })));
     }
 
     // DrawThumbnail, Sample, DrawMaskThumbnail, MaskSample, LabelOf unchanged

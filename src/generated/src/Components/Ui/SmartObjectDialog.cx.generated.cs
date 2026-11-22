@@ -59,13 +59,13 @@ public sealed class SmartObjectDialog : Component
                 });
         }
 
-        return _.H("div", new() { ClassName = "resize-layer" }, _.H("div", new() { ClassName = "resize-panel style-panel perspective-panel" }, _.H("div", new() { ClassName = "resize-head" }, _.H("span", new() { ClassName = "resize-head-icon" }, Ui.Icon(Icons.SmartObject)), _.H("div", new() { ClassName = "resize-head-titles" }, _.H("span", new() { ClassName = "resize-title" }, Text("Smart Object")), _.H("span", new() { ClassName = "resize-sub" }, Text(layer.Name))), Ui.Tip(editor,
+        return _.H("div", new() { className = "resize-layer" }, _.H("div", new() { className = "resize-panel style-panel perspective-panel" }, _.H("div", new() { className = "resize-head" }, _.H("span", new() { className = "resize-head-icon" }, Ui.Icon(Icons.SmartObject)), _.H("div", new() { className = "resize-head-titles" }, _.H("span", new() { className = "resize-title" }, Text("Smart Object")), _.H("span", new() { className = "resize-sub" }, Text(layer.Name))), Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Cancel", () =>
                         {
                             editor.CancelSmartTransform();
                             editor.Refresh?.Invoke();
                         }, className: "icon-btn"),
-                        Icons.Close, "Cancel", "")), _.H("div", new() { ClassName = "style-body" }, _.H("span", new() { ClassName = "resize-note" }, Text("Repeated transforms reuse the original source pixels.")), _.H("div", new() { ClassName = "style-rows" }, sliders), _.H("div", new() { ClassName = "style-options" }, Ui.Toggle("Flip X", "Mirror horizontally", editor.SmartFlipX, () =>
+                        Icons.Close, "Cancel", "")), _.H("div", new() { className = "style-body" }, _.H("span", new() { className = "resize-note" }, Text("Repeated transforms reuse the original source pixels.")), _.H("div", new() { className = "style-rows" }, sliders), _.H("div", new() { className = "style-options" }, Ui.Toggle("Flip X", "Mirror horizontally", editor.SmartFlipX, () =>
                         {
                             editor.ToggleSmartFlipX();
                             editor.Refresh?.Invoke();
@@ -73,7 +73,7 @@ public sealed class SmartObjectDialog : Component
                         {
                             editor.ToggleSmartFlipY();
                             editor.Refresh?.Invoke();
-                        }))), _.H("div", new() { ClassName = "resize-foot" }, _.H("span", new() { ClassName = "resize-note" }, Text("Only .pxd projects keep smart objects.")), _.H("div", new() { ClassName = "resize-actions" }, Ui.Button("Reset", "Return to the identity transform", () =>
+                        }))), _.H("div", new() { className = "resize-foot" }, _.H("span", new() { className = "resize-note" }, Text("Only .pxd projects keep smart objects.")), _.H("div", new() { className = "resize-actions" }, Ui.Button("Reset", "Return to the identity transform", () =>
                         {
                             editor.ResetSmartTransform();
                             editor.Refresh?.Invoke();

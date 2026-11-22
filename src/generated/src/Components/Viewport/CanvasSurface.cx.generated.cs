@@ -44,20 +44,20 @@ public sealed class CanvasSurface : Component
             return paint;
         }
 
-        return _.H("div", new() { ClassName = "canvas-frame" }, _.H("div", new() { ClassName = "ruler-strip" }, Canvas(new CanvasProps
+        return _.H("div", new() { className = "canvas-frame" }, _.H("div", new() { className = "ruler-strip" }, Canvas(new CanvasProps
                 {
-                    ClassName = "ruler-corner",
+                    className = "ruler-corner",
                     Attributes = Ui.Size((int)RulerSize, (int)RulerSize),
                     OnDraw = context => context.Clear(0xFF121318),
                 }), Canvas(new CanvasProps
                 {
-                    ClassName = "ruler ruler-top",
+                    className = "ruler ruler-top",
                     Attributes = Ui.Size(pixelWidth, (int)RulerSize),
                     OnDraw = context => DrawRuler(context, editor, horizontal: true, pixelWidth),
                     OnPointerDown = (x, y) => editor.PlaceGuide(horizontal: false, x / zoom),
-                })), _.H("div", new() { ClassName = "ruler-strip" }, Canvas(new CanvasProps
+                })), _.H("div", new() { className = "ruler-strip" }, Canvas(new CanvasProps
                 {
-                    ClassName = "ruler ruler-left",
+                    className = "ruler ruler-left",
                     Attributes = Ui.Size((int)RulerSize, pixelHeight),
                     OnDraw = context => DrawRuler(context, editor, horizontal: false, pixelHeight),
                     OnPointerDown = (x, y) => editor.PlaceGuide(horizontal: true, y / zoom),
@@ -73,7 +73,7 @@ public sealed class CanvasSurface : Component
     {
         Node canvas = Canvas(new CanvasProps
         {
-            ClassName = "paint-canvas " + CursorClass(editor.Tool),
+            className = "paint-canvas " + CursorClass(editor.Tool),
             // Focusable so clicking the artwork keeps the stage's key handler
             // live: tool shortcuts, copy and undo all arrive while painting.
             TabIndex = 0,

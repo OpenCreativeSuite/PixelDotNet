@@ -48,12 +48,12 @@ public sealed class Viewport : Component
 
         ElementNode viewport = (ElementNode)Div(new()
         {
-            ClassName = "viewport",
+            className = "viewport",
             OnPointerMove = (x, y) => ViewportPan.Handle(),
         },
             Div(new()
             {
-                ClassName = "canvas-slot",
+                className = "canvas-slot",
                 Attributes = new()
                 {
                     ["style"] = $"width:{Ui.Number(contentWidth)}px;height:{Ui.Number(contentHeight)}px;",
@@ -62,12 +62,12 @@ public sealed class Viewport : Component
                 C<CanvasSurface>()));
         viewport.BindRef(viewportRef);
 
-        return _.H("div", new() { ClassName = "stage", TabIndex = 0 }, _.H("div", new() { ClassName = "doctabs" }, Each(editor.Documents, info => (Node)DocumentTab(editor, info))), viewport);
+        return _.H("div", new() { className = "stage", TabIndex = 0 }, _.H("div", new() { className = "doctabs" }, Each(editor.Documents, info => (Node)DocumentTab(editor, info))), viewport);
     }
 
     /// <summary>Builds one document tab: a pick target, the name and a close button.</summary>
     private static Node DocumentTab(PaintSession editor, PaintSession.DocumentInfo info) =>
-        _.H("div", new() { ClassName = info.IsActive ? "doctab is-active" : "doctab" }, _.H("button", new() { ClassName = "doctab-select", Title = info.Name, OnClick = () => editor.SwitchDocument(info.Index) }, Ui.Icon(Icons.Document, "doctab-icon"), _.H("span", new() { ClassName = "doctab-name" }, Text(info.Name))), Show(editor.DocumentCount > 1, _.H("button", new() { ClassName = "doctab-close", Title = "Close " + info.Name, OnClick = () => editor.CloseDocument(info.Index) }, Ui.Icon(Icons.Close))));
+        _.H("div", new() { className = info.IsActive ? "doctab is-active" : "doctab" }, _.H("button", new() { className = "doctab-select", Title = info.Name, OnClick = () => editor.SwitchDocument(info.Index) }, Ui.Icon(Icons.Document, "doctab-icon"), _.H("span", new() { className = "doctab-name" }, Text(info.Name))), Show(editor.DocumentCount > 1, _.H("button", new() { className = "doctab-close", Title = "Close " + info.Name, OnClick = () => editor.CloseDocument(info.Index) }, Ui.Icon(Icons.Close))));
 
     /// <summary>
     /// Single-key shortcuts. The host reports a key name only, so modifiers are not

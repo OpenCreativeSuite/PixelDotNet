@@ -48,15 +48,15 @@ public sealed class PerspectiveDialog : Component
                 });
         }
 
-        return _.H("div", new() { ClassName = "resize-layer" }, _.H("div", new() { ClassName = "resize-panel style-panel perspective-panel" }, _.H("div", new() { ClassName = "resize-head" }, _.H("span", new() { ClassName = "resize-head-icon" }, Ui.Icon(Icons.Move)), _.H("div", new() { ClassName = "resize-head-titles" }, _.H("span", new() { ClassName = "resize-title" }, Text("Perspective Transform")), _.H("span", new() { ClassName = "resize-sub" }, Text(layer.Name))), Ui.Tip(editor,
+        return _.H("div", new() { className = "resize-layer" }, _.H("div", new() { className = "resize-panel style-panel perspective-panel" }, _.H("div", new() { className = "resize-head" }, _.H("span", new() { className = "resize-head-icon" }, Ui.Icon(Icons.Move)), _.H("div", new() { className = "resize-head-titles" }, _.H("span", new() { className = "resize-title" }, Text("Perspective Transform")), _.H("span", new() { className = "resize-sub" }, Text(layer.Name))), Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Cancel", () =>
                         {
                             editor.CancelPerspective();
                             editor.Refresh?.Invoke();
                         }, className: "icon-btn"),
-                        Icons.Close, "Cancel", "")), _.H("div", new() { ClassName = "style-body" }, _.H("span", new() { ClassName = "resize-note" }, Text(editor.Selection is null
+                        Icons.Close, "Cancel", "")), _.H("div", new() { className = "style-body" }, _.H("span", new() { className = "resize-note" }, Text(editor.Selection is null
                             ? "Drag the corners by moving the sliders; the layer is transformed live."
-                            : "Transforms the selected region; pixels outside it stay put.")), _.H("div", new() { ClassName = "style-rows" }, sliders)), _.H("div", new() { ClassName = "resize-foot" }, _.H("span", new() { ClassName = "resize-note" }, Text("Reset returns to the original pixels.")), _.H("div", new() { ClassName = "resize-actions" }, Ui.Button("Reset", "Clear all corner offsets", () =>
+                            : "Transforms the selected region; pixels outside it stay put.")), _.H("div", new() { className = "style-rows" }, sliders)), _.H("div", new() { className = "resize-foot" }, _.H("span", new() { className = "resize-note" }, Text("Reset returns to the original pixels.")), _.H("div", new() { className = "resize-actions" }, Ui.Button("Reset", "Clear all corner offsets", () =>
                         {
                             editor.ResetPerspective();
                             editor.Refresh?.Invoke();

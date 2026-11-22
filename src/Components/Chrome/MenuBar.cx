@@ -118,26 +118,26 @@ public sealed class MenuBar : Component
     {
         PaintSession editor = UseContext(EditorContext.Value);
 
-        return <div ClassName="menubar">
-            <div ClassName="brand">
-                <div ClassName="brand-mark">
-                    <span ClassName="brand-px brand-px-a" />
-                    <span ClassName="brand-px brand-px-b" />
-                    <span ClassName="brand-px brand-px-c" />
-                    <span ClassName="brand-px brand-px-d" />
+        return <div className="menubar">
+            <div className="brand">
+                <div className="brand-mark">
+                    <span className="brand-px brand-px-a" />
+                    <span className="brand-px brand-px-b" />
+                    <span className="brand-px brand-px-c" />
+                    <span className="brand-px brand-px-d" />
                 </div>
-                <span ClassName="brand-name">{Text("PixelDotNet")}</span>
+                <span className="brand-name">{Text("PixelDotNet")}</span>
             </div>
             {Each(Menus, menu => (Node)Menu(editor, menu))}
-            <div ClassName="menu-spacer" />
-            <div ClassName="quick">
+            <div className="menu-spacer" />
+            <div className="quick">
                 {Ui.Tip(editor,
                     Ui.IconButton(Icons.Undo, "Undo the last step (Ctrl+Z)", editor.Undo, editor.CanUndo, className: "quick-btn"),
                     Icons.Undo, "Undo", "quick.undo", "Ctrl+Z")}
                 {Ui.Tip(editor,
                     Ui.IconButton(Icons.Redo, "Redo the last undone step (Y)", editor.Redo, editor.CanRedo, className: "quick-btn"),
                     Icons.Redo, "Redo", "quick.redo", "Y")}
-                <div ClassName="quick-sep" />
+                <div className="quick-sep" />
                 {Ui.Tip(editor,
                     Ui.IconButton(Icons.Save, "Choose where to save the image", editor.ShowSaveDialog, className: "quick-btn is-primary"),
                     Icons.Save, "Save Image", "quick.save", "Ctrl+S")}
@@ -149,7 +149,7 @@ public sealed class MenuBar : Component
     private static Node Menu(PaintSession editor, MenuDefinition definition)
     {
         bool open = editor.OpenMenu == definition.Title;
-        Node title = <button ClassName={open ? "menu-title is-open" : "menu-title"}
+        Node title = <button className={open ? "menu-title is-open" : "menu-title"}
             OnClick={() =>
             {
                 editor.CloseFontMenu();
@@ -159,9 +159,9 @@ public sealed class MenuBar : Component
             {Text(definition.Title)}
         </button>;
 
-        return <div ClassName="menu">
+        return <div className="menu">
             {title}
-            {Show(open, <div ClassName="menu-list">{MenuItems(editor, definition)}</div>)}
+            {Show(open, <div className="menu-list">{MenuItems(editor, definition)}</div>)}
         </div>;
     }
 
@@ -173,20 +173,20 @@ public sealed class MenuBar : Component
         {
             if (item.StartsGroup && rows.Count > 0)
             {
-                rows.Add(<div ClassName="menu-sep" />);
+                rows.Add(<div className="menu-sep" />);
             }
 
             bool on = item.Checked is not null && item.Checked(editor);
-            rows.Add(<button ClassName="menu-item"
+            rows.Add(<button className="menu-item"
                 Disabled={item.Enabled is not null && !item.Enabled(editor)}
                 OnClick={() =>
                 {
                     editor.CloseMenu();
                     item.Run(editor);
                 }}>
-                <span ClassName="menu-item-check">{Show(on, Ui.Icon(Icons.Check))}</span>
-                <span ClassName="menu-item-label">{Text(item.Label)}</span>
-                <span ClassName="menu-item-key">{Text(item.Shortcut)}</span>
+                <span className="menu-item-check">{Show(on, Ui.Icon(Icons.Check))}</span>
+                <span className="menu-item-label">{Text(item.Label)}</span>
+                <span className="menu-item-key">{Text(item.Shortcut)}</span>
             </button>);
         }
 

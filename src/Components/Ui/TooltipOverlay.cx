@@ -83,14 +83,14 @@ public sealed class TooltipOverlay : Component
             + "width:" + Ui.Number(width) + "px;"
             + "height:" + Ui.Number(Height) + "px;";
 
-        return <div ClassName="tip-float"
+        return <div className="tip-float"
             Attributes={new() { ["style"] = style }}
             OnMouseOver={() => editor.TipHovered = true}
             OnMouseOut={() => ScheduleHide(editor)}>
-            <span ClassName="tip-icon">{Ui.Icon(tip.Icon)}</span>
-            <span ClassName="tip-title">{Text(tip.Title)}</span>
-            {Show(tip.ShowChevron && tip.Hint.Length > 0, <span ClassName="tip-key">{Text(tip.Hint)}</span>)}
-            {Show(tip.ShowChevron, <button ClassName="tip-more"
+            <span className="tip-icon">{Ui.Icon(tip.Icon)}</span>
+            <span className="tip-title">{Text(tip.Title)}</span>
+            {Show(tip.ShowChevron && tip.Hint.Length > 0, <span className="tip-key">{Text(tip.Hint)}</span>)}
+            {Show(tip.ShowChevron, <button className="tip-more"
                 Title={"More about " + tip.Title}
                 OnClick={() =>
                 {

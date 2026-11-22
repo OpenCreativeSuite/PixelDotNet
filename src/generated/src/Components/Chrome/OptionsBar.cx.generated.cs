@@ -20,14 +20,14 @@ public sealed class OptionsBar : Component
     {
         PaintSession editor = UseContext(EditorContext.Value);
 
-        return _.H("div", new() { ClassName = "optionsbar" }, _.H("div", new() { ClassName = "tool-badge" }, Ui.Icon(Icons.ForTool(editor.Tool), "tool-badge-icon", Icons.IsRegular(editor.Tool)), _.H("span", new() { ClassName = "tool-badge-name" }, Text(PaintSession.NameOf(editor.Tool))), _.H("span", new() { ClassName = "tool-badge-key" }, Text(PaintSession.ShortcutOf(editor.Tool)))), _.H("div", new() { ClassName = "opt-sep" }), _.H("div", new() { ClassName = "options-group" }, Options(editor)), _.H("div", new() { ClassName = "options-spacer" }), _.H("div", new() { ClassName = "color-block" }, _.H("div", new() { ClassName = "color-pair" }, Ui.Tip(editor,
+        return _.H("div", new() { className = "optionsbar" }, _.H("div", new() { className = "tool-badge" }, Ui.Icon(Icons.ForTool(editor.Tool), "tool-badge-icon", Icons.IsRegular(editor.Tool)), _.H("span", new() { className = "tool-badge-name" }, Text(PaintSession.NameOf(editor.Tool))), _.H("span", new() { className = "tool-badge-key" }, Text(PaintSession.ShortcutOf(editor.Tool)))), _.H("div", new() { className = "opt-sep" }), _.H("div", new() { className = "options-group" }, Options(editor)), _.H("div", new() { className = "options-spacer" }), _.H("div", new() { className = "color-block" }, _.H("div", new() { className = "color-pair" }, Ui.Tip(editor,
                         Ui.Swatch("color-chip-back", editor.Background, "Background colour — click to swap", editor.SwapColors, 22, 22),
                         Icons.Palette, "Background Colour", "tab.colour"), Ui.Tip(editor,
                         Ui.Swatch("color-chip-front", editor.Foreground, "Foreground colour — click to open the colour panel", editor.OpenColourTab, 22, 22),
-                        Icons.Palette, "Foreground Colour", "tab.colour")), _.H("div", new() { ClassName = "color-actions" }, Ui.Tip(editor,
+                        Icons.Palette, "Foreground Colour", "tab.colour")), _.H("div", new() { className = "color-actions" }, Ui.Tip(editor,
                         Ui.IconButton(Icons.Swap, "Swap foreground and background (X)", editor.SwapColors, className: "icon-btn is-tiny"),
                         Icons.Swap, "Swap Colours", "", "X"), Ui.Tip(editor,
-                        _.H("button", new() { ClassName = "icon-btn is-tiny", Title = "Default black and white (D)", OnClick = editor.ResetColors }, Ui.DefaultsGlyph()),
+                        _.H("button", new() { className = "icon-btn is-tiny", Title = "Default black and white (D)", OnClick = editor.ResetColors }, Ui.DefaultsGlyph()),
                         Icons.Invert, "Default Colours", "", "D"))));
     }
 
@@ -49,7 +49,7 @@ public sealed class OptionsBar : Component
             _ => "options.alignRight",
         };
 
-        return Ui.Tip(editor, _.H("button", new() { ClassName = editor.TextAlignment == align ? "btn is-on" : "btn", Title = title, OnClick = () =>
+        return Ui.Tip(editor, _.H("button", new() { className = editor.TextAlignment == align ? "btn is-on" : "btn", Title = title, OnClick = () =>
             {
                 editor.SetTextAlign(align);
                 editor.Refresh?.Invoke();
@@ -102,11 +102,11 @@ public sealed class OptionsBar : Component
             editor.EndTyping,
             null,
             "text-" + editor.TextGeneration),
-        _.H("div", new() { ClassName = "text-font" }, _.H("button", new() { ClassName = editor.IsFontMenuOpen ? "btn font-picker is-on" : "btn font-picker", Title = "Choose a font", OnClick = () =>
+        _.H("div", new() { className = "text-font" }, _.H("button", new() { className = editor.IsFontMenuOpen ? "btn font-picker is-on" : "btn font-picker", Title = "Choose a font", OnClick = () =>
                 {
                     editor.ToggleFontMenu();
                     editor.Refresh?.Invoke();
-                } }, _.H("span", new() { ClassName = "font-picker-name" }, Text(editor.Font.Name)), Ui.Icon(Icons.ChevronDown, "font-picker-arrow"))),
+                } }, _.H("span", new() { className = "font-picker-name" }, Text(editor.Font.Name)), Ui.Icon(Icons.ChevronDown, "font-picker-arrow"))),
         Ui.Tip(editor,
             Ui.IconButton(Icons.Plus, "Add a font from cdnfonts", () =>
             {
@@ -119,7 +119,7 @@ public sealed class OptionsBar : Component
             editor.SetTextSize(Ui.Parse(value, 8f, 200f));
             editor.Refresh?.Invoke();
         }),
-        _.H("div", new() { ClassName = "segmented" }, Ui.Tip(editor, Ui.Toggle("B", "Bold text", editor.TextBold, () =>
+        _.H("div", new() { className = "segmented" }, Ui.Tip(editor, Ui.Toggle("B", "Bold text", editor.TextBold, () =>
             {
                 editor.ToggleTextBold();
                 editor.Refresh?.Invoke();
@@ -128,8 +128,8 @@ public sealed class OptionsBar : Component
                 editor.ToggleTextItalic();
                 editor.Refresh?.Invoke();
             }), Icons.Text, "Italic", "options.italic")),
-        _.H("div", new() { ClassName = "segmented" }, AlignButton(editor, TextAlign.Left, Icons.AlignLeft, "Align left"), AlignButton(editor, TextAlign.Center, Icons.AlignCenter, "Centre"), AlignButton(editor, TextAlign.Right, Icons.AlignRight, "Align right")),
-        Ui.Tip(editor, _.H("button", new() { ClassName = editor.IsTextFxOpen ? "btn is-on" : "btn", Title = "Outline, shadow and glow effects", OnClick = () =>
+        _.H("div", new() { className = "segmented" }, AlignButton(editor, TextAlign.Left, Icons.AlignLeft, "Align left"), AlignButton(editor, TextAlign.Center, Icons.AlignCenter, "Centre"), AlignButton(editor, TextAlign.Right, Icons.AlignRight, "Align right")),
+        Ui.Tip(editor, _.H("button", new() { className = editor.IsTextFxOpen ? "btn is-on" : "btn", Title = "Outline, shadow and glow effects", OnClick = () =>
             {
                 editor.ToggleTextFx();
                 editor.Refresh?.Invoke();
@@ -154,7 +154,7 @@ public sealed class OptionsBar : Component
 
     /// <summary>Builds the compact font-import row shown in place of the text options.</summary>
     private static Node ImportOptions(PaintSession editor) => F(
-        _.H("span", new() { ClassName = "options-note" }, Text("Import a font from cdnfonts")),
+        _.H("span", new() { className = "options-note" }, Text("Import a font from cdnfonts")),
         Ui.TextField(
             editor.FontUrl,
             "cdnfonts URL or font name",
@@ -170,7 +170,7 @@ public sealed class OptionsBar : Component
         Ui.Button("Add", "Download and cache this font", () => StartFontImport(editor), !editor.IsFontDownloading),
         Ui.Button("Cancel", "Close the font import row", editor.CancelFontAdd, !editor.IsFontDownloading),
         Show(editor.FontImportMessage.Length > 0,
-            _.H("span", new() { ClassName = editor.FontImportFailed
+            _.H("span", new() { className = editor.FontImportFailed
                     ? "font-import-status is-error"
                     : editor.IsFontDownloading
                         ? "font-import-status is-busy"
@@ -212,12 +212,12 @@ public sealed class OptionsBar : Component
                 editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
                 editor.Refresh?.Invoke();
             }),
-            _.H("span", new() { ClassName = "options-note" }, Text(editor.HasCloneSource
+            _.H("span", new() { className = "options-note" }, Text(editor.HasCloneSource
                     ? $"Source {editor.CloneSourceX}, {editor.CloneSourceY} — Ctrl-click to move it"
                     : "Ctrl-click to set the sample source"))),
 
         PaintTool.DodgeBurn => F(
-            _.H("div", new() { ClassName = "segmented" }, Ui.Toggle("Dodge", "Lighten with brush strokes", editor.DodgeMode, () =>
+            _.H("div", new() { className = "segmented" }, Ui.Toggle("Dodge", "Lighten with brush strokes", editor.DodgeMode, () =>
                 {
                     editor.DodgeMode = true;
                     editor.Refresh?.Invoke();
@@ -260,7 +260,7 @@ public sealed class OptionsBar : Component
             })),
 
         PaintTool.Rectangle or PaintTool.Ellipse => F(
-            _.H("div", new() { ClassName = "segmented" }, Ui.Toggle("Fill", "Fill the shape", editor.FillShapes, () =>
+            _.H("div", new() { className = "segmented" }, Ui.Toggle("Fill", "Fill the shape", editor.FillShapes, () =>
                 {
                     editor.FillShapes = true;
                     editor.Refresh?.Invoke();
@@ -291,7 +291,7 @@ public sealed class OptionsBar : Component
                 editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
                 editor.Refresh?.Invoke();
             }),
-            _.H("span", new() { ClassName = "options-note" }, Text("Drag from the foreground to the background colour"))),
+            _.H("span", new() { className = "options-note" }, Text("Drag from the foreground to the background colour"))),
 
         PaintTool.Bucket => F(
             Ui.Field("Tolerance", editor.Tolerance, 0f, 128f, 1f, string.Empty, value =>
@@ -306,7 +306,7 @@ public sealed class OptionsBar : Component
             })),
 
         PaintTool.Marquee or PaintTool.EllipseSelect or PaintTool.Lasso => F(
-            _.H("span", new() { ClassName = "options-note" }, Text(SelectionNote(editor.Tool))),
+            _.H("span", new() { className = "options-note" }, Text(SelectionNote(editor.Tool))),
             Ui.Tip(editor, Ui.Button("Select all", "Select the whole document", editor.SelectAll),
                 Icons.Marquee, "Select All", "options.selectAll"),
             Ui.Tip(editor, Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null),
@@ -323,7 +323,7 @@ public sealed class OptionsBar : Component
                 editor.MagicContiguous = !editor.MagicContiguous;
                 editor.Refresh?.Invoke();
             }),
-            _.H("span", new() { ClassName = "options-note" }, Text("Selects colours on the active layer")),
+            _.H("span", new() { className = "options-note" }, Text("Selects colours on the active layer")),
             Ui.Tip(editor, Ui.Button("Select all", "Select the whole document", editor.SelectAll),
                 Icons.Marquee, "Select All", "options.selectAll"),
             Ui.Tip(editor, Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null),
@@ -345,18 +345,18 @@ public sealed class OptionsBar : Component
                 editor.ToggleQuickSubtract();
                 editor.Refresh?.Invoke();
             }),
-            _.H("span", new() { ClassName = "options-note" }, Text("Drag over an object; hold Alt to subtract")),
+            _.H("span", new() { className = "options-note" }, Text("Drag over an object; hold Alt to subtract")),
             Ui.Tip(editor, Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null),
                 Icons.Close, "Deselect", "options.deselect", "Esc")),
 
         PaintTool.Move => F(
-            _.H("span", new() { ClassName = "options-note" }, Text("Drag to move the selection, or a handle to resize it. With no selection, drag moves the layer.")),
+            _.H("span", new() { className = "options-note" }, Text("Drag to move the selection, or a handle to resize it. With no selection, drag moves the layer.")),
             Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null)),
 
         PaintTool.Text => editor.IsFontAddOpen ? ImportOptions(editor) : TextOptions(editor),
 
         PaintTool.Pen => F(
-            _.H("div", new() { ClassName = "segmented" }, Ui.Toggle("Fill", "Fill the path", editor.FillShapes, () =>
+            _.H("div", new() { className = "segmented" }, Ui.Toggle("Fill", "Fill the path", editor.FillShapes, () =>
                 {
                     editor.FillShapes = true;
                     editor.Refresh?.Invoke();
@@ -370,7 +370,7 @@ public sealed class OptionsBar : Component
                 editor.StrokeWidth = Ui.Parse(value, 1f, 40f);
                 editor.Refresh?.Invoke();
             }),
-            _.H("span", new() { ClassName = "options-note" }, Text("Click to add points; click the first point or press Enter to close")),
+            _.H("span", new() { className = "options-note" }, Text("Click to add points; click the first point or press Enter to close")),
             Ui.Button("Finish", "Close the path", editor.FinishPenPath, editor.IsPenActive),
             Ui.Button(
                 editor.IsPathNodeEditing ? "Nodes On" : "Edit Nodes",
@@ -392,8 +392,8 @@ public sealed class OptionsBar : Component
                 "Finish editing path nodes",
                 editor.EndPathNodeEdit))),
 
-        PaintTool.Eyedropper => _.H("span", new() { ClassName = "options-note" }, Text("Click anywhere to sample the composited colour")),
+        PaintTool.Eyedropper => _.H("span", new() { className = "options-note" }, Text("Click anywhere to sample the composited colour")),
 
-        _ => _.H("span", new() { ClassName = "options-note" }, Text("Click to zoom in, right-click to zoom out")),
+        _ => _.H("span", new() { className = "options-note" }, Text("Click to zoom in, right-click to zoom out")),
     };
 }

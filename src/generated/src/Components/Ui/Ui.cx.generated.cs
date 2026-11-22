@@ -51,7 +51,7 @@ internal static class Ui
     /// <param name="extra">Additional classes, such as a size modifier.</param>
     /// <param name="regular">Draws the outline weight instead of the solid weight.</param>
     public static Node Icon(string name, string extra = "", bool regular = false) =>
-        I(new() { ClassName = $"fa {(regular ? "fa-regular" : "fa-solid")} {name} {extra}".TrimEnd() });
+        I(new() { className = $"fa {(regular ? "fa-regular" : "fa-solid")} {name} {extra}".TrimEnd() });
 
     /// <summary>A square icon-only button.</summary>
     public static Node IconButton(
@@ -71,7 +71,7 @@ internal static class Ui
 
         return HtmlHelper.Button(new()
         {
-            ClassName = string.Join(' ', classes),
+            className = string.Join(' ', classes),
             Title = title,
             Disabled = !enabled,
             OnClick = onClick,
@@ -91,7 +91,7 @@ internal static class Ui
         string? className = null) =>
         Input(new()
         {
-            ClassName = className is null ? "text-field" : "text-field " + className,
+            className = className is null ? "text-field" : "text-field " + className,
             Key = key,
             Type = "text",
             Value = value,
@@ -104,12 +104,12 @@ internal static class Ui
 
     /// <summary>A labelled inline slider sized for the options bar.</summary>
     public static Node Field(string label, float value, float min, float max, float step, string suffix, Action<string> onInput) =>
-        Div(new() { ClassName = "field" },
-            Span(new() { ClassName = "field-label" }, Text(label)),
-            Div(new() { ClassName = "field-track" },
+        Div(new() { className = "field" },
+            Span(new() { className = "field-label" }, Text(label)),
+            Div(new() { className = "field-track" },
                 Input(new()
                 {
-                    ClassName = "field-input",
+                    className = "field-input",
                     Type = "range",
                     Value = Number(value),
                     Attributes = new()
@@ -120,17 +120,17 @@ internal static class Ui
                     },
                     OnInput = onInput,
                 })),
-            Span(new() { ClassName = "field-value" }, Text(Format(value) + suffix)));
+            Span(new() { className = "field-value" }, Text(Format(value) + suffix)));
 
     /// <summary>A stacked slider for a panel.</summary>
     public static Node Slider(string label, float value, float min, float max, float step, string suffix, Action<string> onInput) =>
-        Div(new() { ClassName = "slider" },
-            Div(new() { ClassName = "slider-head" },
-                Span(new() { ClassName = "slider-label" }, Text(label)),
-                Span(new() { ClassName = "slider-value" }, Text(Format(value) + suffix))),
+        Div(new() { className = "slider" },
+            Div(new() { className = "slider-head" },
+                Span(new() { className = "slider-label" }, Text(label)),
+                Span(new() { className = "slider-value" }, Text(Format(value) + suffix))),
             Input(new()
             {
-                ClassName = "slider-input",
+                className = "slider-input",
                 Type = "range",
                 Value = Number(value),
                 Attributes = new()
@@ -144,26 +144,26 @@ internal static class Ui
 
     /// <summary>A titled block inside a panel.</summary>
     public static Node Section(string title, params Node[] children) =>
-        Div(new() { ClassName = "section" },
-            Div(new() { ClassName = "section-head" },
-                Span(new() { ClassName = "section-title" }, Text(title)),
-                Span(new() { ClassName = "section-rule" })),
-            Div(new() { ClassName = "section-body" }, children));
+        Div(new() { className = "section" },
+            Div(new() { className = "section-head" },
+                Span(new() { className = "section-title" }, Text(title)),
+                Span(new() { className = "section-rule" })),
+            Div(new() { className = "section-body" }, children));
 
     /// <summary>A labelled value that steps through a fixed list.</summary>
     public static Node Stepper(string value, string title, Action previous, Action next) =>
-        Div(new() { ClassName = "stepper", Title = title },
-            HtmlHelper.Button(new() { ClassName = "stepper-btn", Title = "Previous", OnClick = previous },
+        Div(new() { className = "stepper", Title = title },
+            HtmlHelper.Button(new() { className = "stepper-btn", Title = "Previous", OnClick = previous },
                 Icon(Icons.Previous, "stepper-glyph")),
-            Span(new() { ClassName = "stepper-value" }, Text(value)),
-            HtmlHelper.Button(new() { ClassName = "stepper-btn", Title = "Next", OnClick = next },
+            Span(new() { className = "stepper-value" }, Text(value)),
+            HtmlHelper.Button(new() { className = "stepper-btn", Title = "Next", OnClick = next },
                 Icon(Icons.Next, "stepper-glyph")));
 
     /// <summary>An action button with a leading glyph.</summary>
     public static Node ButtonIcon(string icon, string label, string title, Action onClick, bool enabled = true, bool regular = false) =>
         HtmlHelper.Button(new()
         {
-            ClassName = "btn",
+            className = "btn",
             Title = title,
             Disabled = !enabled,
             OnClick = onClick,
@@ -173,7 +173,7 @@ internal static class Ui
     public static Node Button(string label, string title, Action onClick, bool enabled = true) =>
         HtmlHelper.Button(new()
         {
-            ClassName = "btn",
+            className = "btn",
             Title = title,
             Disabled = !enabled,
             OnClick = onClick,
@@ -183,22 +183,22 @@ internal static class Ui
     public static Node Toggle(string label, string title, bool active, Action onClick) =>
         HtmlHelper.Button(new()
         {
-            ClassName = active ? "btn is-on" : "btn",
+            className = active ? "btn is-on" : "btn",
             Title = title,
             OnClick = onClick,
         }, Text(label));
 
     /// <summary>The black-over-white mark used by the default-colours button.</summary>
     public static Node DefaultsGlyph() =>
-        Span(new() { ClassName = "defaults-glyph" },
-            Span(new() { ClassName = "defaults-dot is-dark" }),
-            Span(new() { ClassName = "defaults-dot is-light" }));
+        Span(new() { className = "defaults-glyph" },
+            Span(new() { className = "defaults-dot is-dark" }),
+            Span(new() { className = "defaults-dot is-light" }));
 
     /// <summary>A small square swatch painted by a canvas.</summary>
     public static Node Swatch(string className, uint color, string title, Action onClick, int width = 24, int height = 18) =>
         Canvas(new CanvasProps
         {
-            ClassName = className,
+            className = className,
             Title = title,
             Attributes = Size(width, height),
             OnClick = onClick,

@@ -83,7 +83,7 @@ public sealed class TooltipOverlay : Component
             + "width:" + Ui.Number(width) + "px;"
             + "height:" + Ui.Number(Height) + "px;";
 
-        return _.H("div", new() { ClassName = "tip-float", Attributes = new() { ["style"] = style }, OnMouseOver = () => editor.TipHovered = true, OnMouseOut = () => ScheduleHide(editor) }, _.H("span", new() { ClassName = "tip-icon" }, Ui.Icon(tip.Icon)), _.H("span", new() { ClassName = "tip-title" }, Text(tip.Title)), Show(tip.ShowChevron && tip.Hint.Length > 0, _.H("span", new() { ClassName = "tip-key" }, Text(tip.Hint))), Show(tip.ShowChevron, _.H("button", new() { ClassName = "tip-more", Title = "More about " + tip.Title, OnClick = () =>
+        return _.H("div", new() { className = "tip-float", Attributes = new() { ["style"] = style }, OnMouseOver = () => editor.TipHovered = true, OnMouseOut = () => ScheduleHide(editor) }, _.H("span", new() { className = "tip-icon" }, Ui.Icon(tip.Icon)), _.H("span", new() { className = "tip-title" }, Text(tip.Title)), Show(tip.ShowChevron && tip.Hint.Length > 0, _.H("span", new() { className = "tip-key" }, Text(tip.Hint))), Show(tip.ShowChevron, _.H("button", new() { className = "tip-more", Title = "More about " + tip.Title, OnClick = () =>
                 {
                     editor.ShowHelp(HelpCatalog.Find(tip.HelpId));
                     editor.Refresh?.Invoke();

@@ -38,22 +38,22 @@ public sealed class FileDialog : Component
                     ? "Choose a folder, a file name and a format."
                     : "Choose an image to open in a new tab.";
 
-        return <div ClassName="file-layer">
-            <div ClassName="file-panel">
+        return <div className="file-layer">
+            <div className="file-panel">
                 {Head(editor, saving, title, summary)}
                 {Tools(editor)}
-                <div ClassName="file-list"
+                <div className="file-list"
                     OnContextMenu={menu => editor.OpenFileContextMenu(
                         null,
                         menu.WindowX,
                         menu.WindowY)}>
                     {editor.FileDialogEntries.Count == 0
-                        ? <div ClassName="file-empty">{Text("No folders or supported images here.")}</div>
+                        ? <div className="file-empty">{Text("No folders or supported images here.")}</div>
                         : Each(editor.FileDialogEntries, entry => (Node)Row(editor, entry))}
                 </div>
                 {Foot(editor, saving, project, svg, title)}
             </div>
-            {Show(editor.IsFileMenuOpen, <div ClassName="file-menu-backdrop"
+            {Show(editor.IsFileMenuOpen, <div className="file-menu-backdrop"
                 OnClick={() => editor.CloseFileContextMenu()} />)}
             {Show(editor.IsFileMenuOpen, ContextMenu(editor))}
             {Show(editor.IsFilePromptOpen, Prompt(editor))}
@@ -62,11 +62,11 @@ public sealed class FileDialog : Component
 
     /// <summary>Builds the dialog header.</summary>
     private static Node Head(PaintSession editor, bool saving, string title, string summary) =>
-        <div ClassName="file-head">
-            <span ClassName="file-head-icon">{Ui.Icon(saving ? Icons.Save : Icons.FolderOpen)}</span>
-            <div ClassName="file-head-titles">
-                <span ClassName="file-title">{Text(title)}</span>
-                <span ClassName="file-sub">{Text(summary)}</span>
+        <div className="file-head">
+            <span className="file-head-icon">{Ui.Icon(saving ? Icons.Save : Icons.FolderOpen)}</span>
+            <div className="file-head-titles">
+                <span className="file-title">{Text(title)}</span>
+                <span className="file-sub">{Text(summary)}</span>
             </div>
             {Ui.Tip(editor,
                 Ui.IconButton(Icons.Close, "Close the file browser", () =>
@@ -79,19 +79,19 @@ public sealed class FileDialog : Component
 
     /// <summary>Builds the folder path and shortcut toolbar.</summary>
     private static Node Tools(PaintSession editor) =>
-        <div ClassName="file-tools">
-            <div ClassName="file-path-row">
+        <div className="file-tools">
+            <div className="file-path-row">
                 {Ui.ButtonIcon(Icons.Up, "Up", "Parent folder", editor.FileDialogGoUp)}
-                <input ClassName="text-field file-path"
+                <input className="text-field file-path"
                     Type="text"
                     Value={editor.FileDialogFolder}
                     Placeholder="Folder path; press Enter to go"
                     OnChange={editor.FileDialogNavigate} />
             </div>
-            <div ClassName="file-places">
+            <div className="file-places">
                 {Each(editor.FileDialogPlaces, place => (Node)Button(new()
                 {
-                    ClassName = "file-place",
+                    className = "file-place",
                     Title = place.Path,
                     OnClick = () => editor.FileDialogUsePlace(place),
                 }, Text(place.Label)))}
@@ -105,10 +105,10 @@ public sealed class FileDialog : Component
         bool project,
         bool svg,
         string title) =>
-        <div ClassName="file-foot">
-            <div ClassName="file-name-row">
-                <span ClassName="file-label">{Text("File name")}</span>
-                <input ClassName="text-field file-name"
+        <div className="file-foot">
+            <div className="file-name-row">
+                <span className="file-label">{Text("File name")}</span>
+                <input className="text-field file-name"
                     Type="text"
                     Value={editor.FileDialogName}
                     Placeholder={saving
@@ -119,11 +119,11 @@ public sealed class FileDialog : Component
                     OnInput={editor.FileDialogSetName} />
             </div>
             {Show(saving && !project && !svg, Formats(editor))}
-            <div ClassName="file-target">{Text(editor.FileDialogTarget)}</div>
+            <div className="file-target">{Text(editor.FileDialogTarget)}</div>
             {Show(editor.FileDialogError.Length > 0,
-                <div ClassName="file-error">{Text(editor.FileDialogError)}</div>)}
-            <div ClassName="file-actions">
-                <span ClassName="file-hint">{Text("Right-click a row for file actions")}</span>
+                <div className="file-error">{Text(editor.FileDialogError)}</div>)}
+            <div className="file-actions">
+                <span className="file-hint">{Text("Right-click a row for file actions")}</span>
                 {Ui.Button("Cancel", "Close the file browser", () =>
                 {
                     editor.CloseFileDialog();
@@ -154,7 +154,7 @@ public sealed class FileDialog : Component
             classes += " is-selected";
         }
 
-        return <button ClassName={classes}
+        return <button className={classes}
             Title={entry.FullPath}
             OnClick={() => editor.FileDialogActivate(entry)}
             OnContextMenu={menu => editor.OpenFileContextMenu(
@@ -162,14 +162,14 @@ public sealed class FileDialog : Component
                 menu.WindowX,
                 menu.WindowY)}>
             {Ui.Icon(entry.IsDirectory ? Icons.Folder : Icons.Document, "file-row-icon")}
-            <span ClassName="file-row-name">{Text(entry.Name)}</span>
+            <span className="file-row-name">{Text(entry.Name)}</span>
         </button>;
     }
 
     /// <summary>Builds the save-format selector.</summary>
     private static Node Formats(PaintSession editor) =>
-        <div ClassName="file-formats">
-            <span ClassName="file-label">{Text("Format")}</span>
+        <div className="file-formats">
+            <span className="file-label">{Text("Format")}</span>
             {Each(new[]
             {
                 ImageFormat.Png,
@@ -178,7 +178,7 @@ public sealed class FileDialog : Component
                 ImageFormat.Tga,
             }, format => (Node)Button(new()
             {
-                ClassName = editor.FileDialogFormat == format ? "btn is-on" : "btn",
+                className = editor.FileDialogFormat == format ? "btn is-on" : "btn",
                 Title = "Save as " + ImageExporter.NameOf(format),
                 OnClick = () => editor.FileDialogSetFormat(format),
             }, Text(ImageExporter.NameOf(format))))}
@@ -190,7 +190,7 @@ public sealed class FileDialog : Component
         bool target = editor.FileMenuHasTarget;
         bool clipboard = editor.HasFileClipboard;
 
-        return <div ClassName="file-menu"
+        return <div className="file-menu"
             Attributes={new()
             {
                 ["style"] =
@@ -201,14 +201,14 @@ public sealed class FileDialog : Component
                 editor.FileMenuIsDirectory ? Icons.FolderOpen : Icons.Document,
                 editor.FileMenuIsDirectory ? "Open folder" : "Open",
                 editor.FileMenuOpen))}
-            {Show(target, <div ClassName="file-menu-sep" />)}
+            {Show(target, <div className="file-menu-sep" />)}
             {Show(target, MenuItem(Icons.Scissors, "Cut", editor.FileMenuCut))}
             {Show(target, MenuItem(Icons.Duplicate, "Copy", editor.FileMenuCopy))}
             {MenuItem(Icons.Paste, "Paste", editor.FileMenuPaste, clipboard)}
-            {Show(target, <div ClassName="file-menu-sep" />)}
+            {Show(target, <div className="file-menu-sep" />)}
             {Show(target, MenuItem(Icons.Pen, "Rename", editor.FileMenuRename))}
             {Show(target, MenuItem(Icons.Delete, "Delete", editor.FileMenuDelete, className: "is-danger"))}
-            {Show(target, <div ClassName="file-menu-sep" />)}
+            {Show(target, <div className="file-menu-sep" />)}
             {MenuItem(Icons.FolderPlus, "New folder", editor.FileMenuNewFolder)}
             {MenuItem(Icons.Redo, "Refresh", editor.FileMenuRefresh)}
         </div>;
@@ -221,24 +221,24 @@ public sealed class FileDialog : Component
         Action onClick,
         bool enabled = true,
         string className = "") =>
-        <button ClassName={className.Length == 0 ? "file-menu-item" : "file-menu-item " + className}
+        <button className={className.Length == 0 ? "file-menu-item" : "file-menu-item " + className}
             Disabled={!enabled}
             OnClick={onClick}>
             {Ui.Icon(icon, "file-menu-icon")}
-            <span ClassName="file-menu-label">{Text(label)}</span>
+            <span className="file-menu-label">{Text(label)}</span>
         </button>;
 
     /// <summary>Builds the rename / new-folder prompt.</summary>
     private static Node Prompt(PaintSession editor) =>
-        <div ClassName="file-prompt-layer">
-            <div ClassName="file-prompt">
-                <span ClassName="file-prompt-title">{Text(editor.FilePromptTitle)}</span>
-                <input ClassName="text-field file-prompt-input"
+        <div className="file-prompt-layer">
+            <div className="file-prompt">
+                <span className="file-prompt-title">{Text(editor.FilePromptTitle)}</span>
+                <input className="text-field file-prompt-input"
                     Type="text"
                     Value={editor.FilePromptValue}
                     Placeholder="Name"
                     OnInput={editor.FilePromptSetValue} />
-                <div ClassName="file-prompt-actions">
+                <div className="file-prompt-actions">
                     {Ui.Button("Cancel", "Close without applying", () =>
                     {
                         editor.FilePromptCancel();

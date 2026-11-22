@@ -31,9 +31,9 @@ public sealed class TextFxPanel : Component
     {
         PaintSession editor = UseContext(EditorContext.Value);
 
-        return <div ClassName="text-fx-popup">
-            <div ClassName="text-fx-head">
-                <span ClassName="text-fx-title">
+        return <div className="text-fx-popup">
+            <div className="text-fx-head">
+                <span className="text-fx-title">
                     {Ui.Icon(Icons.Sparkles, "text-fx-title-icon")}
                     {Text("Text effects")}
                 </span>
@@ -45,12 +45,12 @@ public sealed class TextFxPanel : Component
                     }, className: "icon-btn is-tiny"),
                     Icons.Close, "Close Effects", "")}
             </div>
-            <div ClassName="text-fx-body">
+            <div className="text-fx-body">
                 {Ui.Section("Presets",
-                    <div ClassName="text-fx-presets">{PresetButtons(editor)}</div>,
-                    <span ClassName="text-fx-note">{Text("Presets set the effects below; tweak any slider afterwards.")}</span>)}
+                    <div className="text-fx-presets">{PresetButtons(editor)}</div>,
+                    <span className="text-fx-note">{Text("Presets set the effects below; tweak any slider afterwards.")}</span>)}
                 {Ui.Section("Outline",
-                    <div ClassName="text-fx-switch">
+                    <div className="text-fx-switch">
                         {Ui.Toggle(
                             editor.TextOutline ? "On" : "Off",
                             "Draw a keyline around the text",
@@ -68,7 +68,7 @@ public sealed class TextFxPanel : Component
                             28,
                             20)}
                     </div>,
-                    <div ClassName={editor.TextOutline ? "text-fx-controls" : "text-fx-controls is-off"}>
+                    <div className={editor.TextOutline ? "text-fx-controls" : "text-fx-controls is-off"}>
                         {Ui.Slider("Width", editor.TextOutlineWidth, 1f, 24f, 1f, " px", value =>
                         {
                             editor.SetTextOutlineWidth(Ui.Parse(value, 1f, 24f));
@@ -76,7 +76,7 @@ public sealed class TextFxPanel : Component
                         })}
                     </div>)}
                 {Ui.Section("Shadow & glow",
-                    <div ClassName="text-fx-switch">
+                    <div className="text-fx-switch">
                         {Ui.Toggle(
                             editor.TextShadow ? "On" : "Off",
                             "Draw a shadow or glow behind the text",
@@ -94,8 +94,8 @@ public sealed class TextFxPanel : Component
                             28,
                             20)}
                     </div>,
-                    <div ClassName={editor.TextShadow ? "text-fx-controls" : "text-fx-controls is-off"}>
-                        <div ClassName="text-fx-pair">
+                    <div className={editor.TextShadow ? "text-fx-controls" : "text-fx-controls is-off"}>
+                        <div className="text-fx-pair">
                             {Ui.Slider("X", editor.TextShadowX, -48f, 48f, 1f, " px", value =>
                             {
                                 editor.SetTextShadowOffset((int)Ui.Parse(value, -48f, 48f), editor.TextShadowY);
@@ -107,7 +107,7 @@ public sealed class TextFxPanel : Component
                                 editor.Refresh?.Invoke();
                             })}
                         </div>
-                        <div ClassName="text-fx-pair">
+                        <div className="text-fx-pair">
                             {Ui.Slider("Blur", editor.TextShadowBlur, 0f, 32f, 1f, " px", value =>
                             {
                                 editor.SetTextShadowBlur(Ui.Parse(value, 0f, 32f));
@@ -120,7 +120,7 @@ public sealed class TextFxPanel : Component
                             })}
                         </div>
                     </div>)}
-                <span ClassName="text-fx-tip">{Text("Tip: X and Y at 0 with a high Blur makes a glow.")}</span>
+                <span className="text-fx-tip">{Text("Tip: X and Y at 0 with a high Blur makes a glow.")}</span>
             </div>
         </div>;
     }
@@ -139,7 +139,7 @@ public sealed class TextFxPanel : Component
         for (int index = 0; index < Presets.Length; index++)
         {
             (TextPreset preset, string label, string title) = Presets[index];
-            buttons[index] = <button ClassName={editor.TextPreset == preset ? "btn is-on" : "btn"}
+            buttons[index] = <button className={editor.TextPreset == preset ? "btn is-on" : "btn"}
                 Title={title}
                 OnClick={() =>
                 {

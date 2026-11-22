@@ -22,7 +22,7 @@ public sealed class LayerMenu : Component
             "left:" + Ui.Number(editor.LayerMenuX) + "px;"
             + "top:" + Ui.Number(editor.LayerMenuY) + "px;";
 
-        return <div ClassName="file-menu" Attributes={new() { ["style"] = style }}>
+        return <div className="file-menu" Attributes={new() { ["style"] = style }}>
             {Items(editor)}
         </div>;
     }
@@ -45,7 +45,7 @@ public sealed class LayerMenu : Component
                     group.Expanded ? "Collapse Group" : "Expand Group",
                     "expand"),
                 Item(editor, Icons.Eye, group.Visible ? "Hide Group" : "Show Group", "visible"),
-                <div ClassName="file-menu-sep" />,
+                <div className="file-menu-sep" />,
                 Item(editor, Icons.FolderMinus, "Ungroup Group", "ungroup"),
             ];
         }
@@ -57,7 +57,7 @@ public sealed class LayerMenu : Component
             [
                 Item(editor, Icons.Duplicate, "Duplicate Layer", "duplicate"),
                 Item(editor, Icons.MergeDown, "Merge Down", "merge", index > 0),
-                <div ClassName="file-menu-sep" />,
+                <div className="file-menu-sep" />,
                 Item(
                     editor,
                     Icons.Mask,
@@ -78,7 +78,7 @@ public sealed class LayerMenu : Component
                     layer.Visible ? Icons.EyeOff : Icons.Eye,
                     layer.Visible ? "Hide Layer" : "Show Layer",
                     "visible"),
-                <div ClassName="file-menu-sep" />,
+                <div className="file-menu-sep" />,
                 Item(editor, Icons.Sparkles, "Layer Style...", "style"),
                 Item(editor, Icons.Rectangle, "Edit Shape...", "shapeEdit", layer.IsShapeLayer),
                 Item(editor, Icons.Flatten, "Rasterize Shape", "shapeRaster", layer.IsShapeLayer),
@@ -100,7 +100,7 @@ public sealed class LayerMenu : Component
                     layer.IsSmartObject),
                 Item(editor, Icons.FolderPlus, "New Group", "group", layer.Group is null),
                 Item(editor, Icons.FolderMinus, "Ungroup", "ungroup", layer.Group is not null),
-                <div ClassName="file-menu-sep" />,
+                <div className="file-menu-sep" />,
                 Item(
                     editor,
                     Icons.Delete,
@@ -126,7 +126,7 @@ public sealed class LayerMenu : Component
         string action,
         bool enabled = true,
         string className = "") =>
-        <button ClassName={className.Length == 0
+        <button className={className.Length == 0
                 ? "file-menu-item"
                 : "file-menu-item " + className}
             Disabled={!enabled}
@@ -136,6 +136,6 @@ public sealed class LayerMenu : Component
                 editor.Refresh?.Invoke();
             }}>
             {Ui.Icon(icon, "file-menu-icon")}
-            <span ClassName="file-menu-label">{Text(label)}</span>
+            <span className="file-menu-label">{Text(label)}</span>
         </button>;
 }

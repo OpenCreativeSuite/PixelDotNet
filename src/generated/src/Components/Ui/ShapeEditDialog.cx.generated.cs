@@ -20,13 +20,13 @@ public sealed class ShapeEditDialog : Component
             return _.H("span", new() { });
         }
 
-        return _.H("div", new() { ClassName = "resize-layer" }, _.H("div", new() { ClassName = "resize-panel style-panel perspective-panel" }, _.H("div", new() { ClassName = "resize-head" }, _.H("span", new() { ClassName = "resize-head-icon" }, Ui.Icon(Icons.Rectangle)), _.H("div", new() { ClassName = "resize-head-titles" }, _.H("span", new() { ClassName = "resize-title" }, Text("Edit Shape")), _.H("span", new() { ClassName = "resize-sub" }, Text(layer.Name))), Ui.Tip(editor,
+        return _.H("div", new() { className = "resize-layer" }, _.H("div", new() { className = "resize-panel style-panel perspective-panel" }, _.H("div", new() { className = "resize-head" }, _.H("span", new() { className = "resize-head-icon" }, Ui.Icon(Icons.Rectangle)), _.H("div", new() { className = "resize-head-titles" }, _.H("span", new() { className = "resize-title" }, Text("Edit Shape")), _.H("span", new() { className = "resize-sub" }, Text(layer.Name))), Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Cancel", () =>
                         {
                             editor.CancelShapeEdit();
                             editor.Refresh?.Invoke();
                         }, className: "icon-btn"),
-                        Icons.Close, "Cancel", "")), _.H("div", new() { ClassName = "style-body" }, _.H("div", new() { ClassName = "style-rows" }, Show(shape.Kind != ShapeKind.Path,
+                        Icons.Close, "Cancel", "")), _.H("div", new() { className = "style-body" }, _.H("div", new() { className = "style-rows" }, Show(shape.Kind != ShapeKind.Path,
                             Slider("X", shape.X, -4000f, 4000f, 1f, " px", editor, value =>
                             {
                                 shape.X = value;
@@ -45,7 +45,7 @@ public sealed class ShapeEditDialog : Component
                             })), Slider("Stroke", shape.StrokeWidth, 1f, 40f, 1f, " px", editor, value =>
                         {
                             shape.StrokeWidth = value;
-                        }), _.H("div", new() { ClassName = "style-options" }, Ui.Toggle("Fill", "Fill the shape", shape.Fill, () =>
+                        }), _.H("div", new() { className = "style-options" }, Ui.Toggle("Fill", "Fill the shape", shape.Fill, () =>
                             {
                                 shape.Fill = !shape.Fill;
                                 editor.TouchShape();
@@ -63,7 +63,7 @@ public sealed class ShapeEditDialog : Component
                         {
                             shape.StrokeColor = color;
                             editor.TouchShape();
-                        }))), _.H("div", new() { ClassName = "resize-foot" }, _.H("span", new() { ClassName = "resize-note" }, Text("Shape layers stay editable until rasterized.")), _.H("div", new() { ClassName = "resize-actions" }, Ui.Button("Cancel", "Restore the shape", () =>
+                        }))), _.H("div", new() { className = "resize-foot" }, _.H("span", new() { className = "resize-note" }, Text("Shape layers stay editable until rasterized.")), _.H("div", new() { className = "resize-actions" }, Ui.Button("Cancel", "Restore the shape", () =>
                         {
                             editor.CancelShapeEdit();
                             editor.Refresh?.Invoke();
@@ -103,7 +103,7 @@ public sealed class ShapeEditDialog : Component
         string label,
         uint current,
         Action<uint> pick) =>
-        _.H("div", new() { ClassName = "style-swatches" }, _.H("span", new() { ClassName = "resize-label" }, Text(label)), Each(new uint[]
+        _.H("div", new() { className = "style-swatches" }, _.H("span", new() { className = "resize-label" }, Text(label)), Each(new uint[]
             {
                 0xFF000000,
                 0xFFFFFFFF,

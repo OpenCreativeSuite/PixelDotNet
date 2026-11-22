@@ -21,11 +21,11 @@ public sealed class HistoryPanel : Component
         {
             int index = i;
             bool future = index > current;
-            rows.Add(_.H("button", new() { ClassName = index == current ? "history-item is-active" : future ? "history-item is-future" : "history-item", Key = index.ToString(), OnClick = () => editor.GoToHistory(index) }, _.H("span", new() { ClassName = "history-dot" }), _.H("span", new() { ClassName = "history-name" }, Text(steps[index])), _.H("span", new() { ClassName = "history-index" }, Text((index + 1).ToString()))));
+            rows.Add(_.H("button", new() { className = index == current ? "history-item is-active" : future ? "history-item is-future" : "history-item", Key = index.ToString(), OnClick = () => editor.GoToHistory(index) }, _.H("span", new() { className = "history-dot" }), _.H("span", new() { className = "history-name" }, Text(steps[index])), _.H("span", new() { className = "history-index" }, Text((index + 1).ToString()))));
         }
 
         return F(
-            Ui.Section("History", _.H("div", new() { ClassName = "history-list" }, rows.ToArray())),
-            _.H("span", new() { ClassName = "panel-note" }, Text("Click a step to travel back or forwards. New edits drop the redo steps below the current one.")));
+            Ui.Section("History", _.H("div", new() { className = "history-list" }, rows.ToArray())),
+            _.H("span", new() { className = "panel-note" }, Text("Click a step to travel back or forwards. New edits drop the redo steps below the current one.")));
     }
 }

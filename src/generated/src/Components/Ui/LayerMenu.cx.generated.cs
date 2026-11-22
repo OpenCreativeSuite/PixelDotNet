@@ -22,7 +22,7 @@ public sealed class LayerMenu : Component
             "left:" + Ui.Number(editor.LayerMenuX) + "px;"
             + "top:" + Ui.Number(editor.LayerMenuY) + "px;";
 
-        return _.H("div", new() { ClassName = "file-menu", Attributes = new() { ["style"] = style } }, Items(editor));
+        return _.H("div", new() { className = "file-menu", Attributes = new() { ["style"] = style } }, Items(editor));
     }
 
     /// <summary>Builds the menu entries for the current target.</summary>
@@ -43,7 +43,7 @@ public sealed class LayerMenu : Component
                     group.Expanded ? "Collapse Group" : "Expand Group",
                     "expand"),
                 Item(editor, Icons.Eye, group.Visible ? "Hide Group" : "Show Group", "visible"),
-                _.H("div", new() { ClassName = "file-menu-sep" }),
+                _.H("div", new() { className = "file-menu-sep" }),
                 Item(editor, Icons.FolderMinus, "Ungroup Group", "ungroup"),
             ];
         }
@@ -55,7 +55,7 @@ public sealed class LayerMenu : Component
             [
                 Item(editor, Icons.Duplicate, "Duplicate Layer", "duplicate"),
                 Item(editor, Icons.MergeDown, "Merge Down", "merge", index > 0),
-                _.H("div", new() { ClassName = "file-menu-sep" }),
+                _.H("div", new() { className = "file-menu-sep" }),
                 Item(
                     editor,
                     Icons.Mask,
@@ -76,7 +76,7 @@ public sealed class LayerMenu : Component
                     layer.Visible ? Icons.EyeOff : Icons.Eye,
                     layer.Visible ? "Hide Layer" : "Show Layer",
                     "visible"),
-                _.H("div", new() { ClassName = "file-menu-sep" }),
+                _.H("div", new() { className = "file-menu-sep" }),
                 Item(editor, Icons.Sparkles, "Layer Style...", "style"),
                 Item(editor, Icons.Rectangle, "Edit Shape...", "shapeEdit", layer.IsShapeLayer),
                 Item(editor, Icons.Flatten, "Rasterize Shape", "shapeRaster", layer.IsShapeLayer),
@@ -98,7 +98,7 @@ public sealed class LayerMenu : Component
                     layer.IsSmartObject),
                 Item(editor, Icons.FolderPlus, "New Group", "group", layer.Group is null),
                 Item(editor, Icons.FolderMinus, "Ungroup", "ungroup", layer.Group is not null),
-                _.H("div", new() { ClassName = "file-menu-sep" }),
+                _.H("div", new() { className = "file-menu-sep" }),
                 Item(
                     editor,
                     Icons.Delete,
@@ -124,11 +124,11 @@ public sealed class LayerMenu : Component
         string action,
         bool enabled = true,
         string className = "") =>
-        _.H("button", new() { ClassName = className.Length == 0
+        _.H("button", new() { className = className.Length == 0
                 ? "file-menu-item"
                 : "file-menu-item " + className, Disabled = !enabled, OnClick = () =>
             {
                 editor.LayerMenuAction(action);
                 editor.Refresh?.Invoke();
-            } }, Ui.Icon(icon, "file-menu-icon"), _.H("span", new() { ClassName = "file-menu-label" }, Text(label)));
+            } }, Ui.Icon(icon, "file-menu-icon"), _.H("span", new() { className = "file-menu-label" }, Text(label)));
 }

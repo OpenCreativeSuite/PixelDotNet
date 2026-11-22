@@ -36,7 +36,7 @@ public sealed class ToolRail : Component
             foreach (PaintTool tool in group)
             {
                 bool active = editor.Tool == tool;
-                tools.Add(Ui.Tip(editor, <button ClassName={active ? "tool is-active" : "tool"}
+                tools.Add(Ui.Tip(editor, <button className={active ? "tool is-active" : "tool"}
                     Title={$"{PaintSession.NameOf(tool)} ({PaintSession.ShortcutOf(tool)})"}
                     OnClick={() => editor.SelectTool(tool)}>
                     {Ui.Icon(Icons.ForTool(tool), "tool-glyph", Icons.IsRegular(tool))}
@@ -51,12 +51,12 @@ public sealed class ToolRail : Component
 
             if (index > 0)
             {
-                blocks.Add(<div ClassName="rail-sep" />);
+                blocks.Add(<div className="rail-sep" />);
             }
 
-            blocks.Add(<div ClassName="rail-group">{tools.ToArray()}</div>);
+            blocks.Add(<div className="rail-group">{tools.ToArray()}</div>);
         }
 
-        return <div ClassName="rail">{blocks.ToArray()}</div>;
+        return <div className="rail">{blocks.ToArray()}</div>;
     }
 }

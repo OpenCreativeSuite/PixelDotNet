@@ -37,24 +37,24 @@ public sealed class FontPicker : Component
             rows.Add(Row(editor, slot, sample));
         }
 
-        return <div ClassName="font-popup" Attributes={new() { ["style"] = style }}>
-            <div ClassName="font-popup-search">
-                <span ClassName="font-popup-search-icon">{Ui.Icon(Icons.Zoom)}</span>
-                <input ClassName="font-search"
+        return <div className="font-popup" Attributes={new() { ["style"] = style }}>
+            <div className="font-popup-search">
+                <span className="font-popup-search-icon">{Ui.Icon(Icons.Zoom)}</span>
+                <input className="font-search"
                     Type="text"
                     Value={editor.FontSearch}
                     Placeholder="Search fonts…"
                     OnInput={editor.SetFontSearch}
                     OnFocus={() => editor.SetFontSearchFocused(true)}
                     OnBlur={() => editor.SetFontSearchFocused(false)} />
-                <span ClassName={count == 0 ? "font-popup-count is-empty" : "font-popup-count"}>
+                <span className={count == 0 ? "font-popup-count is-empty" : "font-popup-count"}>
                     {Text(CountLabel(count))}
                 </span>
             </div>
-            {Show(count > 0, <div ClassName="font-popup-list">{rows.ToArray()}</div>)}
-            {Show(count == 0, <div ClassName="font-popup-empty">{Text("No fonts match that search")}</div>)}
-            <div ClassName="font-popup-footer">
-                <button ClassName="font-popup-add"
+            {Show(count > 0, <div className="font-popup-list">{rows.ToArray()}</div>)}
+            {Show(count == 0, <div className="font-popup-empty">{Text("No fonts match that search")}</div>)}
+            <div className="font-popup-footer">
+                <button className="font-popup-add"
                     Title="Download and cache a font from cdnfonts"
                     OnClick={() =>
                     {
@@ -63,7 +63,7 @@ public sealed class FontPicker : Component
                     }}>
                     {Text("+  Add a font from cdnfonts…")}
                 </button>
-                <span ClassName="font-popup-hint">{Text("Type to search - Enter")}</span>
+                <span className="font-popup-hint">{Text("Type to search - Enter")}</span>
             </div>
         </div>;
     }
@@ -77,14 +77,14 @@ public sealed class FontPicker : Component
 
         Node preview = Preview(font, sample);
 
-        return <div ClassName={selected ? "font-row is-selected" : "font-row"}
+        return <div className={selected ? "font-row is-selected" : "font-row"}
             Title={font.Name}
             OnClick={() =>
             {
                 editor.ApplyFont(index);
                 editor.Refresh?.Invoke();
             }}>
-            <span ClassName="font-row-name">{Text(font.Name)}</span>
+            <span className="font-row-name">{Text(font.Name)}</span>
             {preview}
         </div>;
     }
@@ -102,14 +102,14 @@ public sealed class FontPicker : Component
                 ?? FontCatalog.PreviewPath(font);
             if (path is not null)
             {
-                return <div ClassName="font-row-preview-slot">
-                    <img ClassName="font-row-preview-img" Src={path} Alt={sample} />
+                return <div className="font-row-preview-slot">
+                    <img className="font-row-preview-img" Src={path} Alt={sample} />
                 </div>;
             }
         }
 
         string family = font.IsDownloaded ? "Segoe UI" : font.Name;
-        return <span ClassName="font-row-preview"
+        return <span className="font-row-preview"
             Attributes={new() { ["style"] = "font-family:\"" + family.Replace("\"", "\\\"") + "\";" }}>
             {Text(sample)}
         </span>;

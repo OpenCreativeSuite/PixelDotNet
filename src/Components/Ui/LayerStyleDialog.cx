@@ -20,13 +20,13 @@ public sealed class LayerStyleDialog : Component
 
         LayerStyle style = layer.Style;
 
-        return <div ClassName="resize-layer">
-            <div ClassName="resize-panel style-panel">
-                <div ClassName="resize-head">
-                    <span ClassName="resize-head-icon">{Ui.Icon(Icons.Sparkles)}</span>
-                    <div ClassName="resize-head-titles">
-                        <span ClassName="resize-title">{Text("Layer Style")}</span>
-                        <span ClassName="resize-sub">{Text(layer.Name + " - non-destructive effects")}</span>
+        return <div className="resize-layer">
+            <div className="resize-panel style-panel">
+                <div className="resize-head">
+                    <span className="resize-head-icon">{Ui.Icon(Icons.Sparkles)}</span>
+                    <div className="resize-head-titles">
+                        <span className="resize-title">{Text("Layer Style")}</span>
+                        <span className="resize-sub">{Text(layer.Name + " - non-destructive effects")}</span>
                     </div>
                     {Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Close", () =>
@@ -36,7 +36,7 @@ public sealed class LayerStyleDialog : Component
                         }, className: "icon-btn"),
                         Icons.Close, "Close", "")}
                 </div>
-                <div ClassName="style-body">
+                <div className="style-body">
                     {Section(
                         editor,
                         "Drop Shadow",
@@ -94,7 +94,7 @@ public sealed class LayerStyleDialog : Component
                                 style.StrokeOpacity = Ui.Parse(value, 0f, 100f) / 100f;
                                 editor.TouchLayerStyle();
                             }),
-                            <div ClassName="style-option">
+                            <div className="style-option">
                                 {Ui.Toggle(
                                     "Inside",
                                     "Draw the stroke inside the layer edge",
@@ -137,9 +137,9 @@ public sealed class LayerStyleDialog : Component
                                 editor.TouchLayerStyle();
                             })))}
                 </div>
-                <div ClassName="resize-foot">
-                    <span ClassName="resize-note">{Text("Styles redraw from the layer's pixels.")}</span>
-                    <div ClassName="resize-actions">
+                <div className="resize-foot">
+                    <span className="resize-note">{Text("Styles redraw from the layer's pixels.")}</span>
+                    <div className="resize-actions">
                         {Ui.Button("Done", "Close the style editor", () =>
                         {
                             editor.CloseLayerStyleDialog();
@@ -158,9 +158,9 @@ public sealed class LayerStyleDialog : Component
         bool enabled,
         Action toggle,
         Node content) =>
-        <div ClassName="style-section">
-            <div ClassName="style-section-head">
-                <span ClassName="style-section-title">{Text(title)}</span>
+        <div className="style-section">
+            <div className="style-section-head">
+                <span className="style-section-title">{Text(title)}</span>
                 {Ui.Toggle(
                     enabled ? "On" : "Off",
                     "Enable " + title,
@@ -172,12 +172,12 @@ public sealed class LayerStyleDialog : Component
 
     /// <summary>Groups the rows of a style section.</summary>
     private static Node SectionRows(PaintSession editor, params Node[] rows) =>
-        <div ClassName="style-rows">{rows}</div>;
+        <div className="style-rows">{rows}</div>;
 
     /// <summary>Builds a row of preset colour swatches.</summary>
     private static Node Colors(PaintSession editor, uint current, Action<uint> pick) =>
-        <div ClassName="style-swatches">
-            <span ClassName="resize-label">{Text("Colour")}</span>
+        <div className="style-swatches">
+            <span className="resize-label">{Text("Colour")}</span>
             {Each(new uint[]
             {
                 0xFF000000,

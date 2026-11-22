@@ -24,13 +24,13 @@ public sealed class ResizeDialog : Component
             ? "Change the document bounds; existing pixels keep their scale."
             : "Scale every layer, mask and guide to a new pixel size.";
 
-        return <div ClassName="resize-layer">
-            <div ClassName="resize-panel">
-                <div ClassName="resize-head">
-                    <span ClassName="resize-head-icon">{Ui.Icon(canvas ? Icons.Marquee : Icons.Document)}</span>
-                    <div ClassName="resize-head-titles">
-                        <span ClassName="resize-title">{Text(title)}</span>
-                        <span ClassName="resize-sub">{Text(summary)}</span>
+        return <div className="resize-layer">
+            <div className="resize-panel">
+                <div className="resize-head">
+                    <span className="resize-head-icon">{Ui.Icon(canvas ? Icons.Marquee : Icons.Document)}</span>
+                    <div className="resize-head-titles">
+                        <span className="resize-title">{Text(title)}</span>
+                        <span className="resize-sub">{Text(summary)}</span>
                     </div>
                     {Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Close", () =>
@@ -40,8 +40,8 @@ public sealed class ResizeDialog : Component
                         }, className: "icon-btn"),
                         Icons.Close, "Close", "")}
                 </div>
-                <div ClassName="resize-body">
-                    <div ClassName="resize-current">{Text($"Current: {editor.ResizeOriginalWidth} × {editor.ResizeOriginalHeight} px")}</div>
+                <div className="resize-body">
+                    <div className="resize-current">{Text($"Current: {editor.ResizeOriginalWidth} × {editor.ResizeOriginalHeight} px")}</div>
                     {Field("Width", editor.ResizeWidthText, editor.ResizeSetWidth)}
                     {Field("Height", editor.ResizeHeightText, editor.ResizeSetHeight)}
                     {Ui.Toggle(
@@ -51,11 +51,11 @@ public sealed class ResizeDialog : Component
                         () => editor.ToggleResizeAspect())}
                     {Show(canvas, Anchors(editor))}
                     {Show(editor.ResizeError.Length > 0,
-                        <div ClassName="resize-error">{Text(editor.ResizeError)}</div>)}
+                        <div className="resize-error">{Text(editor.ResizeError)}</div>)}
                 </div>
-                <div ClassName="resize-foot">
-                    <span ClassName="resize-note">{Text(canvas ? "Guides follow the anchor." : "Undo restores the previous size.")}</span>
-                    <div ClassName="resize-actions">
+                <div className="resize-foot">
+                    <span className="resize-note">{Text(canvas ? "Guides follow the anchor." : "Undo restores the previous size.")}</span>
+                    <div className="resize-actions">
                         {Ui.Button("Cancel", "Close without resizing", () =>
                         {
                             editor.CloseResizeDialog();
@@ -74,21 +74,21 @@ public sealed class ResizeDialog : Component
 
     /// <summary>Builds one labelled pixel field.</summary>
     private static Node Field(string label, string value, Action<string> onInput) =>
-        <div ClassName="resize-field">
-            <span ClassName="resize-label">{Text(label)}</span>
-            <input ClassName="text-field resize-input"
+        <div className="resize-field">
+            <span className="resize-label">{Text(label)}</span>
+            <input className="text-field resize-input"
                 Type="text"
                 Value={value}
                 Placeholder="pixels"
                 OnInput={onInput} />
-            <span ClassName="resize-unit">{Text("px")}</span>
+            <span className="resize-unit">{Text("px")}</span>
         </div>;
 
     /// <summary>Builds the 3x3 anchor picker used by canvas resize.</summary>
     private static Node Anchors(PaintSession editor) =>
-        <div ClassName="resize-anchor-block">
-            <span ClassName="resize-label">{Text("Anchor")}</span>
-            <div ClassName="resize-anchor-grid">
+        <div className="resize-anchor-block">
+            <span className="resize-label">{Text("Anchor")}</span>
+            <div className="resize-anchor-grid">
                 {AnchorRow(editor, ResizeAnchor.TopLeft, ResizeAnchor.Top, ResizeAnchor.TopRight)}
                 {AnchorRow(editor, ResizeAnchor.Left, ResizeAnchor.Center, ResizeAnchor.Right)}
                 {AnchorRow(editor, ResizeAnchor.BottomLeft, ResizeAnchor.Bottom, ResizeAnchor.BottomRight)}
@@ -101,7 +101,7 @@ public sealed class ResizeDialog : Component
         ResizeAnchor first,
         ResizeAnchor second,
         ResizeAnchor third) =>
-        <div ClassName="resize-anchor-row">
+        <div className="resize-anchor-row">
             {AnchorButton(editor, first)}
             {AnchorButton(editor, second)}
             {AnchorButton(editor, third)}
@@ -109,9 +109,9 @@ public sealed class ResizeDialog : Component
 
     /// <summary>Builds one anchor choice.</summary>
     private static Node AnchorButton(PaintSession editor, ResizeAnchor anchor) =>
-        <button ClassName={editor.ResizeAnchor == anchor ? "resize-anchor is-on" : "resize-anchor"}
+        <button className={editor.ResizeAnchor == anchor ? "resize-anchor is-on" : "resize-anchor"}
             Title={"Anchor " + anchor}
             OnClick={() => editor.SetResizeAnchor(anchor)}>
-            <span ClassName="resize-anchor-dot" />
+            <span className="resize-anchor-dot" />
         </button>;
 }

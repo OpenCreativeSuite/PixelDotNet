@@ -17,11 +17,11 @@ public sealed class StatusBar : Component
         PaintDocument document = editor.Document;
         string position = editor.CursorX >= 0 ? $"{editor.CursorX}, {editor.CursorY}" : "—";
 
-        return <div ClassName="statusbar">
-            <div ClassName="status-zoom">
+        return <div className="statusbar">
+            <div className="status-zoom">
                 {Ui.Tip(editor, Ui.IconButton(Icons.Minus, "Zoom out", editor.ZoomOut, className: "status-btn"),
                     Icons.Minus, "Zoom Out", "status.zoomOut", "Ctrl+-", TipPlacement.Above)}
-                {Ui.Tip(editor, <button ClassName="status-item is-strong status-zoom-reset"
+                {Ui.Tip(editor, <button className="status-item is-strong status-zoom-reset"
                     Title="Reset to actual pixels (100%)"
                     OnClick={editor.ActualPixels}>
                     {Text(Ui.Format(editor.Zoom * 100f) + "%")}
@@ -30,20 +30,20 @@ public sealed class StatusBar : Component
                 {Ui.Tip(editor, Ui.IconButton(Icons.Plus, "Zoom in", editor.ZoomIn, className: "status-btn"),
                     Icons.Plus, "Zoom In", "status.zoomIn", "Ctrl++", TipPlacement.Above)}
             </div>
-            <span ClassName="status-sep" />
-            <span ClassName="status-item">{Text($"{document.Width} × {document.Height} px")}</span>
-            <span ClassName="status-sep" />
-            <span ClassName="status-item is-muted">{Text(editor.ColorMode)}</span>
-            <span ClassName="status-sep" />
-            <span ClassName="status-item">{Text($"{PaintSession.NameOf(editor.Tool)} | {position}")}</span>
+            <span className="status-sep" />
+            <span className="status-item">{Text($"{document.Width} × {document.Height} px")}</span>
+            <span className="status-sep" />
+            <span className="status-item is-muted">{Text(editor.ColorMode)}</span>
+            <span className="status-sep" />
+            <span className="status-item">{Text($"{PaintSession.NameOf(editor.Tool)} | {position}")}</span>
             {Show(editor.Selection is not null, <fragment>
-                <span ClassName="status-sep" />
-                <span ClassName="status-item is-muted">
+                <span className="status-sep" />
+                <span className="status-item is-muted">
                     {Text($"Selection {editor.Selection?.Width ?? 0} × {editor.Selection?.Height ?? 0}")}
                 </span>
             </fragment>)}
-            <div ClassName="status-spacer" />
-            <span ClassName="status-message">{Text(editor.Status)}</span>
+            <div className="status-spacer" />
+            <span className="status-message">{Text(editor.Status)}</span>
         </div>;
     }
 }

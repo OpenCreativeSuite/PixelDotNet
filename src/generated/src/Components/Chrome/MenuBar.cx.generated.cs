@@ -118,11 +118,11 @@ public sealed class MenuBar : Component
     {
         PaintSession editor = UseContext(EditorContext.Value);
 
-        return _.H("div", new() { ClassName = "menubar" }, _.H("div", new() { ClassName = "brand" }, _.H("div", new() { ClassName = "brand-mark" }, _.H("span", new() { ClassName = "brand-px brand-px-a" }), _.H("span", new() { ClassName = "brand-px brand-px-b" }), _.H("span", new() { ClassName = "brand-px brand-px-c" }), _.H("span", new() { ClassName = "brand-px brand-px-d" })), _.H("span", new() { ClassName = "brand-name" }, Text("PixelDotNet"))), Each(Menus, menu => (Node)Menu(editor, menu)), _.H("div", new() { ClassName = "menu-spacer" }), _.H("div", new() { ClassName = "quick" }, Ui.Tip(editor,
+        return _.H("div", new() { className = "menubar" }, _.H("div", new() { className = "brand" }, _.H("div", new() { className = "brand-mark" }, _.H("span", new() { className = "brand-px brand-px-a" }), _.H("span", new() { className = "brand-px brand-px-b" }), _.H("span", new() { className = "brand-px brand-px-c" }), _.H("span", new() { className = "brand-px brand-px-d" })), _.H("span", new() { className = "brand-name" }, Text("PixelDotNet"))), Each(Menus, menu => (Node)Menu(editor, menu)), _.H("div", new() { className = "menu-spacer" }), _.H("div", new() { className = "quick" }, Ui.Tip(editor,
                     Ui.IconButton(Icons.Undo, "Undo the last step (Ctrl+Z)", editor.Undo, editor.CanUndo, className: "quick-btn"),
                     Icons.Undo, "Undo", "quick.undo", "Ctrl+Z"), Ui.Tip(editor,
                     Ui.IconButton(Icons.Redo, "Redo the last undone step (Y)", editor.Redo, editor.CanRedo, className: "quick-btn"),
-                    Icons.Redo, "Redo", "quick.redo", "Y"), _.H("div", new() { ClassName = "quick-sep" }), Ui.Tip(editor,
+                    Icons.Redo, "Redo", "quick.redo", "Y"), _.H("div", new() { className = "quick-sep" }), Ui.Tip(editor,
                     Ui.IconButton(Icons.Save, "Choose where to save the image", editor.ShowSaveDialog, className: "quick-btn is-primary"),
                     Icons.Save, "Save Image", "quick.save", "Ctrl+S")));
     }
@@ -131,13 +131,13 @@ public sealed class MenuBar : Component
     private static Node Menu(PaintSession editor, MenuDefinition definition)
     {
         bool open = editor.OpenMenu == definition.Title;
-        Node title = _.H("button", new() { ClassName = open ? "menu-title is-open" : "menu-title", OnClick = () =>
+        Node title = _.H("button", new() { className = open ? "menu-title is-open" : "menu-title", OnClick = () =>
             {
                 editor.CloseFontMenu();
                 editor.ToggleMenu(definition.Title);
             }, OnMouseOver = () => editor.HoverMenu(definition.Title) }, Text(definition.Title));
 
-        return _.H("div", new() { ClassName = "menu" }, title, Show(open, _.H("div", new() { ClassName = "menu-list" }, MenuItems(editor, definition))));
+        return _.H("div", new() { className = "menu" }, title, Show(open, _.H("div", new() { className = "menu-list" }, MenuItems(editor, definition))));
     }
 
     /// <summary>Builds the rows of a drop-down, inserting dividers between groups.</summary>
@@ -148,15 +148,15 @@ public sealed class MenuBar : Component
         {
             if (item.StartsGroup && rows.Count > 0)
             {
-                rows.Add(_.H("div", new() { ClassName = "menu-sep" }));
+                rows.Add(_.H("div", new() { className = "menu-sep" }));
             }
 
             bool on = item.Checked is not null && item.Checked(editor);
-            rows.Add(_.H("button", new() { ClassName = "menu-item", Disabled = item.Enabled is not null && !item.Enabled(editor), OnClick = () =>
+            rows.Add(_.H("button", new() { className = "menu-item", Disabled = item.Enabled is not null && !item.Enabled(editor), OnClick = () =>
                 {
                     editor.CloseMenu();
                     item.Run(editor);
-                } }, _.H("span", new() { ClassName = "menu-item-check" }, Show(on, Ui.Icon(Icons.Check))), _.H("span", new() { ClassName = "menu-item-label" }, Text(item.Label)), _.H("span", new() { ClassName = "menu-item-key" }, Text(item.Shortcut))));
+                } }, _.H("span", new() { className = "menu-item-check" }, Show(on, Ui.Icon(Icons.Check))), _.H("span", new() { className = "menu-item-label" }, Text(item.Label)), _.H("span", new() { className = "menu-item-key" }, Text(item.Shortcut))));
         }
 
         return rows.ToArray();

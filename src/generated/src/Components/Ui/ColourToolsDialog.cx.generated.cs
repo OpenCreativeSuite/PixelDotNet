@@ -31,13 +31,13 @@ public sealed class ColourToolsDialog : Component
             return _.H("span", new() { });
         }
 
-        return _.H("div", new() { ClassName = "resize-layer" }, _.H("div", new() { ClassName = "resize-panel style-panel colour-tools-panel" }, _.H("div", new() { ClassName = "resize-head" }, _.H("span", new() { ClassName = "resize-head-icon" }, Ui.Icon(Icons.Palette)), _.H("div", new() { ClassName = "resize-head-titles" }, _.H("span", new() { ClassName = "resize-title" }, Text("Colour Tools")), _.H("span", new() { ClassName = "resize-sub" }, Text("Apply to the active layer or selection."))), Ui.Tip(editor,
+        return _.H("div", new() { className = "resize-layer" }, _.H("div", new() { className = "resize-panel style-panel colour-tools-panel" }, _.H("div", new() { className = "resize-head" }, _.H("span", new() { className = "resize-head-icon" }, Ui.Icon(Icons.Palette)), _.H("div", new() { className = "resize-head-titles" }, _.H("span", new() { className = "resize-title" }, Text("Colour Tools")), _.H("span", new() { className = "resize-sub" }, Text("Apply to the active layer or selection."))), Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Close", () =>
                         {
                             editor.CloseColourToolsDialog();
                             editor.Refresh?.Invoke();
                         }, className: "icon-btn"),
-                        Icons.Close, "Close", "")), _.H("div", new() { ClassName = "style-body" }, Section(
+                        Icons.Close, "Close", "")), _.H("div", new() { className = "style-body" }, Section(
                         "Colour Balance",
                         "Apply",
                         "Shift shadows, midtones and highlights on each axis.",
@@ -56,12 +56,12 @@ public sealed class ColourToolsDialog : Component
                         "Apply",
                         "Map luminance between two colours.",
                         editor.ApplyGradientMap,
-                        _.H("div", new() { ClassName = "style-rows" }, Colors(editor, "Dark", editor.GradientLow, editor.SetGradientLow), Colors(editor, "Light", editor.GradientHigh, editor.SetGradientHigh))), Section(
+                        _.H("div", new() { className = "style-rows" }, Colors(editor, "Dark", editor.GradientLow, editor.SetGradientLow), Colors(editor, "Light", editor.GradientHigh, editor.SetGradientHigh))), Section(
                         "Replace Colour",
                         "Apply",
                         "Replace pixels close to one colour; tolerance widens the match.",
                         editor.ApplyColourReplace,
-                        _.H("div", new() { ClassName = "style-rows" }, Colors(editor, "From", editor.ReplaceFrom, editor.SetReplaceFrom, includeDocument: true), Colors(editor, "To", editor.ReplaceTo, editor.SetReplaceTo, includeDocument: true), Ui.Slider("Tolerance", editor.ReplaceTolerance, 0f, 255f, 1f, string.Empty, value =>
+                        _.H("div", new() { className = "style-rows" }, Colors(editor, "From", editor.ReplaceFrom, editor.SetReplaceFrom, includeDocument: true), Colors(editor, "To", editor.ReplaceTo, editor.SetReplaceTo, includeDocument: true), Ui.Slider("Tolerance", editor.ReplaceTolerance, 0f, 255f, 1f, string.Empty, value =>
                             {
                                 editor.SetReplaceTolerance(value);
                                 editor.Refresh?.Invoke();
@@ -84,11 +84,11 @@ public sealed class ColourToolsDialog : Component
                         "Apply",
                         "Pick a colour range, then shift its cyan, magenta, yellow or black.",
                         editor.ApplySelectiveColour,
-                        SelectiveRows(editor)), _.H("div", new() { ClassName = "style-section" }, _.H("div", new() { ClassName = "style-section-head" }, _.H("span", new() { ClassName = "style-section-title" }, Text("Split Channels")), Ui.Button("Split", "Create red, green and blue layers", () =>
+                        SelectiveRows(editor)), _.H("div", new() { className = "style-section" }, _.H("div", new() { className = "style-section-head" }, _.H("span", new() { className = "style-section-title" }, Text("Split Channels")), Ui.Button("Split", "Create red, green and blue layers", () =>
                             {
                                 editor.ApplySplitChannels();
                                 editor.Refresh?.Invoke();
-                            })), _.H("span", new() { ClassName = "resize-note" }, Text("Adds three grayscale layers above the active layer.")))), _.H("div", new() { ClassName = "resize-foot" }, _.H("span", new() { ClassName = "resize-note" }, Text("Each action is undoable and respects the selection.")), _.H("div", new() { ClassName = "resize-actions" }, Ui.Button("Done", "Close the colour tools", () =>
+                            })), _.H("span", new() { className = "resize-note" }, Text("Adds three grayscale layers above the active layer.")))), _.H("div", new() { className = "resize-foot" }, _.H("span", new() { className = "resize-note" }, Text("Each action is undoable and respects the selection.")), _.H("div", new() { className = "resize-actions" }, Ui.Button("Done", "Close the colour tools", () =>
                         {
                             editor.CloseColourToolsDialog();
                             editor.Refresh?.Invoke();
@@ -102,7 +102,7 @@ public sealed class ColourToolsDialog : Component
         string note,
         Action apply,
         Node content) =>
-        _.H("div", new() { ClassName = "style-section" }, _.H("div", new() { ClassName = "style-section-head" }, _.H("span", new() { ClassName = "style-section-title" }, Text(title)), Ui.Button(action, "Apply " + title, apply)), _.H("span", new() { ClassName = "resize-note" }, Text(note)), content);
+        _.H("div", new() { className = "style-section" }, _.H("div", new() { className = "style-section-head" }, _.H("span", new() { className = "style-section-title" }, Text(title)), Ui.Button(action, "Apply " + title, apply)), _.H("span", new() { className = "resize-note" }, Text(note)), content);
 
     /// <summary>Builds the nine colour-balance sliders.</summary>
     private static Node BalanceRows(PaintSession editor)
@@ -125,7 +125,7 @@ public sealed class ColourToolsDialog : Component
                 });
         }
 
-        return _.H("div", new() { ClassName = "style-rows" }, rows);
+        return _.H("div", new() { className = "style-rows" }, rows);
     }
 
     /// <summary>Builds the nine channel-mixer sliders.</summary>
@@ -167,7 +167,7 @@ public sealed class ColourToolsDialog : Component
             editor.ResetChannelMix();
             editor.Refresh?.Invoke();
         })];
-        return _.H("div", new() { ClassName = "style-rows" }, all);
+        return _.H("div", new() { className = "style-rows" }, all);
     }
 
     /// <summary>Builds the selective-colour range chips and CMYK sliders.</summary>
@@ -198,7 +198,7 @@ public sealed class ColourToolsDialog : Component
         for (int i = 0; i < ranges.Length; i++)
         {
             int index = i;
-            chips[i] = _.H("button", new() { ClassName = editor.SelectiveRange == index ? "btn is-on" : "btn", Title = "Edit " + ranges[i], OnClick = () =>
+            chips[i] = _.H("button", new() { className = editor.SelectiveRange == index ? "btn is-on" : "btn", Title = "Edit " + ranges[i], OnClick = () =>
                 {
                     editor.SelectSelectiveRange(index);
                     editor.Refresh?.Invoke();
@@ -206,7 +206,7 @@ public sealed class ColourToolsDialog : Component
         }
 
         Node[] all = new Node[sliders.Length + 2];
-        all[0] = _.H("div", new() { ClassName = "style-chips" }, chips);
+        all[0] = _.H("div", new() { className = "style-chips" }, chips);
         Array.Copy(sliders, 0, all, 1, sliders.Length);
         all[^1] = Ui.Button("Reset", "Clear every selective offset", () =>
         {
@@ -214,7 +214,7 @@ public sealed class ColourToolsDialog : Component
             editor.Refresh?.Invoke();
         });
 
-        return _.H("div", new() { ClassName = "style-rows" }, all);
+        return _.H("div", new() { className = "style-rows" }, all);
     }
 
     /// <summary>Builds a labelled row of colour swatches.</summary>
@@ -224,7 +224,7 @@ public sealed class ColourToolsDialog : Component
         uint current,
         Action<uint> pick,
         bool includeDocument = false) =>
-        _.H("div", new() { ClassName = "style-swatches" }, _.H("span", new() { ClassName = "resize-label" }, Text(label)), Each(new uint[]
+        _.H("div", new() { className = "style-swatches" }, _.H("span", new() { className = "resize-label" }, Text(label)), Each(new uint[]
             {
                 0xFF000000,
                 0xFFFFFFFF,

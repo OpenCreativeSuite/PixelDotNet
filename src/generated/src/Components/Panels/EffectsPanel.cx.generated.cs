@@ -28,7 +28,7 @@ public sealed class EffectsPanel : Component
         {
             EffectKind target = effect;
             bool active = editor.Effect == target;
-            buttons.Add(_.H("button", new() { ClassName = active ? "btn is-on" : "btn", Title = "Preview " + Effects.NameOf(target), Disabled = locked, OnClick = () =>
+            buttons.Add(_.H("button", new() { className = active ? "btn is-on" : "btn", Title = "Preview " + Effects.NameOf(target), Disabled = locked, OnClick = () =>
                 {
                     editor.SelectEffect(target);
                     editor.Refresh?.Invoke();
@@ -36,11 +36,11 @@ public sealed class EffectsPanel : Component
         }
 
         return F(
-            Ui.Section("Effect", _.H("div", new() { ClassName = "effect-list" }, buttons.ToArray())),
+            Ui.Section("Effect", _.H("div", new() { className = "effect-list" }, buttons.ToArray())),
             Show(editor.Effect != EffectKind.None, Details(editor)),
             Show(editor.LastEffect != EffectKind.None, F(
-                _.H("div", new() { ClassName = "section-split" }),
-                _.H("div", new() { ClassName = "row" }, Ui.Button(
+                _.H("div", new() { className = "section-split" }),
+                _.H("div", new() { className = "row" }, Ui.Button(
                         "Repeat " + Effects.NameOf(editor.LastEffect),
                         "Apply the last effect again to the active layer",
                         () =>
@@ -49,7 +49,7 @@ public sealed class EffectsPanel : Component
                             editor.Refresh?.Invoke();
                         },
                         !locked)))),
-            _.H("span", new() { ClassName = "panel-note" }, Text(locked
+            _.H("span", new() { className = "panel-note" }, Text(locked
                     ? "The active layer is locked."
                     : "Effects apply to the active layer, or only the marquee when there is a selection. The preview is live; Apply keeps one undo step.")));
     }
@@ -66,7 +66,7 @@ public sealed class EffectsPanel : Component
                 editor.SetEffectAmount(Ui.Parse(value, min, max));
                 editor.Refresh?.Invoke();
             }),
-            _.H("div", new() { ClassName = "row" }, Ui.Button("Apply", "Keep the previewed pixels", () =>
+            _.H("div", new() { className = "row" }, Ui.Button("Apply", "Keep the previewed pixels", () =>
                 {
                     editor.ApplyEffect();
                     editor.Refresh?.Invoke();

@@ -21,18 +21,18 @@ public sealed class HistoryPanel : Component
         {
             int index = i;
             bool future = index > current;
-            rows.Add(<button ClassName={index == current ? "history-item is-active" : future ? "history-item is-future" : "history-item"}
+            rows.Add(<button className={index == current ? "history-item is-active" : future ? "history-item is-future" : "history-item"}
                 Key={index.ToString()}
                 OnClick={() => editor.GoToHistory(index)}>
-                <span ClassName="history-dot" />
-                <span ClassName="history-name">{Text(steps[index])}</span>
-                <span ClassName="history-index">{Text((index + 1).ToString())}</span>
+                <span className="history-dot" />
+                <span className="history-name">{Text(steps[index])}</span>
+                <span className="history-index">{Text((index + 1).ToString())}</span>
             </button>);
         }
 
         return F(
-            Ui.Section("History", <div ClassName="history-list">{rows.ToArray()}</div>),
-            <span ClassName="panel-note">
+            Ui.Section("History", <div className="history-list">{rows.ToArray()}</div>),
+            <span className="panel-note">
                 {Text("Click a step to travel back or forwards. New edits drop the redo steps below the current one.")}
             </span>);
     }

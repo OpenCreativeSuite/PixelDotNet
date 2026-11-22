@@ -18,18 +18,18 @@ public sealed class BatchDialog : Component
             return _.H("span", new() { });
         }
 
-        return _.H("div", new() { ClassName = "resize-layer" }, _.H("div", new() { ClassName = "resize-panel batch-panel" }, _.H("div", new() { ClassName = "resize-head" }, _.H("span", new() { ClassName = "resize-head-icon" }, Ui.Icon(Icons.Flatten)), _.H("div", new() { ClassName = "resize-head-titles" }, _.H("span", new() { ClassName = "resize-title" }, Text("Batch Processing")), _.H("span", new() { ClassName = "resize-sub" }, Text("Resize and convert every image in a folder."))), Ui.Tip(editor,
+        return _.H("div", new() { className = "resize-layer" }, _.H("div", new() { className = "resize-panel batch-panel" }, _.H("div", new() { className = "resize-head" }, _.H("span", new() { className = "resize-head-icon" }, Ui.Icon(Icons.Flatten)), _.H("div", new() { className = "resize-head-titles" }, _.H("span", new() { className = "resize-title" }, Text("Batch Processing")), _.H("span", new() { className = "resize-sub" }, Text("Resize and convert every image in a folder."))), Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Close", () =>
                         {
                             editor.CloseBatchDialog();
                             editor.Refresh?.Invoke();
                         }, className: "icon-btn"),
-                        Icons.Close, "Close", "")), _.H("div", new() { ClassName = "resize-body" }, FolderRow(editor, "Source", editor.BatchSource, editor.BatchSetSource, scan: true), _.H("div", new() { ClassName = "batch-places" }, Each(editor.BatchPlaces, place => (Node)Button(new()
+                        Icons.Close, "Close", "")), _.H("div", new() { className = "resize-body" }, FolderRow(editor, "Source", editor.BatchSource, editor.BatchSetSource, scan: true), _.H("div", new() { className = "batch-places" }, Each(editor.BatchPlaces, place => (Node)Button(new()
                         {
-                            ClassName = "file-place",
+                            className = "file-place",
                             Title = "Use " + place.Path,
                             OnClick = () => editor.BatchUsePlace(place),
-                        }, Text(place.Label)))), FolderRow(editor, "Output", editor.BatchOutput, editor.BatchSetOutput, scan: false), _.H("div", new() { ClassName = "resize-field" }, _.H("span", new() { ClassName = "resize-label" }, Text("Scale")), _.H("input", new() { ClassName = "text-field resize-input", Type = "text", Value = editor.BatchScaleText, Placeholder = "100", OnInput = editor.BatchSetScale }), _.H("span", new() { ClassName = "resize-unit" }, Text("%"))), _.H("div", new() { ClassName = "resize-field" }, _.H("span", new() { ClassName = "resize-label" }, Text("Suffix")), _.H("input", new() { ClassName = "text-field resize-input", Type = "text", Value = editor.BatchSuffix, Placeholder = "-edited", OnInput = editor.BatchSetSuffix }), _.H("span", new() { ClassName = "resize-unit" })), _.H("div", new() { ClassName = "batch-formats" }, _.H("span", new() { ClassName = "resize-label" }, Text("Format")), Each(new[]
+                        }, Text(place.Label)))), FolderRow(editor, "Output", editor.BatchOutput, editor.BatchSetOutput, scan: false), _.H("div", new() { className = "resize-field" }, _.H("span", new() { className = "resize-label" }, Text("Scale")), _.H("input", new() { className = "text-field resize-input", Type = "text", Value = editor.BatchScaleText, Placeholder = "100", OnInput = editor.BatchSetScale }), _.H("span", new() { className = "resize-unit" }, Text("%"))), _.H("div", new() { className = "resize-field" }, _.H("span", new() { className = "resize-label" }, Text("Suffix")), _.H("input", new() { className = "text-field resize-input", Type = "text", Value = editor.BatchSuffix, Placeholder = "-edited", OnInput = editor.BatchSetSuffix }), _.H("span", new() { className = "resize-unit" })), _.H("div", new() { className = "batch-formats" }, _.H("span", new() { className = "resize-label" }, Text("Format")), Each(new[]
                         {
                             ImageFormat.Png,
                             ImageFormat.Jpeg,
@@ -37,14 +37,14 @@ public sealed class BatchDialog : Component
                             ImageFormat.Tga,
                         }, format => (Node)Button(new()
                         {
-                            ClassName = editor.BatchFormat == format ? "btn is-on" : "btn",
+                            className = editor.BatchFormat == format ? "btn is-on" : "btn",
                             Title = "Write " + ImageExporter.NameOf(format),
                             OnClick = () => editor.BatchSetFormat(format),
-                        }, Text(ImageExporter.NameOf(format)))), _.H("div", new() { ClassName = "actions-spacer" }), Ui.Toggle(
+                        }, Text(ImageExporter.NameOf(format)))), _.H("div", new() { className = "actions-spacer" }), Ui.Toggle(
                             "Overwrite",
                             "Replace files that already exist",
                             editor.BatchOverwrite,
-                            () => editor.ToggleBatchOverwrite())), _.H("div", new() { ClassName = "batch-status" }, Text(editor.BatchStatus))), _.H("div", new() { ClassName = "resize-foot" }, _.H("span", new() { ClassName = "resize-note" }, Text("Name = original + suffix. Format sets the extension.")), _.H("div", new() { ClassName = "resize-actions" }, Ui.Button("Close", "Close the batch dialog", () =>
+                            () => editor.ToggleBatchOverwrite())), _.H("div", new() { className = "batch-status" }, Text(editor.BatchStatus))), _.H("div", new() { className = "resize-foot" }, _.H("span", new() { className = "resize-note" }, Text("Name = original + suffix. Format sets the extension.")), _.H("div", new() { className = "resize-actions" }, Ui.Button("Close", "Close the batch dialog", () =>
                         {
                             editor.CloseBatchDialog();
                             editor.Refresh?.Invoke();
@@ -62,5 +62,5 @@ public sealed class BatchDialog : Component
         string value,
         Action<string> onCommit,
         bool scan) =>
-        _.H("div", new() { ClassName = "resize-field" }, _.H("span", new() { ClassName = "resize-label" }, Text(label)), _.H("input", new() { ClassName = "text-field resize-input", Type = "text", Value = value, Placeholder = "Folder path; press Enter", OnChange = onCommit }), Show(scan, Ui.Button("Scan", "Recount the source folder", editor.BatchRefreshCount)));
+        _.H("div", new() { className = "resize-field" }, _.H("span", new() { className = "resize-label" }, Text(label)), _.H("input", new() { className = "text-field resize-input", Type = "text", Value = value, Placeholder = "Folder path; press Enter", OnChange = onCommit }), Show(scan, Ui.Button("Scan", "Recount the source folder", editor.BatchRefreshCount)));
 }

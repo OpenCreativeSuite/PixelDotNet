@@ -18,13 +18,13 @@ public sealed class HelpModal : Component
             return _.H("span", new() { });
         }
 
-        return _.H("div", new() { ClassName = "help-layer" }, _.H("div", new() { ClassName = "help-panel" }, _.H("div", new() { ClassName = "help-head" }, _.H("span", new() { ClassName = "help-icon-box" }, Ui.Icon(topic.Icon, "help-icon")), _.H("div", new() { ClassName = "help-titles" }, _.H("div", new() { ClassName = "help-title-row" }, _.H("span", new() { ClassName = "help-title" }, Text(topic.Title)), Show(topic.Shortcut.Length > 0, _.H("span", new() { ClassName = "help-key" }, Text(topic.Shortcut)))), _.H("span", new() { ClassName = "help-summary" }, Text(topic.Summary))), Ui.Tip(editor,
+        return _.H("div", new() { className = "help-layer" }, _.H("div", new() { className = "help-panel" }, _.H("div", new() { className = "help-head" }, _.H("span", new() { className = "help-icon-box" }, Ui.Icon(topic.Icon, "help-icon")), _.H("div", new() { className = "help-titles" }, _.H("div", new() { className = "help-title-row" }, _.H("span", new() { className = "help-title" }, Text(topic.Title)), Show(topic.Shortcut.Length > 0, _.H("span", new() { className = "help-key" }, Text(topic.Shortcut)))), _.H("span", new() { className = "help-summary" }, Text(topic.Summary))), Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Close help", () =>
                         {
                             editor.CloseHelp();
                             editor.Refresh?.Invoke();
                         }, className: "icon-btn help-close"),
-                        Icons.Close, "Close Help", "")), _.H("div", new() { ClassName = "help-body" }, Ui.Section("How it works", [.. Lines(topic.HowItWorks)]), Ui.Section("Tips", [.. Tips(topic.Tips)])), _.H("div", new() { ClassName = "help-foot" }, _.H("span", new() { ClassName = "help-foot-note" }, Text("Hover any icon to see it again.")), Ui.Button("Got it", "Close this help article", () =>
+                        Icons.Close, "Close Help", "")), _.H("div", new() { className = "help-body" }, Ui.Section("How it works", [.. Lines(topic.HowItWorks)]), Ui.Section("Tips", [.. Tips(topic.Tips)])), _.H("div", new() { className = "help-foot" }, _.H("span", new() { className = "help-foot-note" }, Text("Hover any icon to see it again.")), Ui.Button("Got it", "Close this help article", () =>
                     {
                         editor.CloseHelp();
                         editor.Refresh?.Invoke();
@@ -36,7 +36,7 @@ public sealed class HelpModal : Component
         Node[] nodes = new Node[lines.Length];
         for (int index = 0; index < lines.Length; index++)
         {
-            nodes[index] = _.H("div", new() { ClassName = "help-line" }, _.H("span", new() { ClassName = "help-bullet" }), _.H("span", new() { ClassName = "help-text" }, Text(lines[index])));
+            nodes[index] = _.H("div", new() { className = "help-line" }, _.H("span", new() { className = "help-bullet" }), _.H("span", new() { className = "help-text" }, Text(lines[index])));
         }
 
         return nodes;
@@ -47,7 +47,7 @@ public sealed class HelpModal : Component
         Node[] nodes = new Node[tips.Length];
         for (int index = 0; index < tips.Length; index++)
         {
-            nodes[index] = _.H("div", new() { ClassName = "help-tip" }, _.H("span", new() { ClassName = "help-tip-mark" }, Ui.Icon(Icons.Sparkles)), _.H("span", new() { ClassName = "help-text" }, Text(tips[index])));
+            nodes[index] = _.H("div", new() { className = "help-tip" }, _.H("span", new() { className = "help-tip-mark" }, Ui.Icon(Icons.Sparkles)), _.H("span", new() { className = "help-text" }, Text(tips[index])));
         }
 
         return nodes;

@@ -28,7 +28,7 @@ public sealed class EffectsPanel : Component
         {
             EffectKind target = effect;
             bool active = editor.Effect == target;
-            buttons.Add(<button ClassName={active ? "btn is-on" : "btn"}
+            buttons.Add(<button className={active ? "btn is-on" : "btn"}
                 Title={"Preview " + Effects.NameOf(target)}
                 Disabled={locked}
                 OnClick={() =>
@@ -41,11 +41,11 @@ public sealed class EffectsPanel : Component
         }
 
         return F(
-            Ui.Section("Effect", <div ClassName="effect-list">{buttons.ToArray()}</div>),
+            Ui.Section("Effect", <div className="effect-list">{buttons.ToArray()}</div>),
             Show(editor.Effect != EffectKind.None, Details(editor)),
             Show(editor.LastEffect != EffectKind.None, F(
-                <div ClassName="section-split" />,
-                <div ClassName="row">
+                <div className="section-split" />,
+                <div className="row">
                     {Ui.Button(
                         "Repeat " + Effects.NameOf(editor.LastEffect),
                         "Apply the last effect again to the active layer",
@@ -56,7 +56,7 @@ public sealed class EffectsPanel : Component
                         },
                         !locked)}
                 </div>)),
-            <span ClassName="panel-note">
+            <span className="panel-note">
                 {Text(locked
                     ? "The active layer is locked."
                     : "Effects apply to the active layer, or only the marquee when there is a selection. The preview is live; Apply keeps one undo step.")}
@@ -75,7 +75,7 @@ public sealed class EffectsPanel : Component
                 editor.SetEffectAmount(Ui.Parse(value, min, max));
                 editor.Refresh?.Invoke();
             }),
-            <div ClassName="row">
+            <div className="row">
                 {Ui.Button("Apply", "Keep the previewed pixels", () =>
                 {
                     editor.ApplyEffect();

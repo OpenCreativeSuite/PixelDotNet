@@ -36,7 +36,7 @@ public sealed class ToolRail : Component
             foreach (PaintTool tool in group)
             {
                 bool active = editor.Tool == tool;
-                tools.Add(Ui.Tip(editor, _.H("button", new() { ClassName = active ? "tool is-active" : "tool", Title = $"{PaintSession.NameOf(tool)} ({PaintSession.ShortcutOf(tool)})", OnClick = () => editor.SelectTool(tool) }, Ui.Icon(Icons.ForTool(tool), "tool-glyph", Icons.IsRegular(tool))),
+                tools.Add(Ui.Tip(editor, _.H("button", new() { className = active ? "tool is-active" : "tool", Title = $"{PaintSession.NameOf(tool)} ({PaintSession.ShortcutOf(tool)})", OnClick = () => editor.SelectTool(tool) }, Ui.Icon(Icons.ForTool(tool), "tool-glyph", Icons.IsRegular(tool))),
                 Icons.ForTool(tool),
                 PaintSession.NameOf(tool),
                 "tool." + tool,
@@ -47,12 +47,12 @@ public sealed class ToolRail : Component
 
             if (index > 0)
             {
-                blocks.Add(_.H("div", new() { ClassName = "rail-sep" }));
+                blocks.Add(_.H("div", new() { className = "rail-sep" }));
             }
 
-            blocks.Add(_.H("div", new() { ClassName = "rail-group" }, tools.ToArray()));
+            blocks.Add(_.H("div", new() { className = "rail-group" }, tools.ToArray()));
         }
 
-        return _.H("div", new() { ClassName = "rail" }, blocks.ToArray());
+        return _.H("div", new() { className = "rail" }, blocks.ToArray());
     }
 }

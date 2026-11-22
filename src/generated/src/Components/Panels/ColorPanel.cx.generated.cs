@@ -57,24 +57,24 @@ public sealed class ColorPanel : Component
                 cells.Add(Ui.Swatch("swatch", swatch, Ui.Hex(swatch), () => editor.SetActiveColor(swatch), 30, 20));
             }
 
-            rows.Add(_.H("div", new() { ClassName = "swatch-row" }, cells.ToArray()));
+            rows.Add(_.H("div", new() { className = "swatch-row" }, cells.ToArray()));
         }
 
         return F(
-            _.H("div", new() { ClassName = "color-head" }, _.H("div", new() { ClassName = "pair" }, Ui.Swatch("pair-back", editor.Background, "Background colour — click to swap", editor.SwapColors, 30, 30), Ui.Swatch("pair-front", editor.Foreground, "Foreground colour — click to reset", editor.ResetColors, 30, 30)), _.H("div", new() { ClassName = "color-info" }, _.H("span", new() { ClassName = editor.ColorTarget == TextColorTarget.Fill ? "color-target is-fill" : "color-target" }, Text(editor.ColorTarget == TextColorTarget.Fill ? "Foreground" : editor.ColorTargetLabel)), _.H("span", new() { ClassName = "color-hex" }, Text(Ui.Hex(active))), _.H("span", new() { ClassName = "color-sub" }, Text($"R {red}  G {green}  B {blue}")))),
-            _.H("div", new() { ClassName = "color-targets" }, TargetButton(editor, TextColorTarget.Fill, "Fill"), TargetButton(editor, TextColorTarget.Outline, "Outline"), TargetButton(editor, TextColorTarget.Shadow, "Shadow")),
-            _.H("div", new() { ClassName = "color-actions-row" }, _.H("button", new() { ClassName = "btn btn-ghost", Title = "Swap foreground and background (X)", OnClick = editor.SwapColors }, Ui.Icon(Icons.Swap, "btn-icon"), Text("Swap")), _.H("button", new() { ClassName = "btn btn-ghost", Title = "Default black and white (D)", OnClick = editor.ResetColors }, Ui.DefaultsGlyph(), Text("Reset"))),
+            _.H("div", new() { className = "color-head" }, _.H("div", new() { className = "pair" }, Ui.Swatch("pair-back", editor.Background, "Background colour — click to swap", editor.SwapColors, 30, 30), Ui.Swatch("pair-front", editor.Foreground, "Foreground colour — click to reset", editor.ResetColors, 30, 30)), _.H("div", new() { className = "color-info" }, _.H("span", new() { className = editor.ColorTarget == TextColorTarget.Fill ? "color-target is-fill" : "color-target" }, Text(editor.ColorTarget == TextColorTarget.Fill ? "Foreground" : editor.ColorTargetLabel)), _.H("span", new() { className = "color-hex" }, Text(Ui.Hex(active))), _.H("span", new() { className = "color-sub" }, Text($"R {red}  G {green}  B {blue}")))),
+            _.H("div", new() { className = "color-targets" }, TargetButton(editor, TextColorTarget.Fill, "Fill"), TargetButton(editor, TextColorTarget.Outline, "Outline"), TargetButton(editor, TextColorTarget.Shadow, "Shadow")),
+            _.H("div", new() { className = "color-actions-row" }, _.H("button", new() { className = "btn btn-ghost", Title = "Swap foreground and background (X)", OnClick = editor.SwapColors }, Ui.Icon(Icons.Swap, "btn-icon"), Text("Swap")), _.H("button", new() { className = "btn btn-ghost", Title = "Default black and white (D)", OnClick = editor.ResetColors }, Ui.DefaultsGlyph(), Text("Reset"))),
 
             Ui.Section("Spectrum",
-                _.H("div", new() { ClassName = "spectrum" }, Canvas(new CanvasProps
+                _.H("div", new() { className = "spectrum" }, Canvas(new CanvasProps
                     {
-                        ClassName = "sv-square",
+                        className = "sv-square",
                         Attributes = Ui.Size(SquareWidth, SquareHeight),
                         OnPointerDown = (x, y) => PickSaturation(editor, hue, x, y),
                         OnDraw = context => DrawSquare(context, editor),
                     }), Canvas(new CanvasProps
                     {
-                        ClassName = "hue-strip",
+                        className = "hue-strip",
                         Attributes = Ui.Size(HueWidth, HueHeight),
                         OnPointerDown = (x, _) => PickHue(editor, x),
                         OnDraw = context => DrawHue(context, editor),
@@ -88,12 +88,12 @@ public sealed class ColorPanel : Component
                 Ui.Slider("Blue", blue, 0f, 255f, 1f, string.Empty,
                     value => editor.SetActiveColor(red, green, (int)Ui.Parse(value, 0f, 255f)))),
 
-            Ui.Section("Swatches", _.H("div", new() { ClassName = "swatches" }, rows.ToArray())));
+            Ui.Section("Swatches", _.H("div", new() { className = "swatches" }, rows.ToArray())));
     }
 
     /// <summary>Builds one colour-target tab for the fill, outline or shadow.</summary>
     private static Node TargetButton(PaintSession editor, TextColorTarget target, string label) =>
-        _.H("button", new() { ClassName = editor.ColorTarget == target ? "btn is-on" : "btn", Title = "Edit the " + label.ToLowerInvariant() + " colour", OnClick = () =>
+        _.H("button", new() { className = editor.ColorTarget == target ? "btn is-on" : "btn", Title = "Edit the " + label.ToLowerInvariant() + " colour", OnClick = () =>
             {
                 editor.EditTextColour(target);
                 editor.Refresh?.Invoke();

@@ -59,13 +59,13 @@ public sealed class SmartObjectDialog : Component
                 });
         }
 
-        return <div ClassName="resize-layer">
-            <div ClassName="resize-panel style-panel perspective-panel">
-                <div ClassName="resize-head">
-                    <span ClassName="resize-head-icon">{Ui.Icon(Icons.SmartObject)}</span>
-                    <div ClassName="resize-head-titles">
-                        <span ClassName="resize-title">{Text("Smart Object")}</span>
-                        <span ClassName="resize-sub">{Text(layer.Name)}</span>
+        return <div className="resize-layer">
+            <div className="resize-panel style-panel perspective-panel">
+                <div className="resize-head">
+                    <span className="resize-head-icon">{Ui.Icon(Icons.SmartObject)}</span>
+                    <div className="resize-head-titles">
+                        <span className="resize-title">{Text("Smart Object")}</span>
+                        <span className="resize-sub">{Text(layer.Name)}</span>
                     </div>
                     {Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Cancel", () =>
@@ -75,10 +75,10 @@ public sealed class SmartObjectDialog : Component
                         }, className: "icon-btn"),
                         Icons.Close, "Cancel", "")}
                 </div>
-                <div ClassName="style-body">
-                    <span ClassName="resize-note">{Text("Repeated transforms reuse the original source pixels.")}</span>
-                    <div ClassName="style-rows">{sliders}</div>
-                    <div ClassName="style-options">
+                <div className="style-body">
+                    <span className="resize-note">{Text("Repeated transforms reuse the original source pixels.")}</span>
+                    <div className="style-rows">{sliders}</div>
+                    <div className="style-options">
                         {Ui.Toggle("Flip X", "Mirror horizontally", editor.SmartFlipX, () =>
                         {
                             editor.ToggleSmartFlipX();
@@ -91,9 +91,9 @@ public sealed class SmartObjectDialog : Component
                         })}
                     </div>
                 </div>
-                <div ClassName="resize-foot">
-                    <span ClassName="resize-note">{Text("Only .pxd projects keep smart objects.")}</span>
-                    <div ClassName="resize-actions">
+                <div className="resize-foot">
+                    <span className="resize-note">{Text("Only .pxd projects keep smart objects.")}</span>
+                    <div className="resize-actions">
                         {Ui.Button("Reset", "Return to the identity transform", () =>
                         {
                             editor.ResetSmartTransform();

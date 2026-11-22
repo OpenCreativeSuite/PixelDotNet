@@ -48,12 +48,12 @@ public sealed class Viewport : Component
 
         ElementNode viewport = (ElementNode)Div(new()
         {
-            ClassName = "viewport",
+            className = "viewport",
             OnPointerMove = (x, y) => ViewportPan.Handle(),
         },
             Div(new()
             {
-                ClassName = "canvas-slot",
+                className = "canvas-slot",
                 Attributes = new()
                 {
                     ["style"] = $"width:{Ui.Number(contentWidth)}px;height:{Ui.Number(contentHeight)}px;",
@@ -62,8 +62,8 @@ public sealed class Viewport : Component
                 C<CanvasSurface>()));
         viewport.BindRef(viewportRef);
 
-        return <div ClassName="stage" TabIndex={0}>
-            <div ClassName="doctabs">
+        return <div className="stage" TabIndex={0}>
+            <div className="doctabs">
                 {Each(editor.Documents, info => (Node)DocumentTab(editor, info))}
             </div>
             {viewport}
@@ -72,14 +72,14 @@ public sealed class Viewport : Component
 
     /// <summary>Builds one document tab: a pick target, the name and a close button.</summary>
     private static Node DocumentTab(PaintSession editor, PaintSession.DocumentInfo info) =>
-        <div ClassName={info.IsActive ? "doctab is-active" : "doctab"}>
-            <button ClassName="doctab-select"
+        <div className={info.IsActive ? "doctab is-active" : "doctab"}>
+            <button className="doctab-select"
                 Title={info.Name}
                 OnClick={() => editor.SwitchDocument(info.Index)}>
                 {Ui.Icon(Icons.Document, "doctab-icon")}
-                <span ClassName="doctab-name">{Text(info.Name)}</span>
+                <span className="doctab-name">{Text(info.Name)}</span>
             </button>
-            {Show(editor.DocumentCount > 1, <button ClassName="doctab-close"
+            {Show(editor.DocumentCount > 1, <button className="doctab-close"
                 Title={"Close " + info.Name}
                 OnClick={() => editor.CloseDocument(info.Index)}>
                 {Ui.Icon(Icons.Close)}

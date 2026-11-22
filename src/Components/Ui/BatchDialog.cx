@@ -18,13 +18,13 @@ public sealed class BatchDialog : Component
             return <span />;
         }
 
-        return <div ClassName="resize-layer">
-            <div ClassName="resize-panel batch-panel">
-                <div ClassName="resize-head">
-                    <span ClassName="resize-head-icon">{Ui.Icon(Icons.Flatten)}</span>
-                    <div ClassName="resize-head-titles">
-                        <span ClassName="resize-title">{Text("Batch Processing")}</span>
-                        <span ClassName="resize-sub">{Text("Resize and convert every image in a folder.")}</span>
+        return <div className="resize-layer">
+            <div className="resize-panel batch-panel">
+                <div className="resize-head">
+                    <span className="resize-head-icon">{Ui.Icon(Icons.Flatten)}</span>
+                    <div className="resize-head-titles">
+                        <span className="resize-title">{Text("Batch Processing")}</span>
+                        <span className="resize-sub">{Text("Resize and convert every image in a folder.")}</span>
                     </div>
                     {Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Close", () =>
@@ -34,37 +34,37 @@ public sealed class BatchDialog : Component
                         }, className: "icon-btn"),
                         Icons.Close, "Close", "")}
                 </div>
-                <div ClassName="resize-body">
+                <div className="resize-body">
                     {FolderRow(editor, "Source", editor.BatchSource, editor.BatchSetSource, scan: true)}
-                    <div ClassName="batch-places">
+                    <div className="batch-places">
                         {Each(editor.BatchPlaces, place => (Node)Button(new()
                         {
-                            ClassName = "file-place",
+                            className = "file-place",
                             Title = "Use " + place.Path,
                             OnClick = () => editor.BatchUsePlace(place),
                         }, Text(place.Label)))}
                     </div>
                     {FolderRow(editor, "Output", editor.BatchOutput, editor.BatchSetOutput, scan: false)}
-                    <div ClassName="resize-field">
-                        <span ClassName="resize-label">{Text("Scale")}</span>
-                        <input ClassName="text-field resize-input"
+                    <div className="resize-field">
+                        <span className="resize-label">{Text("Scale")}</span>
+                        <input className="text-field resize-input"
                             Type="text"
                             Value={editor.BatchScaleText}
                             Placeholder="100"
                             OnInput={editor.BatchSetScale} />
-                        <span ClassName="resize-unit">{Text("%")}</span>
+                        <span className="resize-unit">{Text("%")}</span>
                     </div>
-                    <div ClassName="resize-field">
-                        <span ClassName="resize-label">{Text("Suffix")}</span>
-                        <input ClassName="text-field resize-input"
+                    <div className="resize-field">
+                        <span className="resize-label">{Text("Suffix")}</span>
+                        <input className="text-field resize-input"
                             Type="text"
                             Value={editor.BatchSuffix}
                             Placeholder="-edited"
                             OnInput={editor.BatchSetSuffix} />
-                        <span ClassName="resize-unit" />
+                        <span className="resize-unit" />
                     </div>
-                    <div ClassName="batch-formats">
-                        <span ClassName="resize-label">{Text("Format")}</span>
+                    <div className="batch-formats">
+                        <span className="resize-label">{Text("Format")}</span>
                         {Each(new[]
                         {
                             ImageFormat.Png,
@@ -73,22 +73,22 @@ public sealed class BatchDialog : Component
                             ImageFormat.Tga,
                         }, format => (Node)Button(new()
                         {
-                            ClassName = editor.BatchFormat == format ? "btn is-on" : "btn",
+                            className = editor.BatchFormat == format ? "btn is-on" : "btn",
                             Title = "Write " + ImageExporter.NameOf(format),
                             OnClick = () => editor.BatchSetFormat(format),
                         }, Text(ImageExporter.NameOf(format))))}
-                        <div ClassName="actions-spacer" />
+                        <div className="actions-spacer" />
                         {Ui.Toggle(
                             "Overwrite",
                             "Replace files that already exist",
                             editor.BatchOverwrite,
                             () => editor.ToggleBatchOverwrite())}
                     </div>
-                    <div ClassName="batch-status">{Text(editor.BatchStatus)}</div>
+                    <div className="batch-status">{Text(editor.BatchStatus)}</div>
                 </div>
-                <div ClassName="resize-foot">
-                    <span ClassName="resize-note">{Text("Name = original + suffix. Format sets the extension.")}</span>
-                    <div ClassName="resize-actions">
+                <div className="resize-foot">
+                    <span className="resize-note">{Text("Name = original + suffix. Format sets the extension.")}</span>
+                    <div className="resize-actions">
                         {Ui.Button("Close", "Close the batch dialog", () =>
                         {
                             editor.CloseBatchDialog();
@@ -112,9 +112,9 @@ public sealed class BatchDialog : Component
         string value,
         Action<string> onCommit,
         bool scan) =>
-        <div ClassName="resize-field">
-            <span ClassName="resize-label">{Text(label)}</span>
-            <input ClassName="text-field resize-input"
+        <div className="resize-field">
+            <span className="resize-label">{Text(label)}</span>
+            <input className="text-field resize-input"
                 Type="text"
                 Value={value}
                 Placeholder="Folder path; press Enter"

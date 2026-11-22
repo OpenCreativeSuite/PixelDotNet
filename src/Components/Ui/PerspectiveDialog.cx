@@ -48,13 +48,13 @@ public sealed class PerspectiveDialog : Component
                 });
         }
 
-        return <div ClassName="resize-layer">
-            <div ClassName="resize-panel style-panel perspective-panel">
-                <div ClassName="resize-head">
-                    <span ClassName="resize-head-icon">{Ui.Icon(Icons.Move)}</span>
-                    <div ClassName="resize-head-titles">
-                        <span ClassName="resize-title">{Text("Perspective Transform")}</span>
-                        <span ClassName="resize-sub">{Text(layer.Name)}</span>
+        return <div className="resize-layer">
+            <div className="resize-panel style-panel perspective-panel">
+                <div className="resize-head">
+                    <span className="resize-head-icon">{Ui.Icon(Icons.Move)}</span>
+                    <div className="resize-head-titles">
+                        <span className="resize-title">{Text("Perspective Transform")}</span>
+                        <span className="resize-sub">{Text(layer.Name)}</span>
                     </div>
                     {Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Cancel", () =>
@@ -64,17 +64,17 @@ public sealed class PerspectiveDialog : Component
                         }, className: "icon-btn"),
                         Icons.Close, "Cancel", "")}
                 </div>
-                <div ClassName="style-body">
-                    <span ClassName="resize-note">
+                <div className="style-body">
+                    <span className="resize-note">
                         {Text(editor.Selection is null
                             ? "Drag the corners by moving the sliders; the layer is transformed live."
                             : "Transforms the selected region; pixels outside it stay put.")}
                     </span>
-                    <div ClassName="style-rows">{sliders}</div>
+                    <div className="style-rows">{sliders}</div>
                 </div>
-                <div ClassName="resize-foot">
-                    <span ClassName="resize-note">{Text("Reset returns to the original pixels.")}</span>
-                    <div ClassName="resize-actions">
+                <div className="resize-foot">
+                    <span className="resize-note">{Text("Reset returns to the original pixels.")}</span>
+                    <div className="resize-actions">
                         {Ui.Button("Reset", "Clear all corner offsets", () =>
                         {
                             editor.ResetPerspective();

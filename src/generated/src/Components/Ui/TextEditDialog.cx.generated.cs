@@ -20,13 +20,13 @@ public sealed class TextEditDialog : Component
             return _.H("span", new() { });
         }
 
-        return _.H("div", new() { ClassName = "resize-layer" }, _.H("div", new() { ClassName = "resize-panel style-panel perspective-panel" }, _.H("div", new() { ClassName = "resize-head" }, _.H("span", new() { ClassName = "resize-head-icon" }, Ui.Icon(Icons.Text)), _.H("div", new() { ClassName = "resize-head-titles" }, _.H("span", new() { ClassName = "resize-title" }, Text("Edit Text")), _.H("span", new() { ClassName = "resize-sub" }, Text(layer.Name))), Ui.Tip(editor,
+        return _.H("div", new() { className = "resize-layer" }, _.H("div", new() { className = "resize-panel style-panel perspective-panel" }, _.H("div", new() { className = "resize-head" }, _.H("span", new() { className = "resize-head-icon" }, Ui.Icon(Icons.Text)), _.H("div", new() { className = "resize-head-titles" }, _.H("span", new() { className = "resize-title" }, Text("Edit Text")), _.H("span", new() { className = "resize-sub" }, Text(layer.Name))), Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Cancel", () =>
                         {
                             editor.CancelTextEdit();
                             editor.Refresh?.Invoke();
                         }, className: "icon-btn"),
-                        Icons.Close, "Cancel", "")), _.H("div", new() { ClassName = "style-body" }, _.H("div", new() { ClassName = "style-rows" }, Ui.TextField(
+                        Icons.Close, "Cancel", "")), _.H("div", new() { className = "style-body" }, _.H("div", new() { className = "style-rows" }, Ui.TextField(
                             text.Content,
                             "Text",
                             value =>
@@ -37,12 +37,12 @@ public sealed class TextEditDialog : Component
                             editor.BeginTyping,
                             editor.EndTyping,
                             null,
-                            "text-edit-" + editor.TextEditIndex), _.H("div", new() { ClassName = "text-font" }, Ui.Button("<", "Previous font", () =>
+                            "text-edit-" + editor.TextEditIndex), _.H("div", new() { className = "text-font" }, Ui.Button("<", "Previous font", () =>
                             {
                                 text.FontIndex = WrapFont(text.FontIndex - 1);
                                 editor.TouchTextLayer();
                                 editor.Refresh?.Invoke();
-                            }), _.H("span", new() { ClassName = "resize-note" }, Text(TextFonts.At(text.FontIndex).Name)), Ui.Button(">", "Next font", () =>
+                            }), _.H("span", new() { className = "resize-note" }, Text(TextFonts.At(text.FontIndex).Name)), Ui.Button(">", "Next font", () =>
                             {
                                 text.FontIndex = WrapFont(text.FontIndex + 1);
                                 editor.TouchTextLayer();
@@ -69,7 +69,7 @@ public sealed class TextEditDialog : Component
                             Slider("Spacing", text.LetterSpacing, -10f, 40f, 1f, " px", editor, value =>
                             {
                                 text.LetterSpacing = value;
-                            })), _.H("div", new() { ClassName = "style-options" }, Ui.Toggle("Bold", "Bold text", text.Bold, () =>
+                            })), _.H("div", new() { className = "style-options" }, Ui.Toggle("Bold", "Bold text", text.Bold, () =>
                             {
                                 text.Bold = !text.Bold;
                                 editor.TouchTextLayer();
@@ -80,11 +80,11 @@ public sealed class TextEditDialog : Component
                                 editor.TouchTextLayer();
                                 editor.Refresh?.Invoke();
                             })), Show(text.HasPath && !string.IsNullOrEmpty(text.PathLayer),
-                            _.H("span", new() { ClassName = "resize-note" }, Text("Follows path: " + text.PathLayer))), Colors(editor, "Fill", text.Color, color =>
+                            _.H("span", new() { className = "resize-note" }, Text("Follows path: " + text.PathLayer))), Colors(editor, "Fill", text.Color, color =>
                         {
                             text.Color = color;
                             editor.TouchTextLayer();
-                        }))), _.H("div", new() { ClassName = "resize-foot" }, _.H("span", new() { ClassName = "resize-note" }, Text("Text stays editable until rasterized.")), _.H("div", new() { ClassName = "resize-actions" }, Ui.Button("Cancel", "Restore the text", () =>
+                        }))), _.H("div", new() { className = "resize-foot" }, _.H("span", new() { className = "resize-note" }, Text("Text stays editable until rasterized.")), _.H("div", new() { className = "resize-actions" }, Ui.Button("Cancel", "Restore the text", () =>
                         {
                             editor.CancelTextEdit();
                             editor.Refresh?.Invoke();
@@ -125,7 +125,7 @@ public sealed class TextEditDialog : Component
         string label,
         uint current,
         Action<uint> pick) =>
-        _.H("div", new() { ClassName = "style-swatches" }, _.H("span", new() { ClassName = "resize-label" }, Text(label)), Each(new uint[]
+        _.H("div", new() { className = "style-swatches" }, _.H("span", new() { className = "resize-label" }, Text(label)), Each(new uint[]
             {
                 0xFF000000,
                 0xFFFFFFFF,

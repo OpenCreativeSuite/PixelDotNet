@@ -38,17 +38,17 @@ public sealed class AdjustPanel : Component
             return F(
                 HistogramSection(editor),
                 AdjustmentControls(editor, active),
-                _.H("span", new() { ClassName = "panel-note" }, Text("This adjustment layer affects the visible layers below it, optionally through its mask and selection.")));
+                _.H("span", new() { className = "panel-note" }, Text("This adjustment layer affects the visible layers below it, optionally through its mask and selection.")));
         }
 
         return F(
             Ui.Section("Histogram",
-                _.H("div", new() { ClassName = "histogram-frame" }, Canvas(new CanvasProps
+                _.H("div", new() { className = "histogram-frame" }, Canvas(new CanvasProps
                     {
-                        ClassName = "histogram",
+                        className = "histogram",
                         Attributes = Ui.Size(HistogramWidth, HistogramHeight),
                         OnDraw = context => DrawHistogram(context, editor),
-                    }), _.H("div", new() { ClassName = "histogram-ramp" }))),
+                    }), _.H("div", new() { className = "histogram-ramp" }))),
 
             Ui.Section("Tone",
                 Ui.Slider("Brightness", editor.AdjustBrightness, -100f, 100f, 1f, string.Empty, value =>
@@ -61,7 +61,7 @@ public sealed class AdjustPanel : Component
                     editor.AdjustContrast = Ui.Parse(value, -100f, 100f);
                     Apply(editor);
                 }),
-                _.H("div", new() { ClassName = "section-split" }),
+                _.H("div", new() { className = "section-split" }),
                 Ui.Slider("Hue", editor.AdjustHue, -180f, 180f, 1f, "°", value =>
                 {
                     editor.AdjustHue = Ui.Parse(value, -180f, 180f);
@@ -77,7 +77,7 @@ public sealed class AdjustPanel : Component
                     editor.AdjustLightness = Ui.Parse(value, -100f, 100f);
                     Apply(editor);
                 }),
-                _.H("div", new() { ClassName = "row" }, Ui.Button("Reset", "Return the sliders to neutral", editor.ResetAdjustments, editor.HasAdjustments))),
+                _.H("div", new() { className = "row" }, Ui.Button("Reset", "Return the sliders to neutral", editor.ResetAdjustments, editor.HasAdjustments))),
 
             Ui.Section("Levels",
                 Ui.Slider("Black", editor.LevelsBlack, 0f, 254f, 1f, string.Empty, value =>
@@ -95,12 +95,12 @@ public sealed class AdjustPanel : Component
                     editor.LevelsGamma = Ui.Parse(value, 10f, 500f) / 100f;
                     Apply(editor);
                 }),
-                _.H("div", new() { ClassName = "row" }, Ui.Button("Reset Levels", "Return the levels controls to neutral", editor.ResetLevels, editor.HasLevels))),
+                _.H("div", new() { className = "row" }, Ui.Button("Reset Levels", "Return the levels controls to neutral", editor.ResetLevels, editor.HasLevels))),
 
             Ui.Section("Curves",
                 Canvas(new CanvasProps
                 {
-                    ClassName = "curve-editor",
+                    className = "curve-editor",
                     Attributes = Ui.Size(CurveWidth, CurveHeight),
                     OnPointerDown = (x, y) => CurveDown(editor, x, y),
                     OnPointerMove = (x, y) => CurveMove(editor, x, y),
@@ -108,14 +108,14 @@ public sealed class AdjustPanel : Component
                     OnContextMenu = menu => CurveRemove(editor, menu.X, menu.Y),
                     OnDraw = context => DrawCurve(context, editor),
                 }),
-                _.H("div", new() { ClassName = "row" }, Ui.Button("Reset Curve", "Return the tone curve to a straight line", () =>
+                _.H("div", new() { className = "row" }, Ui.Button("Reset Curve", "Return the tone curve to a straight line", () =>
                     {
                         editor.ResetActiveCurve();
                         ApplyCurveChange(editor);
                     }, editor.HasCurve))),
 
             Ui.Section("Adjustment Layer",
-                _.H("div", new() { ClassName = "row" }, Ui.Button("Levels Layer", "Add a non-destructive Levels adjustment layer", () =>
+                _.H("div", new() { className = "row" }, Ui.Button("Levels Layer", "Add a non-destructive Levels adjustment layer", () =>
                     {
                         editor.AddAdjustmentLayer(AdjustmentKind.Levels);
                         editor.Refresh?.Invoke();
@@ -126,10 +126,10 @@ public sealed class AdjustPanel : Component
                     }))),
 
             Ui.Section("Colour",
-                _.H("div", new() { ClassName = "row" }, Ui.ButtonIcon(Icons.Invert, "Invert", "Invert the layer or the marquee", editor.Invert, !locked), Ui.ButtonIcon(Icons.Desaturate, "Mono", "Remove colour from the layer or the marquee", editor.Desaturate, !locked)),
-                _.H("div", new() { ClassName = "row" }, Ui.ButtonIcon(Icons.Flatten, "Flatten Image", "Merge every visible layer into one", editor.FlattenImage))),
+                _.H("div", new() { className = "row" }, Ui.ButtonIcon(Icons.Invert, "Invert", "Invert the layer or the marquee", editor.Invert, !locked), Ui.ButtonIcon(Icons.Desaturate, "Mono", "Remove colour from the layer or the marquee", editor.Desaturate, !locked)),
+                _.H("div", new() { className = "row" }, Ui.ButtonIcon(Icons.Flatten, "Flatten Image", "Merge every visible layer into one", editor.FlattenImage))),
 
-            _.H("span", new() { ClassName = "panel-note" }, Text("Sliders edit the active layer, or only the marquee when there is a selection.")));
+            _.H("span", new() { className = "panel-note" }, Text("Sliders edit the active layer, or only the marquee when there is a selection.")));
     }
 
     /// <summary>Pushes a slider change into the layer and re-renders the panels.</summary>
@@ -142,12 +142,12 @@ public sealed class AdjustPanel : Component
     /// <summary>Draws the shared histogram block.</summary>
     private static Node HistogramSection(PaintSession editor) =>
         Ui.Section("Histogram",
-            _.H("div", new() { ClassName = "histogram-frame" }, Canvas(new CanvasProps
+            _.H("div", new() { className = "histogram-frame" }, Canvas(new CanvasProps
                 {
-                    ClassName = "histogram",
+                    className = "histogram",
                     Attributes = Ui.Size(HistogramWidth, HistogramHeight),
                     OnDraw = context => DrawHistogram(context, editor),
-                }), _.H("div", new() { ClassName = "histogram-ramp" })));
+                }), _.H("div", new() { className = "histogram-ramp" })));
 
     /// <summary>Builds the editor for the active adjustment layer.</summary>
     private Node AdjustmentControls(PaintSession editor, PaintLayer layer)
@@ -157,7 +157,7 @@ public sealed class AdjustPanel : Component
             return Ui.Section("Curves Adjustment",
                 Canvas(new CanvasProps
                 {
-                    ClassName = "curve-editor",
+                    className = "curve-editor",
                     Attributes = Ui.Size(CurveWidth, CurveHeight),
                     OnPointerDown = (x, y) => CurveDown(editor, x, y),
                     OnPointerMove = (x, y) => CurveMove(editor, x, y),
@@ -165,7 +165,7 @@ public sealed class AdjustPanel : Component
                     OnContextMenu = menu => CurveRemove(editor, menu.X, menu.Y),
                     OnDraw = context => DrawCurve(context, editor),
                 }),
-                _.H("div", new() { ClassName = "row" }, Ui.Button("Reset Curve", "Return the adjustment curve to neutral", () =>
+                _.H("div", new() { className = "row" }, Ui.Button("Reset Curve", "Return the adjustment curve to neutral", () =>
                     {
                         editor.ResetActiveCurve();
                         ApplyCurveChange(editor);
@@ -188,7 +188,7 @@ public sealed class AdjustPanel : Component
                 editor.SetAdjustmentLevels(layer.AdjustmentBlack, layer.AdjustmentWhite, Ui.Parse(value, 10f, 500f) / 100f);
                 editor.Refresh?.Invoke();
             }),
-            _.H("div", new() { ClassName = "row" }, Ui.Button("Reset Levels", "Return the adjustment to neutral", () =>
+            _.H("div", new() { className = "row" }, Ui.Button("Reset Levels", "Return the adjustment to neutral", () =>
                 {
                     editor.ResetAdjustmentLevels();
                     editor.Refresh?.Invoke();

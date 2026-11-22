@@ -20,13 +20,13 @@ public sealed class LayerStyleDialog : Component
 
         LayerStyle style = layer.Style;
 
-        return _.H("div", new() { ClassName = "resize-layer" }, _.H("div", new() { ClassName = "resize-panel style-panel" }, _.H("div", new() { ClassName = "resize-head" }, _.H("span", new() { ClassName = "resize-head-icon" }, Ui.Icon(Icons.Sparkles)), _.H("div", new() { ClassName = "resize-head-titles" }, _.H("span", new() { ClassName = "resize-title" }, Text("Layer Style")), _.H("span", new() { ClassName = "resize-sub" }, Text(layer.Name + " - non-destructive effects"))), Ui.Tip(editor,
+        return _.H("div", new() { className = "resize-layer" }, _.H("div", new() { className = "resize-panel style-panel" }, _.H("div", new() { className = "resize-head" }, _.H("span", new() { className = "resize-head-icon" }, Ui.Icon(Icons.Sparkles)), _.H("div", new() { className = "resize-head-titles" }, _.H("span", new() { className = "resize-title" }, Text("Layer Style")), _.H("span", new() { className = "resize-sub" }, Text(layer.Name + " - non-destructive effects"))), Ui.Tip(editor,
                         Ui.IconButton(Icons.Close, "Close", () =>
                         {
                             editor.CloseLayerStyleDialog();
                             editor.Refresh?.Invoke();
                         }, className: "icon-btn"),
-                        Icons.Close, "Close", "")), _.H("div", new() { ClassName = "style-body" }, Section(
+                        Icons.Close, "Close", "")), _.H("div", new() { className = "style-body" }, Section(
                         editor,
                         "Drop Shadow",
                         style.DropShadow,
@@ -82,7 +82,7 @@ public sealed class LayerStyleDialog : Component
                                 style.StrokeOpacity = Ui.Parse(value, 0f, 100f) / 100f;
                                 editor.TouchLayerStyle();
                             }),
-                            _.H("div", new() { ClassName = "style-option" }, Ui.Toggle(
+                            _.H("div", new() { className = "style-option" }, Ui.Toggle(
                                     "Inside",
                                     "Draw the stroke inside the layer edge",
                                     style.StrokeInside,
@@ -120,7 +120,7 @@ public sealed class LayerStyleDialog : Component
                             {
                                 style.OuterGlowColor = color;
                                 editor.TouchLayerStyle();
-                            })))), _.H("div", new() { ClassName = "resize-foot" }, _.H("span", new() { ClassName = "resize-note" }, Text("Styles redraw from the layer's pixels.")), _.H("div", new() { ClassName = "resize-actions" }, Ui.Button("Done", "Close the style editor", () =>
+                            })))), _.H("div", new() { className = "resize-foot" }, _.H("span", new() { className = "resize-note" }, Text("Styles redraw from the layer's pixels.")), _.H("div", new() { className = "resize-actions" }, Ui.Button("Done", "Close the style editor", () =>
                         {
                             editor.CloseLayerStyleDialog();
                             editor.Refresh?.Invoke();
@@ -134,7 +134,7 @@ public sealed class LayerStyleDialog : Component
         bool enabled,
         Action toggle,
         Node content) =>
-        _.H("div", new() { ClassName = "style-section" }, _.H("div", new() { ClassName = "style-section-head" }, _.H("span", new() { ClassName = "style-section-title" }, Text(title)), Ui.Toggle(
+        _.H("div", new() { className = "style-section" }, _.H("div", new() { className = "style-section-head" }, _.H("span", new() { className = "style-section-title" }, Text(title)), Ui.Toggle(
                     enabled ? "On" : "Off",
                     "Enable " + title,
                     enabled,
@@ -142,11 +142,11 @@ public sealed class LayerStyleDialog : Component
 
     /// <summary>Groups the rows of a style section.</summary>
     private static Node SectionRows(PaintSession editor, params Node[] rows) =>
-        _.H("div", new() { ClassName = "style-rows" }, rows);
+        _.H("div", new() { className = "style-rows" }, rows);
 
     /// <summary>Builds a row of preset colour swatches.</summary>
     private static Node Colors(PaintSession editor, uint current, Action<uint> pick) =>
-        _.H("div", new() { ClassName = "style-swatches" }, _.H("span", new() { ClassName = "resize-label" }, Text("Colour")), Each(new uint[]
+        _.H("div", new() { className = "style-swatches" }, _.H("span", new() { className = "resize-label" }, Text("Colour")), Each(new uint[]
             {
                 0xFF000000,
                 0xFFFFFFFF,
