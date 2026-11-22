@@ -54,7 +54,7 @@ public sealed class ColorPanel : Component
             for (int i = start; i < end; i++)
             {
                 uint swatch = Palette[i];
-                cells.Add(Ui.Swatch("swatch", swatch, Ui.Hex(swatch), () => editor.SetActiveColor(swatch), 30, 20));
+                cells.Add(<Swatch ClassName="swatch" Color={swatch} title={Ui.Hex(swatch)} onClick={() => editor.SetActiveColor(swatch)} Width={30} Height={20} />);
             }
 
             rows.Add(<div className="swatch-row">{cells.ToArray()}</div>);
@@ -63,8 +63,8 @@ public sealed class ColorPanel : Component
         return F(
             <div className="color-head">
                 <div className="pair">
-                    {Ui.Swatch("pair-back", editor.Background, "Background colour — click to swap", editor.SwapColors, 30, 30)}
-                    {Ui.Swatch("pair-front", editor.Foreground, "Foreground colour — click to reset", editor.ResetColors, 30, 30)}
+                    {<Swatch ClassName="pair-back" Color={editor.Background} title="Background colour — click to swap" onClick={editor.SwapColors} Width={30} Height={30} />}
+                    {<Swatch ClassName="pair-front" Color={editor.Foreground} title="Foreground colour — click to reset" onClick={editor.ResetColors} Width={30} Height={30} />}
                 </div>
                 <div className="color-info">
                     <span className={editor.ColorTarget == TextColorTarget.Fill ? "color-target is-fill" : "color-target"}>
@@ -120,7 +120,7 @@ public sealed class ColorPanel : Component
                 Ui.Slider("Blue", blue, 0f, 255f, 1f, string.Empty,
                     value => editor.SetActiveColor(red, green, (int)Ui.Parse(value, 0f, 255f)))),
 
-            Ui.Section("Swatches", <div className="swatches">{rows.ToArray()}</div>));
+            <Section Title="Swatches" Children={new Node[] { <div className="swatches">{rows.ToArray()}</div> }} />);
     }
 
     /// <summary>Builds one colour-target tab for the fill, outline or shadow.</summary>

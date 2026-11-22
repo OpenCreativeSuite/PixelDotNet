@@ -19,7 +19,7 @@ public sealed class StatusBar : Component
 
         return <div className="statusbar">
             <div className="status-zoom">
-                {Ui.Tip(editor, <IconButton Icon={Icons.Minus} title="Zoom out" onClick={editor.ZoomOut} ClassName="status-btn" />,
+                {Ui.Tip(editor, Ui.IconButton(Icons.Minus, "Zoom out", editor.ZoomOut, className: "status-btn"),
                     Icons.Minus, "Zoom Out", "status.zoomOut", "Ctrl+-", TipPlacement.Above)}
                 {Ui.Tip(editor, <button className="status-item is-strong status-zoom-reset"
                     Title="Reset to actual pixels (100%)"
@@ -27,7 +27,7 @@ public sealed class StatusBar : Component
                     {Text(Ui.Format(editor.Zoom * 100f) + "%")}
                 </button>,
                 Icons.Zoom, "Actual Pixels", "status.zoomReset", "Ctrl+0", TipPlacement.Above)}
-                {Ui.Tip(editor, <IconButton Icon={Icons.Plus} title="Zoom in" onClick={editor.ZoomIn} ClassName="status-btn" />,
+                {Ui.Tip(editor, Ui.IconButton(Icons.Plus, "Zoom in", editor.ZoomIn, className: "status-btn"),
                     Icons.Plus, "Zoom In", "status.zoomIn", "Ctrl++", TipPlacement.Above)}
             </div>
             <span className="status-sep" />
