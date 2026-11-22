@@ -27,11 +27,51 @@
        attribute is metadata only, the loader reads the embedded copy. Watch is
        disabled so a CSS save does not trigger a rebuild under dotnet watch. -->
   <ItemGroup>
+    <EmbeddedResource Include="src/Components/AdjustPanel/AdjustPanel.css" Watch="false" />
     <EmbeddedResource Include="src/Components/App/App.css" Watch="false" />
-    <EmbeddedResource Include="src/Components/Chrome/Chrome.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/BatchDialog/BatchDialog.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Button/Button.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/CanvasSurface/CanvasSurface.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/ColorPanel/ColorPanel.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/ColourToolsDialog/ColourToolsDialog.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/DefaultsGlyph/DefaultsGlyph.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/EffectsPanel/EffectsPanel.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Field/Field.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/FileDialog/FileDialog.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/FontPicker/FontPicker.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/GroupRow/GroupRow.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/HelpModal/HelpModal.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/HistoryPanel/HistoryPanel.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Icon/Icon.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/IconButton/IconButton.css" Watch="false" />
     <EmbeddedResource Include="src/Components/Icons/Icons.css" Watch="false" />
-    <EmbeddedResource Include="src/Components/Panels/Panels.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/LayerMenu/LayerMenu.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/LayerRow/LayerRow.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/LayerStyleDialog/LayerStyleDialog.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/LayersPanel/LayersPanel.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/MenuBar/MenuBar.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/MeshWarpBar/MeshWarpBar.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/OptionsBar/OptionsBar.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/PerspectiveDialog/PerspectiveDialog.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/ResizeDialog/ResizeDialog.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Section/Section.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/ShapeEditDialog/ShapeEditDialog.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/SidePanel/SidePanel.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Slider/Slider.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/SmartObjectDialog/SmartObjectDialog.css" Watch="false" />
     <EmbeddedResource Include="src/Components/StatusBar/StatusBar.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Stepper/Stepper.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Swatch/Swatch.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Tab/Tab.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/TextEditDialog/TextEditDialog.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/TextField/TextField.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/TextFxPanel/TextFxPanel.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Toggle/Toggle.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/TooltipOverlay/TooltipOverlay.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/ToolRail/ToolRail.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Ui/Ui.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/Viewport/Viewport.css" Watch="false" />
+    <EmbeddedResource Include="src/Components/ViewportPan/ViewportPan.css" Watch="false" />
   </ItemGroup>
 
   <!-- The icon TTFs sit next to the executable so the @font-face rules in
