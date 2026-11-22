@@ -29,21 +29,9 @@ public sealed class MeshWarpBar : Component
                     ? "This layer is empty. Pick one with pixels."
                     : "Drag the nine points on the canvas.")}
             </span>
-            {Ui.Button("Reset", "Clear every point offset", () =>
-            {
-                editor.ResetMeshWarp();
-                editor.Refresh?.Invoke();
-            })}
-            {Ui.Button("Cancel", "Restore the original pixels", () =>
-            {
-                editor.CancelMeshWarp();
-                editor.Refresh?.Invoke();
-            })}
-            {Ui.Button("Done", "Keep the warped layer", () =>
-            {
-                editor.CommitMeshWarp();
-                editor.Refresh?.Invoke();
-            })}
+            {<Button Label="Reset" title="Clear every point offset" onClick={() => { editor.ResetMeshWarp(); editor.Refresh?.Invoke(); }} />}
+            {<Button Label="Cancel" title="Restore the original pixels" onClick={() => { editor.CancelMeshWarp(); editor.Refresh?.Invoke(); }} />}
+            {<Button Label="Done" title="Keep the warped layer" onClick={() => { editor.CommitMeshWarp(); editor.Refresh?.Invoke(); }} />}
         </div>;
     }
 }

@@ -1,0 +1,113 @@
+using System;
+using System.Globalization;
+using Donkeh.UILab;
+using Donkeh.Windowing;
+using PixelDotNet.Help;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Props for a single layer row.</summary>
+public class LayerRowProps : Props
+{
+    public int Index { get; set; }
+    public bool Child { get; set; }
+}
+
+/// <summary>Builds one clickable layer row.</summary>
+public sealed class LayerRow : Component<LayerRowProps>
+{
+    private const string LayerDragFormat = "application/x-pixeldotnet-layer";
+
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        PaintSession editor = UseContext(EditorContext.Value);
+        PaintDocument document = editor.Document;
+        int index = Props.Index;
+        bool child = Props.Child;
+        if (index < 0 || index >= document.Layers.Count) return <span />;
+        PaintLayer layer = document.Layers[index];
+        bool active = index == Math.Clamp(document.ActiveIndex, 0, document.Layers.Count - 1);
+        string className = active ? "layer is-active" : "layer";
+        if (child) className += " is-child";
+
+        string aboveKey = "layer:" + index + ":above";
+        string belowKey = "layer:" + index + ":below";
+        bool showAbove = editor.LayerDropTarget == aboveKey;
+        bool showBelow = editor.LayerDropTarget == belowKey;
+
+        return <div className={className}
+            key={index.ToString(CultureInfo.InvariantCulture)}
+            draggable={true}
+            onClick={() => editor.SelectLayer(index)}
+            onContextMenu={menu => editor.OpenLayerMenu(index, null, menu.WindowX, menu.WindowY)}
+            onDragStart={drag => { drag.Data.SetData(LayerDragFormat, index.ToString(CultureInfo.InvariantCulture)); drag.Data.EffectAllowed = "move"; }}
+            onDragEnd={_ => editor.SetLayerDropTarget(string.Empty)}
+            onDragEnter={drag => { if (drag.Data.HasData(LayerDragFormat)) editor.SetLayerDropTarget(aboveKey); }}
+            onDragLeave={_ => editor.SetLayerDropTarget(string.Empty)}
+            onDragOver={drag => { if (drag.Data.HasData(LayerDragFormat)) { editor.SetLayerDropTarget(drag.LocalY < 18f ? aboveKey : belowKey); drag.Data.DropEffect = "move"; drag.PreventDefault(); } }}
+            onDrop={drag => { editor.SetLayerDropTarget(string.Empty); if (int.TryParse(drag.Data.GetData(LayerDragFormat), out int source)) editor.MoveLayerTo(source, index, drag.LocalY < 18f); }}>
+            {layer.IsAdjustment
+                ? <div className="layer-adjust-thumb">{Ui.Icon(Icons.Sliders)}</div>
+                : Canvas(new CanvasProps
+                {
+                    className = "layer-thumb",
+                    Attributes = Ui.Size(46, 34),
+                    OnDraw = context => LayersPanel.DrawThumbnailInternal(context, layer),
+                })}
+            {Show(layer.HasMask, Canvas(new CanvasProps
+            {
+                className = active && editor.MaskEditing ? "layer-mask-thumb is-active" : "layer-mask-thumb",
+                Title = "Click to edit the mask, right-click to remove it",
+                Attributes = Ui.Size(30, 34),
+                OnClick = () => editor.ToggleMaskEditing(index),
+                OnContextMenu = _ => editor.ToggleLayerMask(),
+                OnDraw = context => LayersPanel.DrawMaskThumbnailInternal(context, layer),
+            }))}
+            <div className="layer-main">
+                <div className="layer-name-row">
+                    <span className="layer-name">{Text(layer.Name)}</span>
+                    {Show(editor.IsMeshWarpOpen && index == editor.MeshWarpIndex,
+                        <span className="layer-badge" title="This layer is being mesh-warped">{Text("Mesh")}</span>)}
+                </div>
+                <span className="layer-meta">
+                    {Text(layer.IsShapeLayer
+                        ? $"{layer.Shape?.Kind} shape | {Ui.Format(layer.Opacity * 100f)}%"
+                        : layer.IsTextLayer
+                        ? $"Text | {Ui.Format(layer.Opacity * 100f)}%"
+                        : layer.IsSmartObject
+                        ? $"Smart Object | {Ui.Format(layer.Opacity * 100f)}%"
+                        : layer.IsAdjustment
+                        ? $"{layer.Adjustment} adjustment | {Ui.Format(layer.Opacity * 100f)}%"
+                        : $"{LayersPanel.LabelOfInternal(layer.Blend)} | {Ui.Format(layer.Opacity * 100f)}%" + (layer.ClipToBelow ? " | clipped" : string.Empty))}
+                </span>
+            </div>
+            {Ui.Tip(editor, <button className={layer.Style.HasAny ? "layer-btn is-on" : "layer-btn is-dim"}
+                title="Layer style"
+                onClick={() => editor.ShowLayerStyleDialog(index)}>
+                {Ui.Icon(Icons.Sparkles)}
+            </button>, Icons.Sparkles, "Layer Style", "layer.style")}
+            {Ui.Tip(editor, <button className={layer.Locked ? "layer-btn is-on" : "layer-btn is-dim"}
+                title={layer.Locked ? "Unlock the layer" : "Lock the layer"}
+                onClick={() => editor.ToggleLock(index)}>
+                {Ui.Icon(layer.Locked ? Icons.Lock : Icons.Unlock)}
+            </button>, layer.Locked ? Icons.Lock : Icons.Unlock, layer.Locked ? "Unlock Layer" : "Lock Layer", "layer.lock")}
+            {Ui.Tip(editor, <button className={layer.Visible ? "layer-btn" : "layer-btn is-dim"}
+                title={layer.Visible ? "Hide the layer" : "Show the layer"}
+                onClick={() => editor.ToggleLayer(index)}>
+                {Ui.Icon(layer.Visible ? Icons.Eye : Icons.EyeOff, regular: true)}
+            </button>, layer.Visible ? Icons.Eye : Icons.EyeOff, layer.Visible ? "Hide Layer" : "Show Layer", "layer.visible")}
+            {Show(showAbove, <div className="drop-line is-above" />)}
+            {Show(showBelow, <div className="drop-line is-below" />)}
+        </div>;
+    }
+
+    // DrawThumbnail, Sample, DrawMaskThumbnail, MaskSample, LabelOf must be accessible.
+    // They remain in LayersPanel; LayerRow needs them. To avoid duplication, call LayersPanel's? They're private.
+    // For now, duplicate minimal: delegate to LayersPanel via public? LayersPanel methods are private.
+    // We'll keep DrawThumbnail etc. here as copies? Too much. Instead, keep Row in LayersPanel and don't use LayerRow component.
+    // But user asked. Let's instead NOT create LayerRow; revert. Actually we already created file. Let's make DrawThumbnail etc. internal in LayersPanel.
+}

@@ -75,21 +75,9 @@ public sealed class PerspectiveDialog : Component
                 <div className="resize-foot">
                     <span className="resize-note">{Text("Reset returns to the original pixels.")}</span>
                     <div className="resize-actions">
-                        {Ui.Button("Reset", "Clear all corner offsets", () =>
-                        {
-                            editor.ResetPerspective();
-                            editor.Refresh?.Invoke();
-                        })}
-                        {Ui.Button("Cancel", "Restore the original pixels", () =>
-                        {
-                            editor.CancelPerspective();
-                            editor.Refresh?.Invoke();
-                        })}
-                        {Ui.Button("Done", "Keep the transformed layer", () =>
-                        {
-                            editor.CommitPerspective();
-                            editor.Refresh?.Invoke();
-                        })}
+                        {<Button Label="Reset" title="Clear all corner offsets" onClick={() => { editor.ResetPerspective(); editor.Refresh?.Invoke(); }} />}
+                        {<Button Label="Cancel" title="Restore the original pixels" onClick={() => { editor.CancelPerspective(); editor.Refresh?.Invoke(); }} />}
+                        {<Button Label="Done" title="Keep the transformed layer" onClick={() => { editor.CommitPerspective(); editor.Refresh?.Invoke(); }} />}
                     </div>
                 </div>
             </div>

@@ -147,11 +147,8 @@ public sealed class OptionsBar : Component
                 editor.Refresh?.Invoke();
             }, className: "icon-btn is-tiny"),
             Icons.Plus, "Add Font", "options.addFont"),
-        Ui.Field("Size", editor.TextSize, 8f, 200f, 1f, " px", value =>
-        {
-            editor.SetTextSize(Ui.Parse(value, 8f, 200f));
-            editor.Refresh?.Invoke();
-        }),
+        <Field Label="Size" Value={editor.TextSize} Min={8f} Max={200f} Step={1f} Suffix=" px"
+            onInput={value => { editor.SetTextSize(Ui.Parse(value, 8f, 200f)); editor.Refresh?.Invoke(); }} />,
         <div className="segmented">
             {Ui.Tip(editor, Ui.Toggle("B", "Bold text", editor.TextBold, () =>
             {
@@ -181,11 +178,8 @@ public sealed class OptionsBar : Component
         </button>, Icons.Sparkles, "Text Effects", "options.fx"),
         Ui.Tip(editor, Ui.Swatch("text-color-chip", editor.Foreground, "Text colour - click to open the colour panel", editor.OpenColourTab, 22, 22),
             Icons.Palette, "Text Colour", "tab.colour"),
-        Ui.Toggle("Text layer", "Keep the text editable as a text layer", editor.TextAsLayer, () =>
-        {
-            editor.TextAsLayer = !editor.TextAsLayer;
-            editor.Refresh?.Invoke();
-        }),
+        <Toggle Label="Text layer" title="Keep the text editable as a text layer" Active={editor.TextAsLayer}
+            onClick={() => { editor.TextAsLayer = !editor.TextAsLayer; editor.Refresh?.Invoke(); }} />,
         Ui.Tip(editor, Ui.Button("Place", "Commit the text (Enter)", () =>
         {
             editor.ApplyText();
@@ -232,21 +226,12 @@ public sealed class OptionsBar : Component
                 onInput={value => { editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f; editor.Refresh?.Invoke(); }} />),
 
         PaintTool.CloneStamp or PaintTool.HealingBrush => F(
-            Ui.Field("Size", editor.BrushSize, 1f, 120f, 1f, " px", value =>
-            {
-                editor.BrushSize = Ui.Parse(value, 1f, 120f);
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Field("Hardness", editor.Hardness * 100f, 0f, 100f, 1f, " %", value =>
-            {
-                editor.Hardness = Ui.Parse(value, 0f, 100f) / 100f;
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Field("Opacity", editor.Opacity * 100f, 5f, 100f, 1f, " %", value =>
-            {
-                editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
-                editor.Refresh?.Invoke();
-            }),
+            <Field Label="Size" Value={editor.BrushSize} Min={1f} Max={120f} Step={1f} Suffix=" px"
+                onInput={value => { editor.BrushSize = Ui.Parse(value, 1f, 120f); editor.Refresh?.Invoke(); }} />,
+            <Field Label="Hardness" Value={editor.Hardness * 100f} Min={0f} Max={100f} Step={1f} Suffix=" %"
+                onInput={value => { editor.Hardness = Ui.Parse(value, 0f, 100f) / 100f; editor.Refresh?.Invoke(); }} />,
+            <Field Label="Opacity" Value={editor.Opacity * 100f} Min={5f} Max={100f} Step={1f} Suffix=" %"
+                onInput={value => { editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f; editor.Refresh?.Invoke(); }} />,
             <span className="options-note">
                 {Text(editor.HasCloneSource
                     ? $"Source {editor.CloneSourceX}, {editor.CloneSourceY} — Ctrl-click to move it"
@@ -266,33 +251,18 @@ public sealed class OptionsBar : Component
                     editor.Refresh?.Invoke();
                 })}
             </div>,
-            Ui.Field("Size", editor.BrushSize, 1f, 120f, 1f, " px", value =>
-            {
-                editor.BrushSize = Ui.Parse(value, 1f, 120f);
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Field("Hardness", editor.Hardness * 100f, 0f, 100f, 1f, " %", value =>
-            {
-                editor.Hardness = Ui.Parse(value, 0f, 100f) / 100f;
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Field("Strength", editor.Opacity * 100f, 5f, 100f, 1f, " %", value =>
-            {
-                editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
-                editor.Refresh?.Invoke();
-            })),
+            <Field Label="Size" Value={editor.BrushSize} Min={1f} Max={120f} Step={1f} Suffix=" px"
+                onInput={value => { editor.BrushSize = Ui.Parse(value, 1f, 120f); editor.Refresh?.Invoke(); }} />,
+            <Field Label="Hardness" Value={editor.Hardness * 100f} Min={0f} Max={100f} Step={1f} Suffix=" %"
+                onInput={value => { editor.Hardness = Ui.Parse(value, 0f, 100f) / 100f; editor.Refresh?.Invoke(); }} />,
+            <Field Label="Strength" Value={editor.Opacity * 100f} Min={5f} Max={100f} Step={1f} Suffix=" %"
+                onInput={value => { editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f; editor.Refresh?.Invoke(); }} />),
 
         PaintTool.Line => F(
-            Ui.Field("Weight", editor.BrushSize, 1f, 120f, 1f, " px", value =>
-            {
-                editor.BrushSize = Ui.Parse(value, 1f, 120f);
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Field("Opacity", editor.Opacity * 100f, 5f, 100f, 1f, " %", value =>
-            {
-                editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
-                editor.Refresh?.Invoke();
-            }),
+            <Field Label="Weight" Value={editor.BrushSize} Min={1f} Max={120f} Step={1f} Suffix=" px"
+                onInput={value => { editor.BrushSize = Ui.Parse(value, 1f, 120f); editor.Refresh?.Invoke(); }} />,
+            <Field Label="Opacity" Value={editor.Opacity * 100f} Min={5f} Max={100f} Step={1f} Suffix=" %"
+                onInput={value => { editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f; editor.Refresh?.Invoke(); }} />,
             Ui.Toggle("Shape layer", "Create an editable shape layer", editor.ShapeAsLayer, () =>
             {
                 editor.ShapeAsLayer = !editor.ShapeAsLayer;
@@ -301,52 +271,26 @@ public sealed class OptionsBar : Component
 
         PaintTool.Rectangle or PaintTool.Ellipse => F(
             <div className="segmented">
-                {Ui.Toggle("Fill", "Fill the shape", editor.FillShapes, () =>
-                {
-                    editor.FillShapes = true;
-                    editor.Refresh?.Invoke();
-                })}
-                {Ui.Toggle("Stroke", "Outline the shape", !editor.FillShapes, () =>
-                {
-                    editor.FillShapes = false;
-                    editor.Refresh?.Invoke();
-                })}
+                {<Toggle Label="Fill" title="Fill the shape" Active={editor.FillShapes} onClick={() => { editor.FillShapes = true; editor.Refresh?.Invoke(); }} />}
+                {<Toggle Label="Stroke" title="Outline the shape" Active={!editor.FillShapes} onClick={() => { editor.FillShapes = false; editor.Refresh?.Invoke(); }} />}
             </div>,
-            Ui.Field("Width", editor.StrokeWidth, 1f, 40f, 1f, " px", value =>
-            {
-                editor.StrokeWidth = Ui.Parse(value, 1f, 40f);
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Field("Opacity", editor.Opacity * 100f, 5f, 100f, 1f, " %", value =>
-            {
-                editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Toggle("Shape layer", "Create an editable shape layer", editor.ShapeAsLayer, () =>
-            {
-                editor.ShapeAsLayer = !editor.ShapeAsLayer;
-                editor.Refresh?.Invoke();
-            })),
+            <Field Label="Width" Value={editor.StrokeWidth} Min={1f} Max={40f} Step={1f} Suffix=" px"
+                onInput={value => { editor.StrokeWidth = Ui.Parse(value, 1f, 40f); editor.Refresh?.Invoke(); }} />,
+            <Field Label="Opacity" Value={editor.Opacity * 100f} Min={5f} Max={100f} Step={1f} Suffix=" %"
+                onInput={value => { editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f; editor.Refresh?.Invoke(); }} />,
+            <Toggle Label="Shape layer" title="Create an editable shape layer" Active={editor.ShapeAsLayer}
+                onClick={() => { editor.ShapeAsLayer = !editor.ShapeAsLayer; editor.Refresh?.Invoke(); }} />),
 
         PaintTool.Gradient => F(
-            Ui.Field("Opacity", editor.Opacity * 100f, 5f, 100f, 1f, " %", value =>
-            {
-                editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
-                editor.Refresh?.Invoke();
-            }),
+            <Field Label="Opacity" Value={editor.Opacity * 100f} Min={5f} Max={100f} Step={1f} Suffix=" %"
+                onInput={value => { editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f; editor.Refresh?.Invoke(); }} />,
             <span className="options-note">{Text("Drag from the foreground to the background colour")}</span>),
 
         PaintTool.Bucket => F(
-            Ui.Field("Tolerance", editor.Tolerance, 0f, 128f, 1f, string.Empty, value =>
-            {
-                editor.Tolerance = (int)Ui.Parse(value, 0f, 128f);
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Field("Opacity", editor.Opacity * 100f, 5f, 100f, 1f, " %", value =>
-            {
-                editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f;
-                editor.Refresh?.Invoke();
-            })),
+            <Field Label="Tolerance" Value={editor.Tolerance} Min={0f} Max={128f} Step={1f} Suffix={string.Empty}
+                onInput={value => { editor.Tolerance = (int)Ui.Parse(value, 0f, 128f); editor.Refresh?.Invoke(); }} />,
+            <Field Label="Opacity" Value={editor.Opacity * 100f} Min={5f} Max={100f} Step={1f} Suffix=" %"
+                onInput={value => { editor.Opacity = Ui.Parse(value, 5f, 100f) / 100f; editor.Refresh?.Invoke(); }} />),
 
         PaintTool.Marquee or PaintTool.EllipseSelect or PaintTool.Lasso => F(
             <span className="options-note">{Text(SelectionNote(editor.Tool))}</span>,
@@ -356,16 +300,10 @@ public sealed class OptionsBar : Component
                 Icons.Close, "Deselect", "options.deselect", "Esc")),
 
         PaintTool.MagicWand => F(
-            Ui.Field("Tolerance", editor.MagicTolerance, 0f, 128f, 1f, string.Empty, value =>
-            {
-                editor.MagicTolerance = (int)Ui.Parse(value, 0f, 128f);
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Toggle("Contiguous", "Only select the connected region", editor.MagicContiguous, () =>
-            {
-                editor.MagicContiguous = !editor.MagicContiguous;
-                editor.Refresh?.Invoke();
-            }),
+            <Field Label="Tolerance" Value={editor.MagicTolerance} Min={0f} Max={128f} Step={1f} Suffix={string.Empty}
+                onInput={value => { editor.MagicTolerance = (int)Ui.Parse(value, 0f, 128f); editor.Refresh?.Invoke(); }} />,
+            <Toggle Label="Contiguous" title="Only select the connected region" Active={editor.MagicContiguous}
+                onClick={() => { editor.MagicContiguous = !editor.MagicContiguous; editor.Refresh?.Invoke(); }} />,
             <span className="options-note">{Text("Selects colours on the active layer")}</span>,
             Ui.Tip(editor, Ui.Button("Select all", "Select the whole document", editor.SelectAll),
                 Icons.Marquee, "Select All", "options.selectAll"),
@@ -373,49 +311,29 @@ public sealed class OptionsBar : Component
                 Icons.Close, "Deselect", "options.deselect", "Esc")),
 
         PaintTool.QuickSelect => F(
-            Ui.Field("Size", editor.BrushSize, 1f, 120f, 1f, " px", value =>
-            {
-                editor.BrushSize = Ui.Parse(value, 1f, 120f);
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Field("Tolerance", editor.QuickTolerance, 0f, 128f, 1f, string.Empty, value =>
-            {
-                editor.QuickTolerance = (int)Ui.Parse(value, 0f, 128f);
-                editor.Refresh?.Invoke();
-            }),
-            Ui.Toggle("Subtract", "Remove the sampled region from the selection", editor.QuickSubtract, () =>
-            {
-                editor.ToggleQuickSubtract();
-                editor.Refresh?.Invoke();
-            }),
+            <Field Label="Size" Value={editor.BrushSize} Min={1f} Max={120f} Step={1f} Suffix=" px"
+                onInput={value => { editor.BrushSize = Ui.Parse(value, 1f, 120f); editor.Refresh?.Invoke(); }} />,
+            <Field Label="Tolerance" Value={editor.QuickTolerance} Min={0f} Max={128f} Step={1f} Suffix={string.Empty}
+                onInput={value => { editor.QuickTolerance = (int)Ui.Parse(value, 0f, 128f); editor.Refresh?.Invoke(); }} />,
+            <Toggle Label="Subtract" title="Remove the sampled region from the selection" Active={editor.QuickSubtract}
+                onClick={() => { editor.ToggleQuickSubtract(); editor.Refresh?.Invoke(); }} />,
             <span className="options-note">{Text("Drag over an object; hold Alt to subtract")}</span>,
             Ui.Tip(editor, Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null),
                 Icons.Close, "Deselect", "options.deselect", "Esc")),
 
         PaintTool.Move => F(
             <span className="options-note">{Text("Drag to move the selection, or a handle to resize it. With no selection, drag moves the layer.")}</span>,
-            Ui.Button("Deselect", "Clear the selection (Esc)", editor.Deselect, editor.Selection is not null)),
+            <Button Label="Deselect" title="Clear the selection (Esc)" onClick={editor.Deselect} Enabled={editor.Selection is not null} />),
 
         PaintTool.Text => editor.IsFontAddOpen ? ImportOptions(editor) : TextOptions(editor),
 
         PaintTool.Pen => F(
             <div className="segmented">
-                {Ui.Toggle("Fill", "Fill the path", editor.FillShapes, () =>
-                {
-                    editor.FillShapes = true;
-                    editor.Refresh?.Invoke();
-                })}
-                {Ui.Toggle("Stroke", "Outline the path", !editor.FillShapes, () =>
-                {
-                    editor.FillShapes = false;
-                    editor.Refresh?.Invoke();
-                })}
+                {<Toggle Label="Fill" title="Fill the path" Active={editor.FillShapes} onClick={() => { editor.FillShapes = true; editor.Refresh?.Invoke(); }} />}
+                {<Toggle Label="Stroke" title="Outline the path" Active={!editor.FillShapes} onClick={() => { editor.FillShapes = false; editor.Refresh?.Invoke(); }} />}
             </div>,
-            Ui.Field("Width", editor.StrokeWidth, 1f, 40f, 1f, " px", value =>
-            {
-                editor.StrokeWidth = Ui.Parse(value, 1f, 40f);
-                editor.Refresh?.Invoke();
-            }),
+            <Field Label="Width" Value={editor.StrokeWidth} Min={1f} Max={40f} Step={1f} Suffix=" px"
+                onInput={value => { editor.StrokeWidth = Ui.Parse(value, 1f, 40f); editor.Refresh?.Invoke(); }} />,
             <span className="options-note">{Text("Click to add points; click the first point or press Enter to close")}</span>,
             Ui.Button("Finish", "Close the path", editor.FinishPenPath, editor.IsPenActive),
             Ui.Button(

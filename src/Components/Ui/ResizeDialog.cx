@@ -56,16 +56,8 @@ public sealed class ResizeDialog : Component
                 <div className="resize-foot">
                     <span className="resize-note">{Text(canvas ? "Guides follow the anchor." : "Undo restores the previous size.")}</span>
                     <div className="resize-actions">
-                        {Ui.Button("Cancel", "Close without resizing", () =>
-                        {
-                            editor.CloseResizeDialog();
-                            editor.Refresh?.Invoke();
-                        })}
-                        {Ui.Button("Resize", "Apply the new size", () =>
-                        {
-                            editor.ApplyResize();
-                            editor.Refresh?.Invoke();
-                        })}
+                        {<Button Label="Cancel" title="Close without resizing" onClick={() => { editor.CloseResizeDialog(); editor.Refresh?.Invoke(); }} />}
+                        {<Button Label="Resize" title="Apply the new size" onClick={() => { editor.ApplyResize(); editor.Refresh?.Invoke(); }} />}
                     </div>
                 </div>
             </div>

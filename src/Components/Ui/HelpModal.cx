@@ -43,11 +43,7 @@ public sealed class HelpModal : Component
                 </div>
                 <div className="help-foot">
                     <span className="help-foot-note">{Text("Hover any icon to see it again.")}</span>
-                    {Ui.Button("Got it", "Close this help article", () =>
-                    {
-                        editor.CloseHelp();
-                        editor.Refresh?.Invoke();
-                    })}
+                    {<Button Label="Got it" title="Close this help article" onClick={() => { editor.CloseHelp(); editor.Refresh?.Invoke(); }} />}
                 </div>
             </div>
         </div>;

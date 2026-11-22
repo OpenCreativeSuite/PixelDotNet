@@ -94,21 +94,9 @@ public sealed class SmartObjectDialog : Component
                 <div className="resize-foot">
                     <span className="resize-note">{Text("Only .pxd projects keep smart objects.")}</span>
                     <div className="resize-actions">
-                        {Ui.Button("Reset", "Return to the identity transform", () =>
-                        {
-                            editor.ResetSmartTransform();
-                            editor.Refresh?.Invoke();
-                        })}
-                        {Ui.Button("Cancel", "Restore the previous transform", () =>
-                        {
-                            editor.CancelSmartTransform();
-                            editor.Refresh?.Invoke();
-                        })}
-                        {Ui.Button("Done", "Keep the transform", () =>
-                        {
-                            editor.CommitSmartTransform();
-                            editor.Refresh?.Invoke();
-                        })}
+                        {<Button Label="Reset" title="Return to the identity transform" onClick={() => { editor.ResetSmartTransform(); editor.Refresh?.Invoke(); }} />}
+                        {<Button Label="Cancel" title="Restore the previous transform" onClick={() => { editor.CancelSmartTransform(); editor.Refresh?.Invoke(); }} />}
+                        {<Button Label="Done" title="Keep the transform" onClick={() => { editor.CommitSmartTransform(); editor.Refresh?.Invoke(); }} />}
                     </div>
                 </div>
             </div>

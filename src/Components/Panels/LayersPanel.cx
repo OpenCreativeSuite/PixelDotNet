@@ -43,12 +43,12 @@ public sealed class LayersPanel : Component
 
             if (group is not null && groups.Add(group))
             {
-                rows.Add(GroupRow(editor, document, group));
+                rows.Add(<GroupRow Group={group} />);
             }
 
             if (group is null || group.Expanded)
             {
-                rows.Add(Row(editor, document, index, group is not null));
+                rows.Add(<LayerRow Index={index} Child={group is not null} />);
             }
         }
 
@@ -379,6 +379,7 @@ public sealed class LayersPanel : Component
     /// Downsamples one layer into the thumbnail canvas over a checkerboard, merging
     /// equal colours into horizontal spans so a flat layer costs a few rectangles.
     /// </summary>
+    internal static void DrawThumbnailInternal(CanvasContext context, PaintLayer layer) => DrawThumbnail(context, layer);
     private static void DrawThumbnail(CanvasContext context, PaintLayer layer)
     {
         const int ThumbWidth = 46;
@@ -435,6 +436,7 @@ public sealed class LayersPanel : Component
     }
 
     /// <summary>Draws a small greyscale preview of a layer mask.</summary>
+    internal static void DrawMaskThumbnailInternal(CanvasContext context, PaintLayer layer) => DrawMaskThumbnail(context, layer);
     private static void DrawMaskThumbnail(CanvasContext context, PaintLayer layer)
     {
         const int ThumbWidth = 30;
@@ -478,6 +480,7 @@ public sealed class LayersPanel : Component
     }
 
     /// <summary>Maps a blend mode onto its display name.</summary>
+    internal static string LabelOfInternal(BlendMode mode) => LabelOf(mode);
     private static string LabelOf(BlendMode mode)
     {
         foreach ((BlendMode candidate, string label) in BlendModes)

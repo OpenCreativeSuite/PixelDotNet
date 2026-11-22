@@ -1,0 +1,63 @@
+using System;
+using Donkeh.UILab;
+using PixelDotNet.Help;
+using PixelDotNet.Paint;
+using static Donkeh.UILab.HtmlHelper;
+using static Donkeh.UILab._;
+
+namespace PixelDotNet.Components;
+
+/// <summary>Props for a layer group header row.</summary>
+public class GroupRowProps : Props
+{
+    public LayerGroup? Group { get; set; }
+}
+
+/// <summary>Builds the header row for a layer group.</summary>
+public sealed class GroupRow : Component<GroupRowProps>
+{
+    private const string LayerDragFormat = "application/x-pixeldotnet-layer";
+
+    /// <inheritdoc/>
+    public override Node Render()
+    {
+        PaintSession editor = UseContext(EditorContext.Value);
+        PaintDocument document = editor.Document;
+        LayerGroup? group = Props.Group;
+        if (group is null) return <span />;
+
+        bool active = ReferenceEquals(document.Active.Group, group);
+        int count = 0;
+        for (int i = 0; i < document.Layers.Count; i++)
+            if (ReferenceEquals(document.Layers[i].Group, group)) count++;
+
+        string dropKey = "group:" + group.Name;
+        string className = active ? "layer-group is-active" : "layer-group";
+        if (editor.LayerDropTarget == dropKey) className += " is-drop-target";
+
+        return <div className={className}
+            title={group.Name}
+            onClick={() => editor.SelectGroup(group)}
+            onDragEnter={drag => { if (drag.Data.HasData(LayerDragFormat)) editor.SetLayerDropTarget(dropKey); }}
+            onDragLeave={_ => editor.SetLayerDropTarget(string.Empty)}
+            onDragOver={drag => { if (drag.Data.HasData(LayerDragFormat)) { drag.Data.DropEffect = "move"; drag.PreventDefault(); } }}
+            onDrop={drag => { editor.SetLayerDropTarget(string.Empty); if (int.TryParse(drag.Data.GetData(LayerDragFormat), out int source)) editor.MoveLayerIntoGroup(source, group); }}
+            onContextMenu={menu => editor.OpenLayerMenu(-1, group, menu.WindowX, menu.WindowY)}>
+            {Ui.Tip(editor, <button className="layer-group-chevron"
+                title={group.Expanded ? "Collapse the group" : "Expand the group"}
+                onClick={() => editor.ToggleGroupExpanded(group)}>
+                {Ui.Icon(group.Expanded ? Icons.ChevronDown : Icons.Next)}
+            </button>, Icons.ChevronDown, "Expand Group", "layer.expand")}
+            <span className="layer-group-icon">{Ui.Icon(Icons.Folder)}</span>
+            <div className="layer-main">
+                <span className="layer-name">{Text(group.Name)}</span>
+                <span className="layer-meta">{Text($"{count} layer{(count == 1 ? string.Empty : "s")} | " + Ui.Format(group.Opacity * 100f) + "%")}</span>
+            </div>
+            {Ui.Tip(editor, <button className={group.Visible ? "layer-btn" : "layer-btn is-dim"}
+                title={group.Visible ? "Hide the group" : "Show the group"}
+                onClick={() => editor.ToggleGroupVisibility(group)}>
+                {Ui.Icon(group.Visible ? Icons.Eye : Icons.EyeOff, regular: true)}
+            </button>, group.Visible ? Icons.Eye : Icons.EyeOff, group.Visible ? "Hide Group" : "Show Group", "layer.groupVisible")}
+        </div>;
+    }
+}
