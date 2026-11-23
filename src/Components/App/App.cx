@@ -48,145 +48,44 @@ public sealed class App : Component
         editor.Refresh = () => tick.Update(value => value + 1);
 
         Ref<ElementNode> rootRef = UseRef<ElementNode>();
-        ElementNode root = (ElementNode)Div(new()
-        {
-            ClassName = "app",
-            OnKeyDown = key => Viewport.HandleShortcut(editor, key),
-        },
-            <OptionsBar />,
-            <ToolRail />,
-            <Viewport />,
-            <SidePanel />,
-            <StatusBar />,
-            <MenuBar />,
-            Show(editor.IsFontMenuOpen, Div(new()
-            {
-                ClassName = "font-backdrop",
-                OnClick = () =>
-                {
-                    editor.CloseFontMenu();
-                    editor.Refresh?.Invoke();
-                },
-            })),
-            Show(editor.IsFontMenuOpen, <FontPicker />),
-            Show(editor.IsTextFxOpen, Div(new()
-            {
-                ClassName = "font-backdrop",
-                OnClick = () =>
-                {
-                    editor.CloseTextFx();
-                    editor.Refresh?.Invoke();
-                },
-            })),
-            Show(editor.IsTextFxOpen, <TextFxPanel />),
-            Show(editor.Tip is not null, <TooltipOverlay />),
-            Show(editor.OpenHelp is not null, Div(new()
-            {
-                ClassName = "help-backdrop",
-                OnClick = () =>
-                {
-                    editor.CloseHelp();
-                    editor.Refresh?.Invoke();
-                },
-            })),
-            Show(editor.OpenHelp is not null, <HelpModal />),
-            Show(editor.IsFileDialogOpen, Div(new()
-            {
-                ClassName = "file-backdrop",
-                OnClick = () =>
-                {
-                    editor.CloseFileDialog();
-                    editor.Refresh?.Invoke();
-                },
-            })),
-            Show(editor.IsFileDialogOpen, <FileDialog />),
-            Show(editor.IsResizeOpen, Div(new()
-            {
-                ClassName = "resize-backdrop",
-                OnClick = () =>
-                {
-                    editor.CloseResizeDialog();
-                    editor.Refresh?.Invoke();
-                },
-            })),
-            Show(editor.IsResizeOpen, <ResizeDialog />),
-            Show(editor.IsBatchOpen, Div(new()
-            {
-                ClassName = "resize-backdrop",
-                OnClick = () =>
-                {
-                    editor.CloseBatchDialog();
-                    editor.Refresh?.Invoke();
-                },
-            })),
-            Show(editor.IsBatchOpen, <BatchDialog />),
-            Show(editor.IsLayerMenuOpen, Div(new()
-            {
-                ClassName = "file-menu-backdrop",
-                OnClick = () => editor.CloseLayerMenu(),
-            })),
-            Show(editor.IsLayerMenuOpen, <LayerMenu />),
-            Show(editor.IsLayerStyleOpen, Div(new()
-            {
-                ClassName = "resize-backdrop",
-                OnClick = () =>
-                {
-                    editor.CloseLayerStyleDialog();
-                    editor.Refresh?.Invoke();
-                },
-            })),
-            Show(editor.IsLayerStyleOpen, <LayerStyleDialog />),
-            Show(editor.IsColourToolsOpen, Div(new()
-            {
-                ClassName = "resize-backdrop",
-                OnClick = () =>
-                {
-                    editor.CloseColourToolsDialog();
-                    editor.Refresh?.Invoke();
-                },
-            })),
-            Show(editor.IsColourToolsOpen, <ColourToolsDialog />),
-            Show(editor.IsPerspectiveOpen, Div(new()
-            {
-                ClassName = "resize-backdrop",
-                OnClick = () =>
-                {
-                    editor.CancelPerspective();
-                    editor.Refresh?.Invoke();
-                },
-            })),
-            Show(editor.IsPerspectiveOpen, <PerspectiveDialog />),
-            Show(editor.IsMeshWarpOpen, <MeshWarpBar />),
-            Show(editor.IsSmartTransformOpen, Div(new()
-            {
-                ClassName = "resize-backdrop",
-                OnClick = () =>
-                {
-                    editor.CancelSmartTransform();
-                    editor.Refresh?.Invoke();
-                },
-            })),
-            Show(editor.IsSmartTransformOpen, <SmartObjectDialog />),
-            Show(editor.IsShapeEditOpen, Div(new()
-            {
-                ClassName = "resize-backdrop",
-                OnClick = () =>
-                {
-                    editor.CancelShapeEdit();
-                    editor.Refresh?.Invoke();
-                },
-            })),
-            Show(editor.IsShapeEditOpen, <ShapeEditDialog />),
-            Show(editor.IsTextEditOpen, Div(new()
-            {
-                ClassName = "resize-backdrop",
-                OnClick = () =>
-                {
-                    editor.CancelTextEdit();
-                    editor.Refresh?.Invoke();
-                },
-            })),
-            Show(editor.IsTextEditOpen, <TextEditDialog />));
+
+        var root = <div className="app" onKeyDown={key => Viewport.HandleShortcut(editor, key)}>
+            <OptionsBar />
+            <ToolRail />
+            <Viewport />
+            <SidePanel />
+            <StatusBar />
+            <MenuBar />
+            {Show(editor.IsFontMenuOpen, <div className="font-backdrop" onClick={() => { editor.CloseFontMenu(); editor.Refresh?.Invoke(); }} />)}
+            {Show(editor.IsFontMenuOpen, <FontPicker />)}
+            {Show(editor.IsTextFxOpen, <div className="font-backdrop" onClick={() => { editor.CloseTextFx(); editor.Refresh?.Invoke(); }} />)}
+            {Show(editor.IsTextFxOpen, <TextFxPanel />)}
+            {Show(editor.Tip is not null, <TooltipOverlay />)}
+            {Show(editor.OpenHelp is not null, <div className="help-backdrop" onClick={() => { editor.CloseHelp(); editor.Refresh?.Invoke(); }} />)}
+            {Show(editor.OpenHelp is not null, <HelpModal />)}
+            {Show(editor.IsFileDialogOpen, <div className="file-backdrop" onClick={() => { editor.CloseFileDialog(); editor.Refresh?.Invoke(); }} />)}
+            {Show(editor.IsFileDialogOpen, <FileDialog />)}
+            {Show(editor.IsResizeOpen, <div className="resize-backdrop" onClick={() => { editor.CloseResizeDialog(); editor.Refresh?.Invoke(); }} />)}
+            {Show(editor.IsResizeOpen, <ResizeDialog />)}
+            {Show(editor.IsBatchOpen, <div className="resize-backdrop" onClick={() => { editor.CloseBatchDialog(); editor.Refresh?.Invoke(); }} />)}
+            {Show(editor.IsBatchOpen, <BatchDialog />)}
+            {Show(editor.IsLayerMenuOpen, <div className="file-menu-backdrop" onClick={() => editor.CloseLayerMenu()} />)}
+            {Show(editor.IsLayerMenuOpen, <LayerMenu />)}
+            {Show(editor.IsLayerStyleOpen, <div className="resize-backdrop" onClick={() => { editor.CloseLayerStyleDialog(); editor.Refresh?.Invoke(); }} />)}
+            {Show(editor.IsLayerStyleOpen, <LayerStyleDialog />)}
+            {Show(editor.IsColourToolsOpen, <div className="resize-backdrop" onClick={() => { editor.CloseColourToolsDialog(); editor.Refresh?.Invoke(); }} />)}
+            {Show(editor.IsColourToolsOpen, <ColourToolsDialog />)}
+            {Show(editor.IsPerspectiveOpen, <div className="resize-backdrop" onClick={() => { editor.CancelPerspective(); editor.Refresh?.Invoke(); }} />)}
+            {Show(editor.IsPerspectiveOpen, <PerspectiveDialog />)}
+            {Show(editor.IsMeshWarpOpen, <MeshWarpBar />)}
+            {Show(editor.IsSmartTransformOpen, <div className="resize-backdrop" onClick={() => { editor.CancelSmartTransform(); editor.Refresh?.Invoke(); }} />)}
+            {Show(editor.IsSmartTransformOpen, <SmartObjectDialog />)}
+            {Show(editor.IsShapeEditOpen, <div className="resize-backdrop" onClick={() => { editor.CancelShapeEdit(); editor.Refresh?.Invoke(); }} />)}
+            {Show(editor.IsShapeEditOpen, <ShapeEditDialog />)}
+            {Show(editor.IsTextEditOpen, <div className="resize-backdrop" onClick={() => { editor.CancelTextEdit(); editor.Refresh?.Invoke(); }} />)}
+            {Show(editor.IsTextEditOpen, <TextEditDialog />)}
+        </div>;
+
         root.BindRef(rootRef);
         if (rootRef.Value is { Width: > 0, Height: > 0 } bounds)
         {

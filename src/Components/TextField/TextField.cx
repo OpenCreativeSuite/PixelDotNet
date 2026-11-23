@@ -15,37 +15,9 @@ namespace PixelDotNet.Components;
 /// </example>
 public class TextFieldProps : Props
 {
-    /// <summary>Gets or sets the current text value.</summary>
-    /// <value>The value. Defaults to an empty string.</value>
-    public string Value { get; set; } = "";
-
-    /// <summary>Gets or sets the placeholder text.</summary>
-    /// <value>The placeholder. Defaults to an empty string.</value>
-    public string Placeholder { get; set; } = "";
-
-    /// <summary>Gets or sets the input handler invoked with the new value.</summary>
-    /// <value>An action, or <see langword="null"/>.</value>
-    public Action<string>? onInput { get; set; }
-
-    /// <summary>Gets or sets the focus handler.</summary>
-    /// <value>An action, or <see langword="null"/>.</value>
-    public Action? onFocus { get; set; }
-
-    /// <summary>Gets or sets the blur handler.</summary>
-    /// <value>An action, or <see langword="null"/>.</value>
-    public Action? onBlur { get; set; }
-
     /// <summary>Gets or sets the commit (change) handler.</summary>
     /// <value>An action, or <see langword="null"/>.</value>
     public Action<string>? onCommit { get; set; }
-
-    /// <summary>Gets or sets the element key for reconciliation.</summary>
-    /// <value>The key, or <see langword="null"/>.</value>
-    public string? key { get; set; }
-
-    /// <summary>Gets or sets the CSS class applied to the input.</summary>
-    /// <value>The class name. Defaults to <c>"text-field"</c>.</value>
-    public string ClassName { get; set; } = "text-field";
 }
 
 /// <summary>
@@ -57,14 +29,14 @@ public sealed class TextField : Component<TextFieldProps>
     public override Node Render()
     {
         TextFieldProps props = Props;
-        return <input className={props.ClassName}
-            key={props.key}
+        return <input className={props.ClassName ?? "text-field"}
+            key={props.Key}
             type="text"
             value={props.Value}
             placeholder={props.Placeholder}
-            onInput={props.onInput}
-            onFocus={props.onFocus}
-            onBlur={props.onBlur}
-            onChange={props.onCommit} />;
+            onInput={props.OnInput}
+            onFocus={props.OnFocus}
+            onBlur={props.OnBlur}
+            onChange={props.onCommit ?? props.OnChange} />;
     }
 }

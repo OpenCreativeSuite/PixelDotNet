@@ -39,10 +39,6 @@ public class SliderProps : Props
     /// <summary>Gets or sets the suffix appended to the displayed value.</summary>
     /// <value>The suffix. Defaults to an empty string.</value>
     public string Suffix { get; set; } = "";
-
-    /// <summary>Gets or sets the input handler invoked with the new value string.</summary>
-    /// <value>An action, or <see langword="null"/>.</value>
-    public Action<string>? onInput { get; set; }
 }
 
 /// <summary>
@@ -69,7 +65,7 @@ public sealed class Slider : Component<SliderProps>
                     ["max"] = props.Max.ToString("0.###", CultureInfo.InvariantCulture),
                     ["step"] = props.Step.ToString("0.###", CultureInfo.InvariantCulture),
                 }}
-                onInput={props.onInput} />
+                onInput={props.OnInput} />
         </div>;
     }
 }

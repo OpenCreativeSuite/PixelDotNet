@@ -31,21 +31,9 @@ public class ButtonProps : Props
     /// <value>The button label. Defaults to an empty string.</value>
     public string Label { get; set; } = "";
 
-    /// <summary>Gets or sets the native <c>title</c> attribute (browser tooltip).</summary>
-    /// <value>The title text. Defaults to an empty string.</value>
-    public string title { get; set; } = "";
-
-    /// <summary>Gets or sets the click handler invoked when the button is activated.</summary>
-    /// <value>An action, or <see langword="null"/> to render a non-interactive button.</value>
-    public Action? onClick { get; set; }
-
     /// <summary>Gets or sets whether the button is enabled.</summary>
     /// <value><see langword="true"/> (default) enables the button; <see langword="false"/> disables it and adds the <c>is-disabled</c> class.</value>
     public bool Enabled { get; set; } = true;
-
-    /// <summary>Gets or sets the CSS class applied to the button element.</summary>
-    /// <value>The class name. Defaults to <c>"btn"</c>.</value>
-    public string ClassName { get; set; } = "btn";
 }
 
 /// <summary>
@@ -57,10 +45,11 @@ public sealed class Button : Component<ButtonProps>
     public override Node Render()
     {
         ButtonProps props = Props;
-        return <button className={props.Enabled ? props.ClassName : props.ClassName + " is-disabled"}
-            title={props.title}
+        string className = props.ClassName ?? "btn";
+        return <button className={props.Enabled ? className : className + " is-disabled"}
+            title={props.Title}
             disabled={!props.Enabled}
-            onClick={() => props.onClick?.Invoke()}>
+            onClick={() => props.OnClick?.Invoke()}>
             {Text(props.Label)}
         </button>;
     }

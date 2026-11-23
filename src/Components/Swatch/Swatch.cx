@@ -17,21 +17,9 @@ namespace PixelDotNet.Components;
 /// </example>
 public class SwatchProps : Props
 {
-    /// <summary>Gets or sets the CSS class applied to the canvas element.</summary>
-    /// <value>The class name. Defaults to <c>"swatch"</c>.</value>
-    public string ClassName { get; set; } = "swatch";
-
     /// <summary>Gets or sets the colour to paint (packed ARGB).</summary>
     /// <value>The colour value.</value>
     public uint Color { get; set; }
-
-    /// <summary>Gets or sets the native <c>title</c> attribute.</summary>
-    /// <value>The title text. Defaults to an empty string.</value>
-    public string title { get; set; } = "";
-
-    /// <summary>Gets or sets the click handler invoked when the swatch is clicked.</summary>
-    /// <value>An action, or <see langword="null"/>.</value>
-    public Action? onClick { get; set; }
 
     /// <summary>Gets or sets the swatch width in pixels.</summary>
     /// <value>The width. Defaults to 24.</value>
@@ -51,13 +39,10 @@ public sealed class Swatch : Component<SwatchProps>
     public override Node Render()
     {
         SwatchProps props = Props;
-        return Canvas(new CanvasProps
-        {
-            ClassName = props.ClassName,
-            Title = props.title,
-            Attributes = Ui.Size(props.Width, props.Height),
-            OnClick = () => props.onClick?.Invoke(),
-            OnDraw = context => context.Clear(Ui.RgbaOpaque(props.Color)),
-        });
+        return <canvas className={props.ClassName ?? "swatch"}
+            title={props.Title}
+            attributes={Ui.Size(props.Width, props.Height)}
+            onClick={() => props.OnClick?.Invoke()}
+            onCanvasDraw={(Action<CanvasContext>)(context => context.Clear(Ui.RgbaOpaque(props.Color)))} />;
     }
 }

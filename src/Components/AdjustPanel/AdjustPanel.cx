@@ -46,12 +46,7 @@ public sealed class AdjustPanel : Component
         return F(
             <Section Title="Histogram" Children={new Node[] {
                 <div className="histogram-frame">
-                    {Canvas(new CanvasProps
-                    {
-                        className = "histogram",
-                        Attributes = Ui.Size(HistogramWidth, HistogramHeight),
-                        OnDraw = context => DrawHistogram(context, editor),
-                    })}
+                    {<canvas className="histogram" attributes={Ui.Size(HistogramWidth, HistogramHeight)} onCanvasDraw={(Action<CanvasContext>)(context => DrawHistogram(context, editor))} />}
                     <div className="histogram-ramp" />
                 </div>
             }} />,
@@ -86,16 +81,13 @@ public sealed class AdjustPanel : Component
             }} />,
 
             <Section Title="Curves" Children={new Node[] {
-                Canvas(new CanvasProps
-                {
-                    className = "curve-editor",
-                    Attributes = Ui.Size(CurveWidth, CurveHeight),
-                    OnPointerDown = (x, y) => CurveDown(editor, x, y),
-                    OnPointerMove = (x, y) => CurveMove(editor, x, y),
-                    OnPointerUp = (x, y) => CurveUp(editor),
-                    OnContextMenu = menu => CurveRemove(editor, menu.X, menu.Y),
-                    OnDraw = context => DrawCurve(context, editor),
-                }),
+                <canvas className="curve-editor"
+                    attributes={Ui.Size(CurveWidth, CurveHeight)}
+                    onPointerDown={(x, y) => CurveDown(editor, x, y)}
+                    onPointerMove={(x, y) => CurveMove(editor, x, y)}
+                    onPointerUp={(x, y) => CurveUp(editor)}
+                    onContextMenu={menu => CurveRemove(editor, menu.X, menu.Y)}
+                    onCanvasDraw={(Action<CanvasContext>)(context => DrawCurve(context, editor))} />,
                 <div className="row">
                     {Ui.Button("Reset Curve", "Return the tone curve to a straight line", () =>
                     {
@@ -146,12 +138,7 @@ public sealed class AdjustPanel : Component
     private static Node HistogramSection(PaintSession editor) =>
         <Section Title="Histogram" Children={new Node[] {
             <div className="histogram-frame">
-                {Canvas(new CanvasProps
-                {
-                    className = "histogram",
-                    Attributes = Ui.Size(HistogramWidth, HistogramHeight),
-                    OnDraw = context => DrawHistogram(context, editor),
-                })}
+                {<canvas className="histogram" attributes={Ui.Size(HistogramWidth, HistogramHeight)} onCanvasDraw={(Action<CanvasContext>)(context => DrawHistogram(context, editor))} />}
                 <div className="histogram-ramp" />
             </div>
         }} />;
@@ -162,16 +149,13 @@ public sealed class AdjustPanel : Component
         if (layer.Adjustment == AdjustmentKind.Curves)
         {
             return <Section Title="Curves Adjustment" Children={new Node[] {
-                Canvas(new CanvasProps
-                {
-                    className = "curve-editor",
-                    Attributes = Ui.Size(CurveWidth, CurveHeight),
-                    OnPointerDown = (x, y) => CurveDown(editor, x, y),
-                    OnPointerMove = (x, y) => CurveMove(editor, x, y),
-                    OnPointerUp = (x, y) => CurveUp(editor),
-                    OnContextMenu = menu => CurveRemove(editor, menu.X, menu.Y),
-                    OnDraw = context => DrawCurve(context, editor),
-                }),
+                <canvas className="curve-editor"
+                    attributes={Ui.Size(CurveWidth, CurveHeight)}
+                    onPointerDown={(x, y) => CurveDown(editor, x, y)}
+                    onPointerMove={(x, y) => CurveMove(editor, x, y)}
+                    onPointerUp={(x, y) => CurveUp(editor)}
+                    onContextMenu={menu => CurveRemove(editor, menu.X, menu.Y)}
+                    onCanvasDraw={(Action<CanvasContext>)(context => DrawCurve(context, editor))} />,
                 <div className="row">
                     {Ui.Button("Reset Curve", "Return the adjustment curve to neutral", () =>
                     {

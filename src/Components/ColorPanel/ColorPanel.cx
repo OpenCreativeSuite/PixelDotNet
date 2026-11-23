@@ -96,20 +96,8 @@ public sealed class ColorPanel : Component
 
             <Section Title="Spectrum" Children={new Node[] {
                 <div className="spectrum">
-                    {Canvas(new CanvasProps
-                    {
-                        className = "sv-square",
-                        Attributes = Ui.Size(SquareWidth, SquareHeight),
-                        OnPointerDown = (x, y) => PickSaturation(editor, hue, x, y),
-                        OnDraw = context => DrawSquare(context, editor),
-                    })}
-                    {Canvas(new CanvasProps
-                    {
-                        className = "hue-strip",
-                        Attributes = Ui.Size(HueWidth, HueHeight),
-                        OnPointerDown = (x, _) => PickHue(editor, x),
-                        OnDraw = context => DrawHue(context, editor),
-                    })}
+                    {<canvas className="sv-square" attributes={Ui.Size(SquareWidth, SquareHeight)} onPointerDown={(x, y) => PickSaturation(editor, hue, x, y)} onCanvasDraw={(Action<CanvasContext>)(context => DrawSquare(context, editor))} />}
+                    {<canvas className="hue-strip" attributes={Ui.Size(HueWidth, HueHeight)} onPointerDown={(x, _) => PickHue(editor, x)} onCanvasDraw={(Action<CanvasContext>)(context => DrawHue(context, editor))} />}
                 </div>
             }} />,
 

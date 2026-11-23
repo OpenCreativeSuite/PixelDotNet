@@ -57,21 +57,13 @@ public sealed class LayerRow : Component<LayerRowProps>
             onDrop={drag => { editor.SetLayerDropTarget(string.Empty); if (int.TryParse(drag.Data.GetData(LayerDragFormat), out int source)) editor.MoveLayerTo(source, index, drag.LocalY < 18f); }}>
             {layer.IsAdjustment
                 ? <div className="layer-adjust-thumb">{Ui.Icon(Icons.Sliders)}</div>
-                : Canvas(new CanvasProps
-                {
-                    className = "layer-thumb",
-                    Attributes = Ui.Size(46, 34),
-                    OnDraw = context => LayersPanel.DrawThumbnailInternal(context, layer),
-                })}
-            {Show(layer.HasMask, Canvas(new CanvasProps
-            {
-                className = active && editor.MaskEditing ? "layer-mask-thumb is-active" : "layer-mask-thumb",
-                Title = "Click to edit the mask, right-click to remove it",
-                Attributes = Ui.Size(30, 34),
-                OnClick = () => editor.ToggleMaskEditing(index),
-                OnContextMenu = _ => editor.ToggleLayerMask(),
-                OnDraw = context => LayersPanel.DrawMaskThumbnailInternal(context, layer),
-            }))}
+                : <canvas className="layer-thumb" attributes={Ui.Size(46, 34)} onCanvasDraw={(Action<CanvasContext>)(context => LayersPanel.DrawThumbnailInternal(context, layer))} />}
+            {Show(layer.HasMask, <canvas className={active && editor.MaskEditing ? "layer-mask-thumb is-active" : "layer-mask-thumb"}
+                title="Click to edit the mask, right-click to remove it"
+                attributes={Ui.Size(30, 34)}
+                onClick={() => editor.ToggleMaskEditing(index)}
+                onContextMenu={_ => editor.ToggleLayerMask()}
+                onCanvasDraw={(Action<CanvasContext>)(context => LayersPanel.DrawMaskThumbnailInternal(context, layer))} />)}
             <div className="layer-main">
                 <div className="layer-name-row">
                     <span className="layer-name">{Text(layer.Name)}</span>

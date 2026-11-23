@@ -19,21 +19,9 @@ public class IconButtonProps : Props
     /// <value>The icon class. Defaults to an empty string.</value>
     public string Icon { get; set; } = "";
 
-    /// <summary>Gets or sets the native <c>title</c> attribute.</summary>
-    /// <value>The title text. Defaults to an empty string.</value>
-    public string title { get; set; } = "";
-
-    /// <summary>Gets or sets the click handler.</summary>
-    /// <value>An action, or <see langword="null"/>.</value>
-    public Action? onClick { get; set; }
-
     /// <summary>Gets or sets whether the button is enabled.</summary>
     /// <value><see langword="true"/> (default) enables the button.</value>
     public bool Enabled { get; set; } = true;
-
-    /// <summary>Gets or sets the CSS class applied to the button.</summary>
-    /// <value>The class name. Defaults to <c>"icon-btn"</c>.</value>
-    public string ClassName { get; set; } = "icon-btn";
 
     /// <summary>Gets or sets whether to use the regular (outline) weight for the glyph.</summary>
     /// <value><see langword="true"/> for regular weight.</value>
@@ -49,12 +37,13 @@ public sealed class IconButton : Component<IconButtonProps>
     public override Node Render()
     {
         IconButtonProps props = Props;
-        string baseClass = props.ClassName == "icon-btn" ? "icon-btn" : $"icon-btn {props.ClassName}";
+        string baseClassName = props.ClassName ?? "icon-btn";
+        string baseClass = baseClassName == "icon-btn" ? "icon-btn" : $"icon-btn {baseClassName}";
         string classes = props.Enabled ? baseClass : baseClass + " is-disabled";
         return <button className={classes}
-            title={props.title}
+            title={props.Title}
             disabled={!props.Enabled}
-            onClick={() => props.onClick?.Invoke()}>
+            onClick={() => props.OnClick?.Invoke()}>
             {Ui.Icon(props.Icon, regular: props.Regular)}
         </button>;
     }

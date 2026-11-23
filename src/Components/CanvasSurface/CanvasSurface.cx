@@ -46,28 +46,11 @@ public sealed class CanvasSurface : Component
 
         return <div className="canvas-frame">
             <div className="ruler-strip">
-                {Canvas(new CanvasProps
-                {
-                    className = "ruler-corner",
-                    Attributes = Ui.Size((int)RulerSize, (int)RulerSize),
-                    OnDraw = context => context.Clear(0xFF121318),
-                })}
-                {Canvas(new CanvasProps
-                {
-                    className = "ruler ruler-top",
-                    Attributes = Ui.Size(pixelWidth, (int)RulerSize),
-                    OnDraw = context => DrawRuler(context, editor, horizontal: true, pixelWidth),
-                    OnPointerDown = (x, y) => editor.PlaceGuide(horizontal: false, x / zoom),
-                })}
+                {<canvas className="ruler-corner" attributes={Ui.Size((int)RulerSize, (int)RulerSize)} onCanvasDraw={(Action<CanvasContext>)(context => context.Clear(0xFF121318))} />}
+                {<canvas className="ruler ruler-top" attributes={Ui.Size(pixelWidth, (int)RulerSize)} onCanvasDraw={(Action<CanvasContext>)(context => DrawRuler(context, editor, horizontal: true, pixelWidth))} onPointerDown={(x, y) => editor.PlaceGuide(horizontal: false, x / zoom)} />}
             </div>
             <div className="ruler-strip">
-                {Canvas(new CanvasProps
-                {
-                    className = "ruler ruler-left",
-                    Attributes = Ui.Size((int)RulerSize, pixelHeight),
-                    OnDraw = context => DrawRuler(context, editor, horizontal: false, pixelHeight),
-                    OnPointerDown = (x, y) => editor.PlaceGuide(horizontal: true, y / zoom),
-                })}
+                {<canvas className="ruler ruler-left" attributes={Ui.Size((int)RulerSize, pixelHeight)} onCanvasDraw={(Action<CanvasContext>)(context => DrawRuler(context, editor, horizontal: false, pixelHeight))} onPointerDown={(x, y) => editor.PlaceGuide(horizontal: true, y / zoom)} />}
                 {paint}
             </div>
         </div>;
@@ -80,19 +63,15 @@ public sealed class CanvasSurface : Component
         int pixelHeight,
         Ref<ElementNode> paintRef)
     {
-        Node canvas = Canvas(new CanvasProps
-        {
-            className = "paint-canvas " + CursorClass(editor.Tool),
-            // Focusable so clicking the artwork keeps the stage's key handler
-            // live: tool shortcuts, copy and undo all arrive while painting.
-            TabIndex = 0,
-            Attributes = new()
+        Node canvas = <canvas className={"paint-canvas " + CursorClass(editor.Tool)}
+            tabIndex={0}
+            attributes={new()
             {
                 ["width"] = pixelWidth.ToString(CultureInfo.InvariantCulture),
                 ["height"] = pixelHeight.ToString(CultureInfo.InvariantCulture),
-            },
-            OnDraw = context => Draw(context, editor, paintRef.Value),
-            OnPointerDown = (x, y) =>
+            }}
+            onCanvasDraw={(Action<CanvasContext>)(context => Draw(context, editor, paintRef.Value))}
+            onPointerDown={(x, y) =>
             {
                 if (editor.IsMeshWarpOpen)
                 {
@@ -109,8 +88,8 @@ public sealed class CanvasSurface : Component
                 {
                     editor.PointerDown(x, y);
                 }
-            },
-            OnPointerMove = (x, y) =>
+            }}
+            onPointerMove={(x, y) =>
             {
                 if (ViewportPan.Handle())
                 {
@@ -129,8 +108,8 @@ public sealed class CanvasSurface : Component
                 }
 
                 editor.PointerMove(x, y);
-            },
-            OnPointerUp = (x, y) =>
+            }}
+            onPointerUp={(x, y) =>
             {
                 if (editor.IsMeshWarpOpen)
                 {
@@ -139,8 +118,8 @@ public sealed class CanvasSurface : Component
                 }
 
                 editor.PointerUp(x, y);
-            },
-            OnScroll = (horizontal, vertical) =>
+            }}
+            onScroll={(horizontal, vertical) =>
             {
                 if (InputState.Control)
                 {
@@ -150,9 +129,8 @@ public sealed class CanvasSurface : Component
                 {
                     editor.NudgeBrushSize(vertical);
                 }
-            },
-            OnContextMenu = menu => editor.SecondaryAction(menu.X, menu.Y),
-        });
+            }}
+            onContextMenu={menu => editor.SecondaryAction(menu.X, menu.Y)} />;
 
         if (canvas is ElementNode element)
         {

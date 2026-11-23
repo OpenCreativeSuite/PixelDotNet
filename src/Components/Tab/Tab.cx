@@ -28,10 +28,6 @@ public class TabProps : Props
     /// <value><see langword="true"/> when active; applies the <c>is-active</c> class.</value>
     public bool Active { get; set; }
 
-    /// <summary>Gets or sets the tooltip title.</summary>
-    /// <value>The title text. Defaults to an empty string.</value>
-    public string Title { get; set; } = "";
-
     /// <summary>Gets or sets the help topic id for the tooltip chevron.</summary>
     /// <value>The help id. Defaults to an empty string.</value>
     public string HelpId { get; set; } = "";

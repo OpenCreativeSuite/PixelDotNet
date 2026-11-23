@@ -46,20 +46,14 @@ public sealed class Viewport : Component
         float contentWidth = pixelWidth + ruler + (CanvasPadding * 2f);
         float contentHeight = pixelHeight + ruler + (CanvasPadding * 2f);
 
-        ElementNode viewport = (ElementNode)Div(new()
-        {
-            className = "viewport",
-            OnPointerMove = (x, y) => ViewportPan.Handle(),
-        },
-            Div(new()
+        ElementNode viewport = (ElementNode)(<div className="viewport" onPointerMove={(x, y) => ViewportPan.Handle()}>
+            <div className="canvas-slot" attributes={new()
             {
-                className = "canvas-slot",
-                Attributes = new()
-                {
-                    ["style"] = $"width:{Ui.Number(contentWidth)}px;height:{Ui.Number(contentHeight)}px;",
-                },
-            },
-                C<CanvasSurface>()));
+                ["style"] = $"width:{Ui.Number(contentWidth)}px;height:{Ui.Number(contentHeight)}px;",
+            }}>
+                <CanvasSurface />
+            </div>
+        </div>);
         viewport.BindRef(viewportRef);
 
         return <div className="stage" TabIndex={0}>

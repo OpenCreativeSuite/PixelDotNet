@@ -19,10 +19,6 @@ public class StepperProps : Props
     /// <value>The value. Defaults to an empty string.</value>
     public string Value { get; set; } = "";
 
-    /// <summary>Gets or sets the native <c>title</c> attribute.</summary>
-    /// <value>The title text. Defaults to an empty string.</value>
-    public string title { get; set; } = "";
-
     /// <summary>Gets or sets the previous-step handler.</summary>
     /// <value>An action, or <see langword="null"/>.</value>
     public Action? Previous { get; set; }
@@ -41,7 +37,7 @@ public sealed class Stepper : Component<StepperProps>
     public override Node Render()
     {
         StepperProps props = Props;
-        return <div className="stepper" title={props.title}>
+        return <div className="stepper" title={props.Title}>
             <button className="stepper-btn" title="Previous" onClick={() => props.Previous?.Invoke()}>
                 {Ui.Icon(Icons.Previous, "stepper-glyph")}
             </button>
