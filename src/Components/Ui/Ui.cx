@@ -51,7 +51,7 @@ internal static class Ui
     /// <param name="extra">Additional classes, such as a size modifier.</param>
     /// <param name="regular">Draws the outline weight instead of the solid weight.</param>
     public static Node Icon(string name, string extra = "", bool regular = false) =>
-        I(new() { className = $"fa {(regular ? "fa-regular" : "fa-solid")} {name} {extra}".TrimEnd() });
+        <i className={$"fa {(regular ? "fa-regular" : "fa-solid")} {name} {extra}".TrimEnd()} />;
 
     /// <summary>A square icon-only button.</summary>
     public static Node IconButton(
@@ -69,14 +69,9 @@ internal static class Ui
             classes.Add("is-disabled");
         }
 
-        return HtmlHelper.Button(new()
-        {
-            className = string.Join(' ', classes),
-            Title = title,
-            Disabled = !enabled,
-            OnClick = onClick,
-        },
-        Icon(icon, regular: regular));
+        return <button className={string.Join(' ', classes)} title={title} disabled={!enabled} onClick={onClick}>
+            {Icon(icon, regular: regular)}
+        </button>;
     }
 
     /// <summary>A single-line text field sized for the options bar.</summary>
@@ -89,121 +84,85 @@ internal static class Ui
         Action<string>? onCommit = null,
         string? key = null,
         string? className = null) =>
-        Input(new()
-        {
-            className = className is null ? "text-field" : "text-field " + className,
-            Key = key,
-            Type = "text",
-            Value = value,
-            Placeholder = placeholder,
-            OnInput = onInput,
-            OnFocus = onFocus,
-            OnBlur = onBlur,
-            OnChange = onCommit,
-        });
+        <input className={className is null ? "text-field" : "text-field " + className} key={key} type="text" value={value} placeholder={placeholder} onInput={onInput} onFocus={onFocus} onBlur={onBlur} onChange={onCommit} />;
 
     /// <summary>A labelled inline slider sized for the options bar.</summary>
     public static Node Field(string label, float value, float min, float max, float step, string suffix, Action<string> onInput) =>
-        Div(new() { className = "field" },
-            Span(new() { className = "field-label" }, Text(label)),
-            Div(new() { className = "field-track" },
-                Input(new()
-                {
-                    className = "field-input",
-                    Type = "range",
-                    Value = Number(value),
-                    Attributes = new()
-                    {
-                        ["min"] = Number(min),
-                        ["max"] = Number(max),
-                        ["step"] = Number(step),
-                    },
-                    OnInput = onInput,
-                })),
-            Span(new() { className = "field-value" }, Text(Format(value) + suffix)));
-
-    /// <summary>A stacked slider for a panel.</summary>
-    public static Node Slider(string label, float value, float min, float max, float step, string suffix, Action<string> onInput) =>
-        Div(new() { className = "slider" },
-            Div(new() { className = "slider-head" },
-                Span(new() { className = "slider-label" }, Text(label)),
-                Span(new() { className = "slider-value" }, Text(Format(value) + suffix))),
-            Input(new()
-            {
-                className = "slider-input",
-                Type = "range",
-                Value = Number(value),
-                Attributes = new()
+        <div className="field">
+            <span className="field-label">{Text(label)}</span>
+            <div className="field-track">
+                <input className="field-input" type="range" value={Number(value)} attributes={new()
                 {
                     ["min"] = Number(min),
                     ["max"] = Number(max),
                     ["step"] = Number(step),
-                },
-                OnInput = onInput,
-            }));
+                }} onInput={onInput} />
+            </div>
+            <span className="field-value">{Text(Format(value) + suffix)}</span>
+        </div>;
+
+    /// <summary>A stacked slider for a panel.</summary>
+    public static Node Slider(string label, float value, float min, float max, float step, string suffix, Action<string> onInput) =>
+        <div className="slider">
+            <div className="slider-head">
+                <span className="slider-label">{Text(label)}</span>
+                <span className="slider-value">{Text(Format(value) + suffix)}</span>
+            </div>
+            <input className="slider-input" type="range" value={Number(value)} attributes={new()
+            {
+                ["min"] = Number(min),
+                ["max"] = Number(max),
+                ["step"] = Number(step),
+            }} onInput={onInput} />
+        </div>;
 
     /// <summary>A titled block inside a panel.</summary>
     public static Node Section(string title, params Node[] children) =>
-        Div(new() { className = "section" },
-            Div(new() { className = "section-head" },
-                Span(new() { className = "section-title" }, Text(title)),
-                Span(new() { className = "section-rule" })),
-            Div(new() { className = "section-body" }, children));
+        <div className="section">
+            <div className="section-head">
+                <span className="section-title">{Text(title)}</span>
+                <span className="section-rule" />
+            </div>
+            <div className="section-body">{children}</div>
+        </div>;
 
     /// <summary>A labelled value that steps through a fixed list.</summary>
     public static Node Stepper(string value, string title, Action previous, Action next) =>
-        Div(new() { className = "stepper", Title = title },
-            HtmlHelper.Button(new() { className = "stepper-btn", Title = "Previous", OnClick = previous },
-                Icon(Icons.Previous, "stepper-glyph")),
-            Span(new() { className = "stepper-value" }, Text(value)),
-            HtmlHelper.Button(new() { className = "stepper-btn", Title = "Next", OnClick = next },
-                Icon(Icons.Next, "stepper-glyph")));
+        <div className="stepper" title={title}>
+            <button className="stepper-btn" title="Previous" onClick={previous}>
+                {Icon(Icons.Previous, "stepper-glyph")}
+            </button>
+            <span className="stepper-value">{Text(value)}</span>
+            <button className="stepper-btn" title="Next" onClick={next}>
+                {Icon(Icons.Next, "stepper-glyph")}
+            </button>
+        </div>;
 
     /// <summary>An action button with a leading glyph.</summary>
     public static Node ButtonIcon(string icon, string label, string title, Action onClick, bool enabled = true, bool regular = false) =>
-        HtmlHelper.Button(new()
-        {
-            className = "btn",
-            Title = title,
-            Disabled = !enabled,
-            OnClick = onClick,
-        }, Icon(icon, "btn-icon", regular), Text(label));
+        <button className="btn" title={title} disabled={!enabled} onClick={onClick}>
+            {Icon(icon, "btn-icon", regular)}
+            {Text(label)}
+        </button>;
 
     /// <summary>An action button.</summary>
     public static Node Button(string label, string title, Action onClick, bool enabled = true) =>
-        HtmlHelper.Button(new()
-        {
-            className = "btn",
-            Title = title,
-            Disabled = !enabled,
-            OnClick = onClick,
-        }, Text(label));
+        <button className="btn" title={title} disabled={!enabled} onClick={onClick}>{Text(label)}</button>;
 
     /// <summary>A two-state toggle button.</summary>
     public static Node Toggle(string label, string title, bool active, Action onClick) =>
-        HtmlHelper.Button(new()
-        {
-            className = active ? "btn is-on" : "btn",
-            Title = title,
-            OnClick = onClick,
-        }, Text(label));
+        <button className={active ? "btn is-on" : "btn"} title={title} onClick={onClick}>{Text(label)}</button>;
 
     /// <summary>The black-over-white mark used by the default-colours button.</summary>
     public static Node DefaultsGlyph() =>
-        Span(new() { className = "defaults-glyph" },
-            Span(new() { className = "defaults-dot is-dark" }),
-            Span(new() { className = "defaults-dot is-light" }));
+        <span className="defaults-glyph">
+            <span className="defaults-dot is-dark" />
+            <span className="defaults-dot is-light" />
+        </span>;
 
     /// <summary>A small square swatch painted by a canvas.</summary>
     public static Node Swatch(string className, uint color, string title, Action onClick, int width = 24, int height = 18) =>
-        Canvas(new CanvasProps
-        {
-            className = className,
-            Title = title,
-            Attributes = Size(width, height),
-            OnClick = onClick,
-            OnDraw = context => context.Clear(RgbaOpaque(color)),
-        });
+        <canvas className={className} title={title} attributes={Size(width, height)} onClick={onClick} onCanvasDraw={(Action<CanvasContext>)(context => context.Clear(RgbaOpaque(color)))} />;
 
     /// <summary>Makes a colour opaque.</summary>
     public static uint RgbaOpaque(uint color) => 0xFF000000u | (color & 0x00FFFFFFu);
